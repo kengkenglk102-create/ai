@@ -120,7 +120,7 @@ function buildDefaultExpandedGroups(_groups: SessionGroup[]): string[] {
 }
 
 function formatRelativeTime(value: number | null | undefined, isZh: boolean): string {
-  if (!value) return isZh ? '时间未知' : 'Unknown';
+  if (!value) return isZh ? 'Thời gian không xác định' : 'Unknown';
   const diffSeconds = Math.max(0, Math.floor(Date.now() / 1000) - value);
   const minute = 60;
   const hour = 60 * minute;

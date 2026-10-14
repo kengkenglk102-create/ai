@@ -204,7 +204,7 @@ export function buildCodexPlanFilterOptions(
   if (options?.includePending ?? true) {
     result.push({
       value: "PENDING",
-      label: `${options?.pendingLabel ?? "待授权"} (${getCodexPlanFilterCount(
+      label: `${options?.pendingLabel ?? "Chờ ủy quyền"} (${getCodexPlanFilterCount(
         counts,
         "PENDING",
       )})`,
@@ -219,13 +219,13 @@ export function buildCodexPlanFilterOptions(
   if (options?.includeZeroQuota) {
     result.push({
       value: CODEX_ZERO_QUOTA_FILTER_VALUE,
-      label: `${options.zeroQuotaLabel ?? "0% 额度"} (${counts.ZERO_QUOTA})`,
+      label: `${options.zeroQuotaLabel ?? "0% hạn mức"} (${counts.ZERO_QUOTA})`,
     });
   }
   if (options?.includeExpired) {
     result.push({
       value: CODEX_EXPIRED_FILTER_VALUE,
-      label: `${options.expiredLabel ?? "已过期"} (${counts.EXPIRED})`,
+      label: `${options.expiredLabel ?? "Đã hết hạn"} (${counts.EXPIRED})`,
     });
   }
   if (options?.includeValid && options.validOption) {
@@ -323,7 +323,7 @@ export function isCodexOverviewAccountAbnormal(
   if (
     errorCode === "unsupported_country_region_territory" ||
     lowerRawMessage.includes("unsupported_country_region_territory") ||
-    lowerRawMessage.includes("当前网络地区不支持刷新 codex 授权")
+    lowerRawMessage.includes("Khu vực mạng hiện tại không hỗ trợ làm mới ủy quyền Codex")
   ) {
     return false;
   }
@@ -340,14 +340,14 @@ export function isCodexOverviewAccountAbnormal(
     lowerRawMessage.includes("refresh_token_expired") ||
     lowerRawMessage.includes("refresh_token_invalidated") ||
     lowerRawMessage.includes("token_invalidated") ||
-    lowerRawMessage.includes("refresh_token 已被其它客户端或实例使用过") ||
+    lowerRawMessage.includes("refresh_token đã được sử dụng bởi máy khách hoặc phiên bản khác") ||
     lowerRawMessage.includes("your authentication token has been invalidated") ||
     lowerRawMessage.includes("401 unauthorized") ||
     lowerRawMessage.includes("invalid_grant") ||
-    lowerRawMessage.includes("token 已过期且无 refresh_token") ||
-    lowerRawMessage.includes("缺少 refresh_token") ||
-    lowerRawMessage.includes("token 已过期且刷新失败") ||
-    lowerRawMessage.includes("刷新 token 失败")
+    lowerRawMessage.includes("Token đã hết hạn và không có refresh_token") ||
+    lowerRawMessage.includes("Thiếu refresh_token") ||
+    lowerRawMessage.includes("Token đã hết hạn và làm mới thất bại") ||
+    lowerRawMessage.includes("Làm mới token thất bại")
   );
 }
 

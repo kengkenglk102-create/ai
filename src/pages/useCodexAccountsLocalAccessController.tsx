@@ -517,7 +517,7 @@ export function useCodexAccountsLocalAccessController(context: Pick<ReturnType<t
         if (
           errorCode === "unsupported_country_region_territory" ||
           rawMessage.includes("unsupported_country_region_territory") ||
-          rawMessage.includes("当前网络地区不支持刷新 codex 授权")
+          rawMessage.includes("Khu vực mạng hiện tại không hỗ trợ làm mới ủy quyền Codex")
         ) {
           return false;
         }
@@ -535,10 +535,10 @@ export function useCodexAccountsLocalAccessController(context: Pick<ReturnType<t
           rawMessage.includes("your authentication token has been invalidated") ||
           rawMessage.includes("401 unauthorized") ||
           rawMessage.includes("invalid_grant") ||
-          rawMessage.includes("token 已过期且无 refresh_token") ||
-          rawMessage.includes("缺少 refresh_token") ||
-          rawMessage.includes("token 已过期且刷新失败") ||
-          rawMessage.includes("刷新 token 失败") ||
+          rawMessage.includes("Token đã hết hạn và không có refresh_token") ||
+          rawMessage.includes("Thiếu refresh_token") ||
+          rawMessage.includes("Token đã hết hạn và làm mới thất bại") ||
+          rawMessage.includes("Làm mới token thất bại") ||
           isCodexIdTokenReauthReason(quotaErrorMeta.rawMessage)
         );
       },

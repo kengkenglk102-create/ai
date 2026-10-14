@@ -641,7 +641,7 @@ impl Default for TrayIconStyle {
 }
 
 fn default_ws_enabled() -> bool {
-    true
+    false
 }
 fn default_ws_port() -> u16 {
     DEFAULT_WS_PORT
@@ -671,7 +671,7 @@ fn default_diagnostics_error_reporting_debug() -> bool {
     false
 }
 fn default_language() -> String {
-    "zh-cn".to_string()
+    "vi".to_string()
 }
 fn default_default_terminal() -> String {
     "system".to_string()
@@ -718,11 +718,11 @@ fn default_ui_scale() -> f64 {
     1.0
 }
 fn default_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_codex_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_codex_auto_refresh_plan_types() -> Vec<String> {
     ["free", "go", "plus", "pro", "team", "business", "enterprise", "edu_k12", "unknown"]
         .into_iter().map(str::to_string).collect()
@@ -738,43 +738,43 @@ fn default_codex_wsl_config_dir() -> String {
     String::new()
 }
 fn default_zed_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_ghcp_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_windsurf_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_kiro_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_cursor_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_grok_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_claude_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_codebuddy_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_codebuddy_cn_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_workbuddy_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_qoder_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_zcode_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_trae_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_close_behavior() -> CloseWindowBehavior {
     CloseWindowBehavior::Ask
@@ -1050,7 +1050,7 @@ fn default_codex_hide_relay_quota() -> bool {
     false
 }
 fn default_top_right_ad_visible() -> bool {
-    true
+    false
 }
 fn default_antigravity_dual_switch_no_restart_enabled() -> bool {
     false
@@ -1191,7 +1191,7 @@ fn default_workbuddy_quota_alert_threshold() -> i32 {
 impl Default for UserConfig {
     fn default() -> Self {
         Self {
-            ws_enabled: true,
+            ws_enabled: false,
             ws_port: DEFAULT_WS_PORT,
             report_enabled: default_report_enabled(),
             report_port: default_report_port(),

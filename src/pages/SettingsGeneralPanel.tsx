@@ -1084,7 +1084,7 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                           </option>
                         )}
                         <option value="-1" disabled={hasActiveResetTasks}>{t('settings.general.autoRefreshDisabled')}</option>
-                        <option value="2">2 {t('settings.general.minutes')}</option>
+                        <option value="2" disabled={hasActiveResetTasks}>2 {t('settings.general.minutes')}</option>
                         <option value="5" disabled={hasActiveResetTasks}>5 {t('settings.general.minutes')}</option>
                         <option value="10" disabled={hasActiveResetTasks}>10 {t('settings.general.minutes')}</option>
                         <option value="15" disabled={hasActiveResetTasks}>15 {t('settings.general.minutes')}</option>
@@ -1690,6 +1690,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                         <option value="5">5 {t('settings.general.minutes')}</option>
                         <option value="10">10 {t('settings.general.minutes')}</option>
                         <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="30">30 {t('settings.general.minutes')}</option>
+                        <option value="60">60 {t('settings.general.minutes')}</option>
                         <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                       </select>
                     )}
@@ -1878,6 +1880,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                         <option value="5">5 {t('settings.general.minutes')}</option>
                         <option value="10">10 {t('settings.general.minutes')}</option>
                         <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="30">30 {t('settings.general.minutes')}</option>
+                        <option value="60">60 {t('settings.general.minutes')}</option>
                         <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                       </select>
                     )}
@@ -2066,6 +2070,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                         <option value="5">5 {t('settings.general.minutes')}</option>
                         <option value="10">10 {t('settings.general.minutes')}</option>
                         <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="30">30 {t('settings.general.minutes')}</option>
+                        <option value="60">60 {t('settings.general.minutes')}</option>
                         <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                       </select>
                     )}
@@ -2255,6 +2261,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                         <option value="5">5 {t('settings.general.minutes')}</option>
                         <option value="10">10 {t('settings.general.minutes')}</option>
                         <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="30">30 {t('settings.general.minutes')}</option>
+                        <option value="60">60 {t('settings.general.minutes')}</option>
                         <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                       </select>
                     )}
@@ -2467,6 +2475,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                             <option value="5">5 {t('settings.general.minutes')}</option>
                             <option value="10">10 {t('settings.general.minutes')}</option>
                             <option value="15">15 {t('settings.general.minutes')}</option>
+                            <option value="30">30 {t('settings.general.minutes')}</option>
+                            <option value="60">60 {t('settings.general.minutes')}</option>
                             <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                           </select>
                         )}
@@ -2664,6 +2674,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                             <option value="5">5 {t('settings.general.minutes')}</option>
                             <option value="10">10 {t('settings.general.minutes')}</option>
                             <option value="15">15 {t('settings.general.minutes')}</option>
+                            <option value="30">30 {t('settings.general.minutes')}</option>
+                            <option value="60">60 {t('settings.general.minutes')}</option>
                             <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                           </select>
                         )}
@@ -2855,6 +2867,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                             <option value="5">5 {t('settings.general.minutes')}</option>
                             <option value="10">10 {t('settings.general.minutes')}</option>
                             <option value="15">15 {t('settings.general.minutes')}</option>
+                            <option value="30">30 {t('settings.general.minutes')}</option>
+                            <option value="60">60 {t('settings.general.minutes')}</option>
                             <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                           </select>
                         )}
@@ -2973,6 +2987,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                             <option value="5">5 {t('settings.general.minutes')}</option>
                             <option value="10">10 {t('settings.general.minutes')}</option>
                             <option value="15">15 {t('settings.general.minutes')}</option>
+                            <option value="30">30 {t('settings.general.minutes')}</option>
+                            <option value="60">60 {t('settings.general.minutes')}</option>
                             <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                           </select>
                         )}
@@ -3126,9 +3142,9 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                 target: 'trae_solo',
                 order: platformSettingsOrder.trae_solo,
                 titleKey: 'quickSettings.traeSolo.title',
-                titleDefault: 'TRAE SOLO 设置',
+                titleDefault: 'Cài đặt TRAE SOLO',
                 appPathTitleKey: 'settings.general.traeSoloAppPath',
-                appPathTitleDefault: 'TRAE SOLO 启动路径',
+                appPathTitleDefault: 'Đường dẫn khởi chạy TRAE SOLO',
                 autoRefresh: traeSoloAutoRefresh,
                 setAutoRefresh: setTraeSoloAutoRefresh,
                 autoRefreshCustomMode: traeSoloAutoRefreshCustomMode,
@@ -3147,9 +3163,9 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                 target: 'trae_cn',
                 order: platformSettingsOrder.trae_cn,
                 titleKey: 'quickSettings.traeCn.title',
-                titleDefault: 'Trae CN 设置',
+                titleDefault: 'Cài đặt Trae CN',
                 appPathTitleKey: 'settings.general.traeCnAppPath',
-                appPathTitleDefault: 'Trae CN 启动路径',
+                appPathTitleDefault: 'Đường dẫn khởi chạy Trae CN',
                 autoRefresh: traeCnAutoRefresh,
                 setAutoRefresh: setTraeCnAutoRefresh,
                 autoRefreshCustomMode: traeCnAutoRefreshCustomMode,
@@ -3168,9 +3184,9 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                 target: 'trae_solo_cn',
                 order: platformSettingsOrder.trae_solo_cn,
                 titleKey: 'quickSettings.traeSoloCn.title',
-                titleDefault: 'TRAE SOLO CN 设置',
+                titleDefault: 'Cài đặt TRAE SOLO CN',
                 appPathTitleKey: 'settings.general.traeSoloCnAppPath',
-                appPathTitleDefault: 'TRAE SOLO CN 启动路径',
+                appPathTitleDefault: 'Đường dẫn khởi chạy TRAE SOLO CN',
                 autoRefresh: traeSoloCnAutoRefresh,
                 setAutoRefresh: setTraeSoloCnAutoRefresh,
                 autoRefreshCustomMode: traeSoloCnAutoRefreshCustomMode,
@@ -3249,6 +3265,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                             <option value="5">5 {t('settings.general.minutes')}</option>
                             <option value="10">10 {t('settings.general.minutes')}</option>
                             <option value="15">15 {t('settings.general.minutes')}</option>
+                            <option value="30">30 {t('settings.general.minutes')}</option>
+                            <option value="60">60 {t('settings.general.minutes')}</option>
                             <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                           </select>
                         )}
@@ -3461,6 +3479,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                             <option value="5">5 {t('settings.general.minutes')}</option>
                             <option value="10">10 {t('settings.general.minutes')}</option>
                             <option value="15">15 {t('settings.general.minutes')}</option>
+                            <option value="30">30 {t('settings.general.minutes')}</option>
+                            <option value="60">60 {t('settings.general.minutes')}</option>
                             <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                           </select>
                         )}
@@ -3648,6 +3668,8 @@ export function SettingsGeneralPanel(props: SettingsPageViewProps) {
                         <option value="5">5 {t('settings.general.minutes')}</option>
                         <option value="10">10 {t('settings.general.minutes')}</option>
                         <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="30">30 {t('settings.general.minutes')}</option>
+                        <option value="60">60 {t('settings.general.minutes')}</option>
                         <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
                       </select>
                     )}

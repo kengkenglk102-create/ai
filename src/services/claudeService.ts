@@ -38,7 +38,7 @@ function normalizeClaudeDesktopLoginStartResponse(
   const intervalSeconds = Number(raw.intervalSeconds ?? raw.interval_seconds ?? 0);
 
   if (!loginId || !userDataDir) {
-    throw new Error('Claude login start 响应缺少关键字段');
+    throw new Error('Phản hồi Claude login start thiếu các trường khóa');
   }
 
   return {
@@ -56,7 +56,7 @@ function normalizeClaudeOAuthStartResponse(raw: ClaudeOAuthStartResponseRaw): Cl
   const intervalSeconds = Number(raw.intervalSeconds ?? raw.interval_seconds ?? 0);
 
   if (!loginId || !verificationUri) {
-    throw new Error('Claude OAuth start 响应缺少关键字段');
+    throw new Error('Phản hồi Claude OAuth start thiếu các trường khóa');
   }
 
   return {

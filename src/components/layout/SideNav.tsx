@@ -140,7 +140,7 @@ export function SideNav({
   updateProgress,
   onUpdateActionClick,
   updateRemindersEnabled,
-  sponsorEntryVisible,
+  sponsorEntryVisible: _sponsorEntryVisible,
   onOpenLogViewer,
 }: SideNavProps) {
   const { t } = useTranslation();
@@ -180,7 +180,6 @@ export function SideNav({
     hiddenEntryIds,
     sidebarEntryIds,
     platformGroups,
-    apiRelaySidebarVisible,
     apiRelayEntryOrder,
   } = usePlatformLayoutStore();
   const remoteHiddenPlatformIds = useRemoteConfigStore((state) => state.hiddenPlatformIds);
@@ -210,7 +209,7 @@ export function SideNav({
       isMenuVisiblePlatform(platformId) && !remoteHiddenPlatformSet.has(platformId),
     [remoteHiddenPlatformSet],
   );
-  const apiRelayEntryVisible = sponsorEntryVisible && apiRelaySidebarVisible;
+  const apiRelayEntryVisible = false;
 
   const orderedEntries = useMemo<SideNavEntry[]>(() => {
     const platformEntries: SideNavEntry[] = orderedEntryIds

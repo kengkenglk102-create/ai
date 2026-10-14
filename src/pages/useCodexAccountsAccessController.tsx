@@ -447,37 +447,37 @@ export function useCodexAccountsAccessController(context: CodexAccountsAccessCon
         }
         if (
           lower.includes("unsupported_country_region_territory") ||
-          raw.includes("当前网络地区不支持刷新 Codex 授权")
+          raw.includes("Khu vực mạng hiện tại không hỗ trợ làm mới ủy quyền Codex")
         ) {
           return t(
             "codex.authError.unsupportedCountryRegion",
-            "当前网络地区不支持刷新 Codex 授权。OpenAI 授权服务拒绝了当前网络出口的刷新请求，请切换到支持的网络地区后重试。",
+            "Khu vực mạng hiện tại không hỗ trợ làm mới ủy quyền Codex。OpenAI 授权服务拒绝了当前网络出口的刷新请求，请切换到支持的网络地区后重试。",
           );
         }
         if (
           lower.includes("refresh_token_expired") ||
-          raw.includes("Codex 登录授权已过期")
+          raw.includes("Ủy quyền đăng nhập Codex đã hết hạn")
         ) {
           return t(
             "codex.authError.refreshTokenExpired",
-            "Codex 登录授权已过期，无法自动刷新。请重新登录 Codex 账号。",
+            "Ủy quyền đăng nhập Codex đã hết hạn，无法自动刷新。请重新登录 Codex 账号。",
           );
         }
         if (
           lower.includes("refresh_token_invalidated") ||
           lower.includes("token_invalidated") ||
-          raw.includes("Codex 登录授权已被服务端撤销")
+          raw.includes("Ủy quyền đăng nhập Codex đã bị máy chủ thu hồi")
         ) {
           return t(
             "codex.authError.refreshTokenInvalidated",
-            "Codex 登录授权已被服务端撤销，无法自动刷新。请重新登录 Codex 账号。",
+            "Ủy quyền đăng nhập Codex đã bị máy chủ thu hồi，无法自动刷新。请重新登录 Codex 账号。",
           );
         }
         if (
           lower.includes("invalid_grant") ||
           lower.includes("invalid refresh token") ||
-          raw.includes("缺少 refresh_token") ||
-          raw.includes("无 refresh_token")
+          raw.includes("Thiếu refresh_token") ||
+          raw.includes("Không có refresh_token")
         ) {
           return t(
             "codex.authError.invalidGrant",
@@ -2851,7 +2851,7 @@ export function useCodexAccountsAccessController(context: CodexAccountsAccessCon
           }
         }
         if (imported.length === 0) {
-          throw new Error(failures.join("; ") || "无法解析导入内容");
+          throw new Error(failures.join("; ") || "Không thể phân tích nội dung nhập");
         }
         // 待授权账号若带 2FA 秘钥，同步写入本地 MFA 速查
         for (const account of imported) {

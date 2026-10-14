@@ -19,7 +19,7 @@ export function WorkbuddyInstancesContent({
   accountsForSelect,
 }: WorkbuddyInstancesContentProps = {}) {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language || 'zh-CN';
+  const locale = i18n.language || 'vi';
   const instanceStore = useWorkbuddyInstanceStore();
   const { accounts: storeAccounts, fetchAccounts } = useWorkbuddyAccountStore();
   const sourceAccounts = accountsForSelect ?? storeAccounts;
@@ -54,9 +54,9 @@ export function WorkbuddyInstancesContent({
       appType="workbuddy"
       isSupported={isSupportedPlatform}
       unsupportedTitleKey="common.shared.instances.unsupported.title"
-      unsupportedTitleDefault="暂不支持当前系统"
+      unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
       unsupportedDescKey="workbuddy.instances.unsupported.descPlatform"
-      unsupportedDescDefault="WorkBuddy 应用多开仅支持 macOS、Windows 和 Linux。"
+      unsupportedDescDefault="Đa cửa sổ WorkBuddy chỉ hỗ trợ macOS, Windows và Linux."
     />
   );
 }

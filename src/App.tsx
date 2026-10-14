@@ -2335,11 +2335,11 @@ function MainApp() {
 
     const checkUpdates = async (trigger: 'startup' | 'hourly') => {
       if (updateCheckInFlight) {
-        writeUpdateLog('info', `${trigger === 'startup' ? '启动' : '每小时轮询'}更新检查跳过：上一次尚未结束`);
+        writeUpdateLog('info', `${trigger === 'startup' ? 'Khởi động' : 'Định kỳ mỗi giờ'}更新检查跳过：上一次尚未结束`);
         return;
       }
       updateCheckInFlight = true;
-      const triggerLabel = trigger === 'startup' ? '启动' : '每小时轮询';
+      const triggerLabel = trigger === 'startup' ? 'Khởi động' : 'Định kỳ mỗi giờ';
       const updateFlowStartedAt = performance.now();
       try {
         console.log(`[App] ${triggerLabel} update check triggered.`);
@@ -3192,15 +3192,20 @@ function MainApp() {
       trayRefreshInFlightRef.current = true;
 
       try {
-        await Promise.all(
-          refreshTasks.map(({ command, errorMessage }) =>
-            invoke(command, command === 'refresh_current_quota'
+        for (let i = 0; i < refreshTasks.length; i++) {
+          const { command, errorMessage } = refreshTasks[i];
+          try {
+            await invoke(command, command === 'refresh_current_quota'
               ? { runtimeTarget: getAntigravityRuntimeTarget() }
-              : undefined).catch((error) => {
-              console.error(errorMessage, error);
-            }),
-          ),
-        );
+              : undefined);
+          } catch (error) {
+            console.error(errorMessage, error);
+          }
+          if (i < refreshTasks.length - 1) {
+            const jitterMs = Math.floor(Math.random() * (3500 - 1500 + 1)) + 1500;
+            await new Promise((resolve) => setTimeout(resolve, jitterMs));
+          }
+        }
       } finally {
         trayRefreshInFlightRef.current = false;
       }

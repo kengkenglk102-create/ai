@@ -93,8 +93,8 @@ export function isCodexApiServiceAuthRejected(
   const lower = raw.toLowerCase();
   const code = String(quotaError.code || "").trim().toLowerCase();
   const refreshFailure =
-    lower.includes("刷新 token") ||
-    lower.includes("token 刷新") ||
+    lower.includes("Làm mới token") ||
+    lower.includes("Làm mới token") ||
     lower.includes("refresh_token") ||
     lower.includes("refresh token");
   const apiRequestUnauthorized =
@@ -144,10 +144,10 @@ export function isCodexRefreshTokenReauthReason(reason?: string | null): boolean
     /\b(?:refresh_token_expired|refresh_token_invalidated|token_invalidated|token_revoked|invalid_grant|invalid_refresh_token)\b/.test(normalized) ||
     normalized.includes("invalid refresh token") ||
     normalized.includes("authentication token has been invalidated") ||
-    normalized.includes("登录授权已被服务端撤销") ||
+    normalized.includes("Ủy quyền đăng nhập đã bị máy chủ thu hồi") ||
     ((normalized.includes("status=401") || normalized.includes("401 unauthorized")) &&
       !/proxy|certificate|\btls\b|\bssl\b/.test(normalized) &&
-      (normalized.includes("refresh") || normalized.includes("刷新") || normalized.includes("登录授权无效")))
+      (normalized.includes("refresh") || normalized.includes("刷新") || normalized.includes("Ủy quyền đăng nhập không hợp lệ")))
   );
 }
 
@@ -159,7 +159,7 @@ export function isCodexRefreshTokenReusedReason(
   return (
     normalized.includes("refresh_token_reused") ||
     normalized.includes("refresh token has been reused") ||
-    normalized.includes("refresh_token 已被其它客户端或实例使用过")
+    normalized.includes("refresh_token đã được sử dụng bởi máy khách hoặc phiên bản khác")
   );
 }
 
@@ -178,10 +178,10 @@ export function isCodexIdTokenReauthReason(reason?: string | null): boolean {
   const normalized = reason?.trim().toLowerCase() || "";
   if (!normalized.includes("id_token")) return false;
   return (
-    normalized.includes("已过期") ||
-    normalized.includes("无效") ||
-    normalized.includes("即将过期") ||
-    normalized.includes("未获得新的有效") ||
+    normalized.includes("Đã hết hạn") ||
+    normalized.includes("Không hợp lệ") ||
+    normalized.includes("Sắp hết hạn") ||
+    normalized.includes("Chưa nhận được ủy quyền hợp lệ mới") ||
     normalized.includes("expired") ||
     normalized.includes("invalid") ||
     normalized.includes("missing")
@@ -204,7 +204,7 @@ export function isCodexServerRevokedReauth(
     reason.includes("refresh_token_invalidated") ||
     reason.includes("token_invalidated") ||
     reason.includes("authentication token has been invalidated") ||
-    reason.includes("服务端撤销") ||
+    reason.includes("Máy chủ đã thu hồi") ||
     quotaCode === "refresh_token_invalidated" ||
     quotaCode === "token_invalidated"
   );

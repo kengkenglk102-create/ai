@@ -316,7 +316,7 @@ export const AccountGroupModal = ({
   const quotaSelectOptions = [
     { value: 'inherit', label: t('accounts.groups.quotaRefreshInherit') },
     { value: '-1', label: t('settings.general.autoRefreshDisabled') },
-    ...[2, 5, 10, 15].map((minutes) => ({ value: String(minutes), label: `${minutes} ${t('settings.general.minutes')}` })),
+    ...[2, 5, 10, 15, 30, 60].map((minutes) => ({ value: String(minutes), label: `${minutes} ${t('settings.general.minutes')}` })),
     { value: 'custom', label: t('settings.general.autoRefreshCustom') },
   ];
 

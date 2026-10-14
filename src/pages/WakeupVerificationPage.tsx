@@ -188,7 +188,7 @@ function matchesDetailFilter(item: WakeupVerificationStateItem, filter: DetailFi
 export function WakeupVerificationPage({ onNavigate }: WakeupVerificationPageProps) {
   const { t, i18n } = useTranslation();
   const { accounts, fetchAccounts } = useAccountStore();
-  const locale = i18n.language || 'zh-CN';
+  const locale = i18n.language || 'vi';
 
   const [running, setRunning] = useState(false);
   const [notice, setNotice] = useState<{ text: string; tone: 'success' | 'warning' | 'error' } | null>(null);
@@ -1414,7 +1414,7 @@ export function WakeupVerificationPage({ onNavigate }: WakeupVerificationPagePro
                     <input
                       type="text"
                       className="verification-account-search"
-                      placeholder={t('accounts.search.placeholder', '搜索账号...')}
+                      placeholder={t('accounts.search', 'Tìm kiếm tài khoản...')}
                       value={accountSearchQuery}
                       onChange={(e) => setAccountSearchQuery(e.target.value)}
                     />

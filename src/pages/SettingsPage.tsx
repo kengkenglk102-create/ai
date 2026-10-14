@@ -297,8 +297,8 @@ type ClaudeDesktopLaunchCandidate = {
   supports_multi_instance: boolean;
 };
 type AppLaunchCandidate = ClaudeDesktopLaunchCandidate;
-const REFRESH_PRESET_VALUES = ['-1', '2', '5', '10', '15'];
-const CURRENT_ACCOUNT_REFRESH_PRESET_VALUES = ['1', '2', '5', '10', '15'];
+const REFRESH_PRESET_VALUES = ['-1', '2', '5', '10', '15', '30', '60'];
+const CURRENT_ACCOUNT_REFRESH_PRESET_VALUES = ['1', '2', '5', '10', '15', '30', '60'];
 const THRESHOLD_PRESET_VALUES = ['0', '20', '40', '60'];
 const CREDITS_THRESHOLD_PRESET_VALUES = ['0', '5', '10', '20'];
 const ANTIGRAVITY_SEAMLESS_SWITCH_UNLOCK_REQUIRED_TAPS = 10;
@@ -472,9 +472,10 @@ export function useSettingsPageController() {
   }, [orderedPlatformIds]);
 
   const languageOptions = [
+    { value: 'vi', label: 'Tiếng Việt' },
+    { value: 'en', label: 'English' },
     { value: 'zh-cn', label: '简体中文' },
     { value: 'zh-tw', label: '繁體中文' },
-    { value: 'en', label: 'English' },
     { value: 'ja', label: '日本語' },
     { value: 'ko', label: '한국어' },
     { value: 'de', label: 'Deutsch' },
@@ -486,7 +487,6 @@ export function useSettingsPageController() {
     { value: 'tr', label: 'Türkçe' },
     { value: 'pl', label: 'Polski' },
     { value: 'cs', label: 'Čeština' },
-    { value: 'vi', label: 'Tiếng Việt' },
     { value: 'ar', label: 'العربية' },
     { value: 'id', label: 'Bahasa Indonesia' },
   ];
@@ -521,7 +521,7 @@ export function useSettingsPageController() {
   const [webdavAllowedDomains, setWebdavAllowedDomains] = useState('');
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(false);
   const [uiScale, setUiScale] = useState('1');
-  const [autoRefresh, setAutoRefresh] = useState('5');
+  const [autoRefresh, setAutoRefresh] = useState('10');
   const [codexAutoRefresh, setCodexAutoRefresh] = useState('10');
   const [codexAutoRefreshPlanTypes, setCodexAutoRefreshPlanTypes] = useState<string[]>([...ALL_CODEX_AUTO_REFRESH_PLAN_KEYS]);
   const [claudeAutoRefresh, setClaudeAutoRefresh] = useState('10');
@@ -940,7 +940,7 @@ export function useSettingsPageController() {
   }, []);
   
   // Network States
-  const [wsEnabled, setWsEnabled] = useState(true);
+  const [wsEnabled, setWsEnabled] = useState(false);
   const [wsPort, setWsPort] = useState('19528');
   const [actualPort, setActualPort] = useState<number | null>(null);
   const [defaultPort, setDefaultPort] = useState(19528);
@@ -2512,6 +2512,8 @@ export function useSettingsPageController() {
                 <option value="5">5 {t('settings.general.minutes')}</option>
                 <option value="10">10 {t('settings.general.minutes')}</option>
                 <option value="15">15 {t('settings.general.minutes')}</option>
+                <option value="30">30 {t('settings.general.minutes')}</option>
+                <option value="60">60 {t('settings.general.minutes')}</option>
                 <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
               </select>
             )}
@@ -2832,6 +2834,8 @@ export function useSettingsPageController() {
               <option value="5">5 {t('settings.general.minutes')}</option>
               <option value="10">10 {t('settings.general.minutes')}</option>
               <option value="15">15 {t('settings.general.minutes')}</option>
+              <option value="30">30 {t('settings.general.minutes')}</option>
+              <option value="60">60 {t('settings.general.minutes')}</option>
               <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
             </select>
           )}

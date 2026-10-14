@@ -74,7 +74,7 @@ export const APIKEY_FUN_FAMILIES: readonly ApiKeyFunFamilyPreset[] = [
   },
   {
     id: "glm",
-    label: "智谱 GLM",
+    label: "Zhipu GLM",
     prefixes: ["glm-", "zhipu-"],
     preferredModels: ["glm-5.2", "glm-5.1", "glm-4.6"],
     fallbackModel: "glm-5.2",
@@ -258,7 +258,7 @@ export function buildShellEnvCommands(
   if (platform === "windows") {
     return [
       ...entries.map(([key, value]) => `set ${key}=${value}`),
-      "# 或 PowerShell：",
+      "# Hoặc PowerShell:",
       ...entries.map(([key, value]) => `$env:${key}="${value}"`),
     ].join("\n");
   }
@@ -282,7 +282,7 @@ export function buildApiKeyFunClientPreview(input: {
 }): ApiKeyFunClientPreview {
   const { family, client, apiKey, model, platform } = input;
   if (client === "codex_app" || client === "codex_cli") {
-    const scope = platform === "windows" ? "C:\\Users\\<你>\\.codex" : "~/.codex";
+    const scope = platform === "windows" ? "C:\\Users\\<user>\\.codex" : "~/.codex";
     return {
       client,
       applyKind: "codex",

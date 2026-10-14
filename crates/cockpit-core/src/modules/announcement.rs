@@ -610,32 +610,13 @@ fn filter_top_right_ads(
 }
 
 async fn fetch_remote_announcements() -> Result<AnnouncementResponse, String> {
-    logger::log_info("[Announcement] 从远端拉取公告");
-
-    let client = reqwest::Client::builder()
-        .user_agent("Cockpit-Tools")
-        .timeout(std::time::Duration::from_secs(10))
-        .build()
-        .map_err(|e| format!("创建公告 HTTP 客户端失败: {}", e))?;
-
-    let url = format!("{}?t={}", ANNOUNCEMENT_URL, Utc::now().timestamp_millis());
-
-    let response = client
-        .get(url)
-        .header("Cache-Control", "no-cache")
-        .header("Pragma", "no-cache")
-        .send()
-        .await
-        .map_err(|e| format!("拉取远端公告失败: {}", e))?;
-
-    if !response.status().is_success() {
-        return Err(format!("远端公告接口返回异常状态: {}", response.status()));
-    }
-
-    response
-        .json()
-        .await
-        .map_err(|e| format!("解析远端公告失败: {}", e))
+    logger::log_info("[Announcement] 远程公告网络请求已禁用 (Anti-ad mode)");
+    Ok(AnnouncementResponse {
+        version: "1.0".to_string(),
+        announcements: Vec::new(),
+        top_right_ad: None,
+        top_right_ads: Vec::new(),
+    })
 }
 
 async fn load_announcements_raw() -> Result<AnnouncementResponse, String> {

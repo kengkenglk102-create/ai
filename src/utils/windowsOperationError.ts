@@ -200,7 +200,7 @@ function classifyCode(raw: string): WindowsOperationErrorCode {
     lower.includes("permission denied") ||
     lower.includes("access is denied") ||
     lower.includes("access denied") ||
-    raw.includes("拒绝访问")
+    raw.includes("Từ chối truy cập")
   ) {
     return "access_denied";
   }
@@ -209,8 +209,8 @@ function classifyCode(raw: string): WindowsOperationErrorCode {
     lower.includes("sharing violation") ||
     lower.includes("being used by another process") ||
     lower.includes("file is in use") ||
-    raw.includes("文件被占用") ||
-    raw.includes("正在使用")
+    raw.includes("Tệp đang bị chiếm dụng") ||
+    raw.includes("Đang được sử dụng")
   ) {
     return "file_in_use";
   }

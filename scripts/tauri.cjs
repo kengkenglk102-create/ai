@@ -4,12 +4,14 @@ const os = require('node:os');
 const path = require('node:path');
 
 const repoRoot = path.resolve(__dirname, '..');
-const goBinPath = 'C:\\Program Files\\Go\\bin';
+const userGoBinPath = path.join(os.homedir(), 'go', 'bin');
+const goBinPath = fs.existsSync(userGoBinPath) ? userGoBinPath : 'C:\\Program Files\\Go\\bin';
 const cargoBinPath = path.join(os.homedir(), '.cargo', 'bin');
+const mingwBinPath = path.join(os.homedir(), 'AppData', 'Local', 'Microsoft', 'WinGet', 'Packages', 'BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe', 'mingw64', 'bin');
 
 function withToolchainPaths(options = {}) {
   const currentPath = process.env.PATH || '';
-  const extraPaths = [cargoBinPath, goBinPath].filter((dir) => fs.existsSync(dir));
+  const extraPaths = [cargoBinPath, goBinPath, userGoBinPath, mingwBinPath].filter((dir) => fs.existsSync(dir));
   const pathValue = extraPaths.length > 0
     ? `${extraPaths.join(path.delimiter)}${path.delimiter}${currentPath}`
     : currentPath;
@@ -96,7 +98,7 @@ const quotedArgs = tauriArgs.map((arg) => {
 });
 const scriptBody = [
   '@echo off',
-  `set "PATH=${cargoBinPath};${goBinPath};%PATH%"`,
+  `set "PATH=${cargoBinPath};${goBinPath};${mingwBinPath};%PATH%"`,
   `call "${vcvars64Path}"`,
   'if errorlevel 1 exit /b %errorlevel%',
   'call npm.cmd run sync-version',

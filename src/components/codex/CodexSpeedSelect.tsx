@@ -45,9 +45,9 @@ export const CODEX_SPEED_DESCRIPTION: Record<
 > = {
   standard: {
     key: "codex.speed.standardDesc",
-    fallback: "默认速度，常规用量",
+    fallback: "Tốc độ mặc định, mức dùng tiêu chuẩn",
   },
-  fast: { key: "codex.speed.fastDesc", fallback: "加速，用量／费用更高" },
+  fast: { key: "codex.speed.fastDesc", fallback: "Tăng tốc, mức dùng / chi phí cao hơn" },
 };
 
 function resolveSpeedMenuPosition(
@@ -114,12 +114,12 @@ export function CodexSpeedSelect({
       {
         value: "standard" as CodexAppSpeed,
         label: t("codex.speed.standard", "标准"),
-        desc: t("codex.speed.standardDesc", "默认速度，常规用量"),
+        desc: t("codex.speed.standardDesc", "Tốc độ mặc định, mức dùng tiêu chuẩn"),
       },
       {
         value: "fast" as CodexAppSpeed,
         label: t("codex.speed.fast", "快速"),
-        desc: t("codex.speed.fastDesc", "加速，用量／费用更高"),
+        desc: t("codex.speed.fastDesc", "Tăng tốc, mức dùng / chi phí cao hơn"),
       },
     ],
     [t],

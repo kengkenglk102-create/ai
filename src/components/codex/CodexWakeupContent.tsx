@@ -2675,6 +2675,25 @@ export function CodexWakeupContent({
         </div>
       )}
 
+      <div
+        className="wakeup-safety-warning-banner"
+        style={{
+          background: 'rgba(234, 179, 8, 0.1)',
+          border: '1px solid rgba(234, 179, 8, 0.3)',
+          borderRadius: '8px',
+          padding: '10px 14px',
+          color: '#eab308',
+          fontSize: '13px',
+          lineHeight: '1.5',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '12px',
+        }}
+      >
+        <span>⚠️ Lưu ý an toàn: Việc bật tự động đánh thức định kỳ có thể bị máy chủ AI nhận diện là lưu lượng tự động (Bot) và dẫn đến giới hạn tài khoản.</span>
+      </div>
+
       <div className="toolbar wakeup-toolbar">
         <div className="toolbar-left">
           <div className={`wakeup-global-toggle ${state.enabled ? 'is-on' : 'is-off'}`}>

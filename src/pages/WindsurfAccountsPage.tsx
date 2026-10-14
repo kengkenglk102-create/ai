@@ -80,7 +80,7 @@ const WINDSURF_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.windsurf.flow_notice_collaps
 const WINDSURF_CURRENT_ACCOUNT_ID_KEY = 'agtools.windsurf.current_account_id';
 const WINDSURF_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('Windsurf');
 const FILTER_TYPES_FIELD = 'filter_types';
-const WINDSURF_TOKEN_SINGLE_EXAMPLE = `sk-ws-xxxxx 或 eyJxxxxx`;
+const WINDSURF_TOKEN_SINGLE_EXAMPLE = `sk-ws-xxxxx hoặc eyJxxxxx`;
 const WINDSURF_TOKEN_BATCH_EXAMPLE = `[
   {
     "id": "ws_demo_1",
@@ -1581,10 +1581,10 @@ export function WindsurfAccountsPage() {
             {addTab === 'token' && (
               <div className="add-section">
                 <p className="section-desc">{t('windsurf.token.desc', '粘贴您的 Windsurf API Key 或导出的 JSON 数据。')}</p>
-                <details className="token-format-collapse"><summary className="token-format-collapse-summary">必填字段与示例（点击展开）</summary>
-                  <div className="token-format"><p className="token-format-required">必填字段：github_access_token (API Key)</p>
-                    <div className="token-format-group"><div className="token-format-label">单条示例</div><pre className="token-format-code">{WINDSURF_TOKEN_SINGLE_EXAMPLE}</pre></div>
-                    <div className="token-format-group"><div className="token-format-label">批量示例（JSON）</div><pre className="token-format-code">{WINDSURF_TOKEN_BATCH_EXAMPLE}</pre></div>
+                <details className="token-format-collapse"><summary className="token-format-collapse-summary">Các trường bắt buộc và ví dụ (nhấp để mở rộng)</summary>
+                  <div className="token-format"><p className="token-format-required">Trường bắt buộc: github_access_token (API Key)</p>
+                    <div className="token-format-group"><div className="token-format-label">Ví dụ một mục</div><pre className="token-format-code">{WINDSURF_TOKEN_SINGLE_EXAMPLE}</pre></div>
+                    <div className="token-format-group"><div className="token-format-label">Ví dụ hàng loạt (JSON)</div><pre className="token-format-code">{WINDSURF_TOKEN_BATCH_EXAMPLE}</pre></div>
                   </div></details>
                 <textarea className="token-input" value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder={t('common.shared.token.placeholder', '粘贴 Token 或 JSON...')} />
                 <button className="btn btn-primary btn-full" onClick={handleTokenImport} disabled={importing || !tokenInput.trim()}>

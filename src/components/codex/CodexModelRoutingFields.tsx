@@ -831,7 +831,7 @@ export function CodexModelRoutingEditor({
                 <div className="codex-model-routing-card__models-bar">
                   <span className="codex-model-routing-card__models-label">
                     {t("instances.form.modelRouting.loadedModels", "已加载模型")}
-                    <span className="codex-model-routing-summary__count-badge" title="已启用 / 总数">
+                    <span className="codex-model-routing-summary__count-badge" title="Đã bật / Tổng số">
                       {route.selectedModels ? `${route.selectedModels.length}/${models.length}` : models.length}
                     </span>
                   </span>
@@ -859,7 +859,7 @@ export function CodexModelRoutingEditor({
                           className="codex-model-routing-card__action-btn"
                           disabled={disabled}
                           onClick={() => selectAllModels(route.id)}
-                          title="全选该渠道所有模型"
+                          title="Chọn tất cả mô hình của kênh này"
                         >
                           {t("common.selectAll", "全选")}
                         </button>
@@ -868,7 +868,7 @@ export function CodexModelRoutingEditor({
                           className="codex-model-routing-card__action-btn"
                           disabled={disabled}
                           onClick={() => clearAllModels(route.id)}
-                          title="清空已选模型"
+                          title="Xóa các mô hình đã chọn"
                         >
                           {t("common.clear", "清空")}
                         </button>

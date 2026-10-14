@@ -3,7 +3,7 @@ import { SettingsAccountTransferSection } from '../components/SettingsAccountTra
 import { SettingsWebdavSyncSection } from '../components/SettingsWebdavSyncSection';
 import { SettingsInstanceCleanupSection } from '../components/SettingsInstanceCleanupSection';
 import './settings/Settings.css';
-import { Github, User, Rocket, Save, AlertCircle, RefreshCw, Heart, MessageSquare, FileText, Download, X } from 'lucide-react';
+import { Github, User, Rocket, Save, AlertCircle, RefreshCw, MessageSquare, FileText, Download, X } from 'lucide-react';
 import type { PlatformId } from '../types/platform';
 import type { useSettingsPageController } from "./SettingsPage";
 import { SettingsGeneralPanel } from "./SettingsGeneralPanel";
@@ -468,12 +468,6 @@ export function SettingsPageView(props: SettingsPageViewProps) {
                 <div className="credit-icon" style={{ color: '#0f172a' }}><Github size={24} /></div>
                 <h3>{t('settings.about.github')}</h3>
                 <p>cockpit-tools</p>
-              </button>
-
-              <button className="credit-item" onClick={() => openLink('https://github.com/jlcodes99/cockpit-tools/blob/main/docs/DONATE.md')}>
-                <div className="credit-icon" style={{ color: '#ef4444' }}><Heart size={24} /></div>
-                <h3>{t('settings.about.sponsor')}</h3>
-                <p>{t('settings.about.sponsorDesc', 'Donate')}</p>
               </button>
 
               <button className="credit-item" onClick={() => openLink('https://github.com/jlcodes99/cockpit-tools/issues')}>

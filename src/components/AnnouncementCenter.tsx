@@ -531,8 +531,8 @@ export function AnnouncementHost({ onNavigate }: Pick<AnnouncementCenterProps, '
     <AnnouncementSurface
       onNavigate={onNavigate}
       showTrigger={false}
-      autoPopup
-      autoRefresh
+      autoPopup={false}
+      autoRefresh={false}
     />
   );
 }

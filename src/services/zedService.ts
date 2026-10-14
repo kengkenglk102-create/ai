@@ -17,7 +17,7 @@ function normalizeZedOAuthStartResponse(raw: ZedOAuthStartResponseRaw): ZedOAuth
   const callbackUrl = raw.callbackUrl ?? raw.callback_url ?? null;
 
   if (!loginId || !verificationUri) {
-    throw new Error('Zed OAuth start 响应缺少关键字段');
+    throw new Error('Phản hồi Zed OAuth start thiếu các trường khóa');
   }
 
   return {

@@ -948,32 +948,17 @@ fn filter_sponsor_module(
 }
 
 async fn fetch_remote_announcements() -> Result<AnnouncementResponse, String> {
-    logger::log_info("[Announcement] 从远端拉取公告");
-
-    let client = reqwest::Client::builder()
-        .user_agent("Cockpit-Tools")
-        .timeout(std::time::Duration::from_secs(10))
-        .build()
-        .map_err(|e| format!("创建公告 HTTP 客户端失败: {}", e))?;
-
-    let url = format!("{}?t={}", ANNOUNCEMENT_URL, Utc::now().timestamp_millis());
-
-    let response = client
-        .get(url)
-        .header("Cache-Control", "no-cache")
-        .header("Pragma", "no-cache")
-        .send()
-        .await
-        .map_err(|e| format!("拉取远端公告失败: {}", e))?;
-
-    if !response.status().is_success() {
-        return Err(format!("远端公告接口返回异常状态: {}", response.status()));
-    }
-
-    response
-        .json()
-        .await
-        .map_err(|e| format!("解析远端公告失败: {}", e))
+    logger::log_info("[Announcement] 远程公告网络请求已禁用 (Anti-ad mode)");
+    Ok(AnnouncementResponse {
+        version: "1.0".to_string(),
+        force_refresh_versions: Vec::new(),
+        announcements: Vec::new(),
+        top_right_ad: None,
+        api_relay_enabled: false,
+        top_right_ads_enabled: false,
+        top_right_ads: Vec::new(),
+        sponsor_module: None,
+    })
 }
 
 fn should_force_refresh_for_version(payload: &AnnouncementResponse, current_version: &str) -> bool {

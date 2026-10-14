@@ -1,5 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import viResources from '../locales/vi.json';
 import enResources from '../locales/en.json';
 import zhCnResources from '../locales/zh-CN.json';
 
@@ -17,6 +18,7 @@ const languageAliases: Record<string, string> = {
 };
 
 export const supportedLanguages = [
+  'vi',
   'en',
   'zh-cn',
   'zh-tw',
@@ -31,7 +33,6 @@ export const supportedLanguages = [
   'tr',
   'pl',
   'cs',
-  'vi',
   'ar',
   'id',
 ];
@@ -61,7 +62,7 @@ let i18nBootstrapped = false;
 export function normalizeLanguage(lang: string): string {
   const trimmed = lang.trim();
   if (!trimmed) {
-    return 'zh-cn';
+    return 'vi';
   }
 
   if (languageAliases[trimmed]) {
@@ -78,7 +79,7 @@ export function normalizeLanguage(lang: string): string {
 
 function resolveSupportedLanguage(lang: string): string {
   const normalized = normalizeLanguage(lang);
-  return supportedLanguages.includes(normalized) ? normalized : 'en';
+  return supportedLanguages.includes(normalized) ? normalized : 'vi';
 }
 
 async function ensureLanguageResources(lang: string): Promise<string> {
@@ -100,9 +101,9 @@ async function ensureLanguageResources(lang: string): Promise<string> {
 
 function getSavedLanguage(): string {
   try {
-    return resolveSupportedLanguage(localStorage.getItem('app-language') || 'en');
+    return resolveSupportedLanguage(localStorage.getItem('app-language') || 'vi');
   } catch {
-    return 'en';
+    return 'vi';
   }
 }
 
@@ -110,7 +111,10 @@ function getBootstrapLanguage(savedLanguage: string): string {
   if (savedLanguage === 'zh-cn') {
     return 'zh-cn';
   }
-  return 'en';
+  if (savedLanguage === 'en') {
+    return 'en';
+  }
+  return 'vi';
 }
 
 function bootstrapI18n(savedLanguage: string): string {
@@ -123,11 +127,12 @@ function bootstrapI18n(savedLanguage: string): string {
     .use(initReactI18next)
     .init({
       resources: {
+        vi: { translation: viResources },
         en: { translation: enResources },
         'zh-cn': { translation: zhCnResources },
       },
       lng: bootstrapLanguage,
-      fallbackLng: 'en',
+      fallbackLng: 'vi',
       supportedLngs: supportedLanguages,
       lowerCaseLng: true,
       load: 'currentOnly',
@@ -137,6 +142,7 @@ function bootstrapI18n(savedLanguage: string): string {
       },
     });
 
+  loadedLanguages.add('vi');
   loadedLanguages.add('en');
   loadedLanguages.add('zh-cn');
   i18nBootstrapped = true;
@@ -188,7 +194,7 @@ export async function changeLanguage(lang: string): Promise<void> {
  * 获取当前语言
  */
 export function getCurrentLanguage(): string {
-  return normalizeLanguage(i18n.language || 'zh-CN');
+  return normalizeLanguage(i18n.language || 'vi');
 }
 
 export default i18n;

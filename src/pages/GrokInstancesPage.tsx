@@ -725,7 +725,7 @@ export function GrokInstancesContent({
         renderAccountQuotaPreview={(account) => (
           <DosageNotifyQuotaPreview
             usage={getGrokUsage(account)}
-            locale={i18n.language || 'zh-CN'}
+            locale={i18n.language || 'vi'}
             emptyText={t('instances.quota.empty', '暂无配额缓存')}
             normalText={t('grok.usageNormal', '正常')}
             abnormalText={t('grok.usageAbnormal', '异常')}
@@ -753,9 +753,9 @@ export function GrokInstancesContent({
         appType="grok"
         isSupported={isSupported}
         unsupportedTitleKey="common.shared.instances.unsupported.title"
-        unsupportedTitleDefault="暂不支持当前系统"
+        unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
         unsupportedDescKey="grok.instances.unsupported"
-        unsupportedDescDefault="Grok CLI 多开仅支持 macOS、Windows 和 Linux。"
+        unsupportedDescDefault="Đa cửa sổ Grok CLI chỉ hỗ trợ macOS, Windows và Linux."
         onInstanceStarted={handleInstanceStarted}
         onInstanceStartError={handleInstanceStartError}
         resolveStartSuccessMessage={() =>

@@ -1301,7 +1301,7 @@ export function useCodexAccountsOAuthController(context: Pick<ReturnType<typeof 
             }
           }
         }
-        oauthLog("授权完成并保存成功", { loginId: oauthLoginIdRef.current });
+        oauthLog("Ủy quyền hoàn tất và lưu thành công", { loginId: oauthLoginIdRef.current });
         if (account) {
           // OAuth 回调已经返回后端刚保存的账号快照，先立即合并到 UI，
           // 覆盖旧的 localStorage/store 状态，再执行后台回读和额度刷新。
@@ -1751,7 +1751,7 @@ export function useCodexAccountsOAuthController(context: Pick<ReturnType<typeof 
             if (loginId) {
               await cancelOauthSession(loginId);
             }
-            oauthLog("忽略过期 OAuth start 响应", { loginId, attemptSeq });
+            oauthLog("Bỏ qua phản hồi OAuth start đã hết hạn", { loginId, attemptSeq });
             return;
           }
           // 自动模式以后端解析结果为准：显示本次登录使用的出口，或回到原有默认授权路径。
@@ -1779,7 +1779,7 @@ export function useCodexAccountsOAuthController(context: Pick<ReturnType<typeof 
           }
         }, (e) => {
           if (attemptSeq !== oauthAttemptSeqRef.current) {
-            oauthLog("忽略过期 OAuth start 异常回调", {
+            oauthLog("Bỏ qua phản hồi gọi lại lỗi OAuth start đã hết hạn", {
               attemptSeq,
               error: String(e),
             });
@@ -1947,7 +1947,7 @@ export function useCodexAccountsOAuthController(context: Pick<ReturnType<typeof 
         oauthAttemptSeqRef.current += 1;
         const loginId = oauthLoginIdRef.current ?? undefined;
         if (loginId) {
-          oauthLog("页面卸载，准备取消授权流程", { loginId });
+          oauthLog("Trang bị gỡ, chuẩn bị hủy quy trình ủy quyền", { loginId });
           void cancelOauthSession(loginId).catch(() => {});
         }
         oauthActiveRef.current = false;

@@ -666,9 +666,9 @@ export function CodexInstancesContent({
           appType="codex"
           isSupported={isSupportedPlatform}
           unsupportedTitleKey="common.shared.instances.unsupported.title"
-          unsupportedTitleDefault="暂不支持当前系统"
+          unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
           unsupportedDescKey="codex.instances.unsupported.desc"
-          unsupportedDescDefault="Codex 应用多开仅支持 macOS 和 Windows。"
+          unsupportedDescDefault="Đa cửa sổ Codex chỉ hỗ trợ macOS và Windows."
           onInstanceStarted={handleInstanceStarted}
           onBeforeStart={handleBeforeStart}
           resolveStartSuccessMessage={(instance) =>

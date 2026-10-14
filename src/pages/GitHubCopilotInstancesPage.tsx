@@ -72,9 +72,9 @@ export function GitHubCopilotInstancesContent({
       appType="vscode"
       isSupported={isSupportedPlatform}
       unsupportedTitleKey="common.shared.instances.unsupported.title"
-      unsupportedTitleDefault="暂不支持当前系统"
+      unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
       unsupportedDescKey="githubCopilot.instances.unsupported.descPlatform"
-      unsupportedDescDefault="GitHub Copilot 应用多开仅支持 macOS、Windows 和 Linux。"
+      unsupportedDescDefault="Đa cửa sổ GitHub Copilot chỉ hỗ trợ macOS, Windows và Linux."
     />
   );
 }

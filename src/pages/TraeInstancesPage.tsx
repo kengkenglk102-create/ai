@@ -82,9 +82,9 @@ export function TraeInstancesContent({
       appType={platformId}
       isSupported={isSupportedPlatform}
       unsupportedTitleKey="common.shared.instances.unsupported.title"
-      unsupportedTitleDefault="暂不支持当前系统"
+      unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
       unsupportedDescKey="common.shared.instances.unsupported.desc"
-      unsupportedDescDefault="Trae 应用多开仅支持 macOS、Windows 和 Linux。"
+      unsupportedDescDefault="Đa cửa sổ Trae chỉ hỗ trợ macOS, Windows và Linux."
     />
   );
 }

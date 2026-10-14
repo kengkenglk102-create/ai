@@ -945,7 +945,11 @@ pub async fn refresh_all_accounts_from_openapi() -> Result<i32, String> {
     }
 
     let mut success_count: i32 = 0;
-    for account in accounts {
+    for (idx, account) in accounts.into_iter().enumerate() {
+        if idx > 0 {
+            let delay_ms = 1500 + (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().subsec_millis() as u64 % 2000);
+            tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+        }
         match refresh_account_from_openapi(&account.id).await {
             Ok(_) => {
                 success_count += 1;

@@ -174,10 +174,12 @@ type AntigravitySwitchHistoryItem = accountService.AntigravitySwitchHistoryItem
 
 export type { AccountsFilterType } from './antigravityAccountOverviewModel';
 
+const MULTI_INSTANCE_SAFETY_HINT = "Mẹo an toàn: Nếu dùng cố định 2-3 tài khoản, hãy dùng tính năng 'Đa cửa sổ' (Multi-instance) để tách biệt môi trường thay vì chuyển đổi ghi đè liên tục.";
+
 export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
   const { t, i18n } = useTranslation()
   const antigravityRuntimeTarget = useAntigravityRuntimeTarget()
-  const locale = i18n.language || 'zh-CN'
+  const locale = i18n.language || 'vi'
   const untaggedKey = '__untagged__'
   const {
     accounts,
@@ -3124,9 +3126,7 @@ export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
                 onClick={() => handleSwitch(account.id)}
                 disabled={!!switching}
                 title={
-                  isCurrent
-                    ? t('accounts.actions.switch')
-                    : t('accounts.actions.switchTo')
+                  `${isCurrent ? t('accounts.actions.switch') : t('accounts.actions.switchTo')}\n\n${MULTI_INSTANCE_SAFETY_HINT}`
                 }
               >
                 {switching === account.id ? (
@@ -3365,9 +3365,7 @@ export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
               }}
               disabled={isSwitching}
               title={
-                isCurrent
-                  ? t('accounts.actions.switch')
-                  : t('accounts.actions.switchTo')
+                `${isCurrent ? t('accounts.actions.switch') : t('accounts.actions.switchTo')}\n\n${MULTI_INSTANCE_SAFETY_HINT}`
               }
               aria-label={
                 isCurrent
@@ -3741,9 +3739,7 @@ export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
                 onClick={() => handleSwitch(account.id)}
                 disabled={!!switching}
                 title={
-                  isCurrent
-                    ? t('accounts.actions.switch')
-                    : t('accounts.actions.switchTo')
+                  `${isCurrent ? t('accounts.actions.switch') : t('accounts.actions.switchTo')}\n\n${MULTI_INSTANCE_SAFETY_HINT}`
                 }
               >
                 {switching === account.id ? (

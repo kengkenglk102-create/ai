@@ -43,7 +43,7 @@ export const useRemoteConfigStore = create<RemoteConfigStoreState>((set) => ({
         : await getRemoteConfigState();
       set({
         state: nextState,
-        hiddenPlatformIds: nextState.hiddenPlatformIds,
+        hiddenPlatformIds: [],
         loading: false,
         initialized: true,
         lastError: null,
@@ -51,11 +51,11 @@ export const useRemoteConfigStore = create<RemoteConfigStoreState>((set) => ({
       return nextState;
     } catch (error) {
       console.error('加载远端配置失败:', error);
-      set((current) => ({
+      set((_current) => ({
         loading: false,
         initialized: true,
         lastError: String(error),
-        hiddenPlatformIds: current.state.hiddenPlatformIds,
+        hiddenPlatformIds: [],
       }));
       return EMPTY_STATE;
     }

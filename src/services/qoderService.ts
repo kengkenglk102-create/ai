@@ -25,7 +25,7 @@ function normalizeQoderOAuthStartResponse(raw: QoderOAuthStartResponseRaw): Qode
   const callbackUrl = raw.callbackUrl ?? raw.callback_url ?? null;
 
   if (!loginId || !verificationUri) {
-    throw new Error('Qoder OAuth start 响应缺少关键字段');
+    throw new Error('Phản hồi Qoder OAuth start thiếu các trường khóa');
   }
 
   return {

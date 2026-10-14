@@ -1359,7 +1359,7 @@ export function AccountsOverviewView(props: AccountsOverviewViewProps) {
                 onClick={confirmDeleteTag}
                 disabled={deletingTag}
               >
-                {deletingTag ? '处理中...' : t('common.confirm')}
+                {deletingTag ? 'Đang xử lý...' : t('common.confirm')}
               </button>
             </div>
           </div>

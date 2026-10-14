@@ -49,7 +49,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "externalBin": [
       "../sidecars/cockpit-cliproxy/bin/cockpit-cliproxy"
     ],

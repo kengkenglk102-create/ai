@@ -72,9 +72,9 @@ export function KiroInstancesContent({
       appType="kiro"
       isSupported={isSupportedPlatform}
       unsupportedTitleKey="common.shared.instances.unsupported.title"
-      unsupportedTitleDefault="暂不支持当前系统"
+      unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
       unsupportedDescKey="kiro.instances.unsupported.descPlatform"
-      unsupportedDescDefault="Kiro 应用多开仅支持 macOS、Windows 和 Linux。"
+      unsupportedDescDefault="Đa cửa sổ Kiro chỉ hỗ trợ macOS, Windows và Linux."
     />
   );
 }

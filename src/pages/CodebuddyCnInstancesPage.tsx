@@ -19,7 +19,7 @@ export function CodebuddyCnInstancesContent({
   accountsForSelect,
 }: CodebuddyCnInstancesContentProps = {}) {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language || 'zh-CN';
+  const locale = i18n.language || 'vi';
   const instanceStore = useCodebuddyCnInstanceStore();
   const { accounts: storeAccounts, fetchAccounts } = useCodebuddyCnAccountStore();
   const sourceAccounts = accountsForSelect ?? storeAccounts;
@@ -59,9 +59,9 @@ export function CodebuddyCnInstancesContent({
       appType="codebuddy_cn"
       isSupported={isSupportedPlatform}
       unsupportedTitleKey="common.shared.instances.unsupported.title"
-      unsupportedTitleDefault="暂不支持当前系统"
+      unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
       unsupportedDescKey="codebuddyCn.instances.unsupported.descPlatform"
-      unsupportedDescDefault="CodeBuddy CN 应用多开仅支持 macOS、Windows 和 Linux。"
+      unsupportedDescDefault="Đa cửa sổ CodeBuddy CN chỉ hỗ trợ macOS, Windows và Linux."
     />
   );
 }

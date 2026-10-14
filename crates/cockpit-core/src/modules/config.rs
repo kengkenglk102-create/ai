@@ -444,7 +444,7 @@ impl Default for MinimizeWindowBehavior {
 }
 
 fn default_ws_enabled() -> bool {
-    true
+    false
 }
 fn default_ws_port() -> u16 {
     DEFAULT_WS_PORT
@@ -483,11 +483,11 @@ fn default_ui_scale() -> f64 {
     1.0
 }
 fn default_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_codex_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_codex_auto_refresh_plan_types() -> Vec<String> {
     ["free", "go", "plus", "pro", "team", "business", "enterprise", "edu_k12", "unknown"]
         .into_iter().map(str::to_string).collect()
@@ -502,34 +502,34 @@ fn default_codex_wsl_config_dir() -> String {
     String::new()
 }
 fn default_zed_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_ghcp_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_windsurf_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_kiro_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_cursor_auto_refresh() -> i32 {
-    10
-} // 默认 10 分钟
+    -1
+} // 默认禁用 (-1)
 fn default_codebuddy_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_codebuddy_cn_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_workbuddy_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_qoder_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_trae_auto_refresh() -> i32 {
-    10
+    -1
 }
 fn default_close_behavior() -> CloseWindowBehavior {
     CloseWindowBehavior::Ask
@@ -788,7 +788,7 @@ fn default_workbuddy_quota_alert_threshold() -> i32 {
 impl Default for UserConfig {
     fn default() -> Self {
         Self {
-            ws_enabled: true,
+            ws_enabled: false,
             ws_port: DEFAULT_WS_PORT,
             report_enabled: default_report_enabled(),
             report_port: default_report_port(),

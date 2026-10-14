@@ -332,7 +332,7 @@ export async function runTraeAutoCheckinCycleIfNeeded(
             email: emailDisplay,
             status: 'already_checked',
             time: accountCheckinTime,
-            message: '今日已完成签到',
+            message: 'Hôm nay đã hoàn thành điểm danh',
           });
         } else {
           console.log(`[TraeAutoCheckin] 为账号 ${emailDisplay} 执行签到...`);
@@ -344,7 +344,7 @@ export async function runTraeAutoCheckinCycleIfNeeded(
             email: emailDisplay,
             status: 'success',
             time: accountCheckinTime,
-            message: result.message || '签到成功',
+            message: result.message || 'Điểm danh thành công',
             credit: result.total_credits,
           });
         }

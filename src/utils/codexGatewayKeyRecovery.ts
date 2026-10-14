@@ -3,7 +3,7 @@ import type { CodexLocalAccessState } from "../types/codexLocalAccess";
 // Match the backend diagnostic only; user-facing guidance uses translation keys.
 export function isCodexGatewayKeyRecoveryError(error: string | null | undefined): boolean {
   return error?.replace(/^Error:\s*/, "") ===
-    "网关无法解析入站 API Key，已保留原配置；请恢复被引用的账号后重试";
+    "Gateway không thể phân giải API Key đến, đã giữ nguyên cấu hình cũ; vui lòng khôi phục tài khoản được tham chiếu rồi thử lại";
 }
 
 export function clearRecoveredCodexGatewayError(

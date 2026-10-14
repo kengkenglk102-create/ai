@@ -1,18 +1,21 @@
-import { invoke } from '@tauri-apps/api/core';
 import type { AnnouncementState } from '../types/announcement';
 
+const EMPTY_STATE: AnnouncementState = {
+  announcements: [],
+  unreadIds: [],
+  popupAnnouncement: null,
+};
+
 export async function getAnnouncementState(): Promise<AnnouncementState> {
-  return await invoke('announcement_get_state');
+  // Chặn tải thông báo từ xa để không nạp lại quảng cáo
+  return EMPTY_STATE;
 }
 
-export async function markAnnouncementAsRead(id: string): Promise<void> {
-  await invoke('announcement_mark_as_read', { id });
-}
+export async function markAnnouncementAsRead(_id: string): Promise<void> {}
 
-export async function markAllAnnouncementsAsRead(): Promise<void> {
-  await invoke('announcement_mark_all_as_read');
-}
+export async function markAllAnnouncementsAsRead(): Promise<void> {}
 
 export async function forceRefreshAnnouncements(): Promise<AnnouncementState> {
-  return await invoke('announcement_force_refresh');
+  // Chặn tải thông báo từ xa để không nạp lại quảng cáo
+  return EMPTY_STATE;
 }

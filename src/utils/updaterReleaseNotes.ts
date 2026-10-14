@@ -2,7 +2,7 @@ const ZH_SECTION_HEADER = '## 更新日志（中文）';
 const EN_SECTION_HEADER = '## Changelog (English)';
 const GITHUB_RELEASE_TAG_BASE_URL =
   'https://github.com/jlcodes99/cockpit-tools/releases/tag/v';
-const RELEASE_HIGHLIGHTS: Record<string, { zh: string; en: string }> = {
+const RELEASE_HIGHLIGHTS: Record<string, { zh: string; en: string; vi: string }> = {
   '1.3.1': {
     zh: `### 重要更新
 
@@ -14,6 +14,11 @@ const RELEASE_HIGHLIGHTS: Record<string, { zh: string; en: string }> = {
 - **Codex API image generation compatibility restored**: third-party API Service and API Key providers can use built-in Codex image generation again; providers exposing \`gpt-image-2\` and managed instances now receive the required configuration.
 - **Codex account sync over SSH**: manage hosts, test connections, sync \`auth.json\` / \`config.toml\`, verify remote hashes, sync after account switches, and reload the remote Codex app-server/daemon when possible.
 - **Optional Hermes auth sync on Codex switch**: OAuth account switches can update \`~/.hermes/auth.json\`; API Key accounts are skipped and sync failures do not block switching.`,
+    vi: `### Cập nhật quan trọng
+
+- **Khôi phục tương thích tạo ảnh Codex API**: Sửa lỗi dịch vụ API bên thứ ba và API Key provider không dùng được tính năng tạo ảnh tích hợp của Codex; các nhà cung cấp hỗ trợ \`gpt-image-2\` và các cửa sổ quản lý giờ sẽ tự động nhận cấu hình cần thiết.
+- **Đồng bộ tài khoản Codex qua SSH**: Quản lý máy chủ, kiểm tra kết nối, đồng bộ \`auth.json\` / \`config.toml\`, xác thực mã băm từ xa, tự động đồng bộ sau khi chuyển tài khoản và tải lại Codex app-server/daemon từ xa khi có thể.
+- **Tùy chọn đồng bộ xác thực Hermes khi chuyển Codex**: Chuyển tài khoản OAuth có thể cập nhật \`~/.hermes/auth.json\`; tài khoản API Key được bỏ qua và lỗi đồng bộ không làm gián đoạn chuyển tài khoản.`,
   },
 };
 
@@ -38,7 +43,9 @@ function getUpdaterReleaseHighlights(version: string, language: string): string 
   if (!highlights) {
     return '';
   }
-  return language.toLowerCase().startsWith('zh') ? highlights.zh : highlights.en;
+  const lang = language.toLowerCase();
+  if (lang.startsWith('vi')) return highlights.vi;
+  return lang.startsWith('zh') ? highlights.zh : highlights.en;
 }
 
 export function getUpdaterReleaseHighlightLines(
@@ -101,8 +108,8 @@ export function prependUpdaterReleaseHighlights(
     return normalizedNotes;
   }
 
-  const isZh = language.toLowerCase().startsWith('zh');
-  const heading = isZh ? '### 重要更新' : '### Highlights';
+  const lang = language.toLowerCase();
+  const heading = lang.startsWith('vi') ? '### Cập nhật quan trọng' : lang.startsWith('zh') ? '### 重要更新' : '### Highlights';
   if (normalizedNotes.includes(heading)) {
     return normalizedNotes;
   }

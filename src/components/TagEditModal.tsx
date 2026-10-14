@@ -181,7 +181,7 @@ export const TagEditModal = ({ isOpen, initialTags, initialNotes, availableTags 
       setGlobalRenamingTag(null);
       setError('');
     } catch (err: any) {
-      setError(err?.message || '全局重命名失败');
+      setError(err?.message || 'Đổi tên toàn cục thất bại');
     } finally {
       setSaving(false);
     }

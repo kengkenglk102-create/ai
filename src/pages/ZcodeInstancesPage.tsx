@@ -32,7 +32,7 @@ export function ZcodeInstancesContent({
       renderAccountQuotaPreview={(account) => (
         <DosageNotifyQuotaPreview
           usage={getZcodeUsage(account)}
-          locale={i18n.language || 'zh-CN'}
+          locale={i18n.language || 'vi'}
           emptyText={t('instances.quota.empty', '暂无配额缓存')}
           normalText={t('zcode.usageNormal', '正常')}
           abnormalText={t('zcode.usageAbnormal', '异常')}
@@ -50,9 +50,9 @@ export function ZcodeInstancesContent({
       appType="zcode"
       isSupported={isSupported}
       unsupportedTitleKey="common.shared.instances.unsupported.title"
-      unsupportedTitleDefault="暂不支持当前系统"
+      unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
       unsupportedDescKey="zcode.instances.unsupported"
-      unsupportedDescDefault="ZCode 多开仅支持 macOS、Windows 和 Linux。"
+      unsupportedDescDefault="Đa cửa sổ ZCode chỉ hỗ trợ macOS, Windows và Linux."
     />
   );
 }

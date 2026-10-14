@@ -1292,15 +1292,15 @@ export function KiroAccountsPage() {
                 <div className="add-section">
                   <p className="section-desc">{t('kiro.token.desc', '粘贴您的 Kiro Access Token 或导出的 JSON 数据。')}</p>
                   <details className="token-format-collapse">
-                    <summary className="token-format-collapse-summary">必填字段与示例（点击展开）</summary>
+                    <summary className="token-format-collapse-summary">Các trường bắt buộc và ví dụ (nhấp để mở rộng)</summary>
                     <div className="token-format">
-                      <p className="token-format-required">必填字段：JSON 建议使用 access_token + refresh_token（accessToken/refreshToken 仅兼容）</p>
+                      <p className="token-format-required">Trường bắt buộc: JSON khuyến nghị dùng access_token + refresh_token (accessToken/refreshToken tương thích)</p>
                       <div className="token-format-group">
-                        <div className="token-format-label">单条示例（JSON）</div>
+                        <div className="token-format-label">Ví dụ một mục (JSON)</div>
                         <pre className="token-format-code">{KIRO_TOKEN_SINGLE_EXAMPLE}</pre>
                       </div>
                       <div className="token-format-group">
-                        <div className="token-format-label">批量示例（JSON）</div>
+                        <div className="token-format-label">Ví dụ hàng loạt (JSON)</div>
                         <pre className="token-format-code">{KIRO_TOKEN_BATCH_EXAMPLE}</pre>
                       </div>
                     </div>

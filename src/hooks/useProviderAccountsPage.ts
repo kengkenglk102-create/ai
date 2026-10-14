@@ -665,7 +665,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   config: ProviderPageConfig<TAccount>,
 ): UseProviderAccountsPageReturn {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language || 'zh-CN';
+  const locale = i18n.language || 'vi';
 
 
   const {
@@ -1126,12 +1126,28 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   const handleRefreshAll = useCallback(async () => {
     setRefreshingAll(true);
     try {
-      await refreshAllTokens();
+      if (accounts.length > 0) {
+        for (let i = 0; i < accounts.length; i++) {
+          const acc = accounts[i];
+          try {
+            await refreshToken(acc.id);
+          } catch (e) {
+            console.error('Refresh token failed for account:', acc.id, e);
+          }
+          if (i < accounts.length - 1) {
+            const jitterMs = Math.floor(Math.random() * (3500 - 1500 + 1)) + 1500;
+            await new Promise((resolve) => setTimeout(resolve, jitterMs));
+          }
+        }
+      } else {
+        await refreshAllTokens();
+      }
     } catch (e) {
       console.error(e);
+    } finally {
+      setRefreshingAll(false);
     }
-    setRefreshingAll(false);
-  }, [refreshAllTokens]);
+  }, [accounts, refreshAllTokens, refreshToken]);
 
   const handleDelete = useCallback(
     (accountId: string) => {
@@ -1968,7 +1984,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   );
 
   const completeOauthSuccess = useCallback(async () => {
-    oauthLog('授权完成并保存成功', {
+    oauthLog('Ủy quyền hoàn tất và lưu thành công', {
       loginId: oauthLoginIdRef.current,
     });
     await fetchAccounts();
@@ -2051,7 +2067,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
 
         if (attemptSeq !== oauthAttemptSeqRef.current) {
           oauthService.cancelLogin(resp.loginId).catch(() => {});
-          oauthLog('忽略过期 OAuth start 响应', { attemptSeq, loginId: resp.loginId });
+          oauthLog('Bỏ qua phản hồi OAuth start đã hết hạn', { attemptSeq, loginId: resp.loginId });
           return;
         }
 
@@ -2069,7 +2085,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
           });
         }
 
-        oauthLog('授权信息已就绪并展示在弹框', {
+        oauthLog('Thông tin ủy quyền đã sẵn sàng và hiển thị trên cửa sổ', {
           loginId: resp.loginId,
           url,
           expiresIn: resp.expiresIn,
@@ -2083,7 +2099,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
         await oauthService.completeLogin(resp.loginId);
 
         if (attemptSeq !== oauthAttemptSeqRef.current) {
-          oauthLog('忽略过期 OAuth complete 成功回调', {
+          oauthLog('Bỏ qua phản hồi gọi lại OAuth complete đã hết hạn', {
             attemptSeq,
             loginId: resp.loginId,
           });
@@ -2095,7 +2111,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
         await completeOauthSuccess();
       } catch (e) {
         if (attemptSeq !== oauthAttemptSeqRef.current) {
-          oauthLog('忽略过期 OAuth 异常回调', {
+          oauthLog('Bỏ qua phản hồi gọi lại lỗi OAuth đã hết hạn', {
             attemptSeq,
             error: String(e),
           });
@@ -2152,7 +2168,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     if (!loginId && !oauthActiveRef.current && !oauthCompletingRef.current && !hasOauthUiResidue) return;
     oauthAttemptSeqRef.current += 1;
     if (loginId) {
-      oauthLog('弹框关闭或切换标签，准备取消授权流程', { loginId });
+      oauthLog('Cửa sổ đóng hoặc đổi thẻ, chuẩn bị hủy quy trình ủy quyền', { loginId });
       oauthService?.cancelLogin(loginId).catch(() => {});
     }
     oauthActiveRef.current = false;
@@ -2197,7 +2213,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
       oauthAttemptSeqRef.current += 1;
       const loginId = oauthLoginIdRef.current ?? undefined;
       if (loginId) {
-        oauthLog('页面卸载，准备取消授权流程', { loginId });
+        oauthLog('Trang bị gỡ, chuẩn bị hủy quy trình ủy quyền', { loginId });
         oauthServiceRef.current?.cancelLogin(loginId).catch(() => {});
       }
       oauthActiveRef.current = false;
@@ -2213,7 +2229,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     setAddMessage(null);
     try {
       await navigator.clipboard.writeText(oauthUrl);
-      oauthLog('已复制授权链接', {
+      oauthLog('Đã sao chép liên kết ủy quyền', {
         loginId: oauthLoginIdRef.current,
         authUrl: oauthUrl,
       });
@@ -2234,7 +2250,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     setAddMessage(null);
     try {
       await navigator.clipboard.writeText(oauthUserCode);
-      oauthLog('已复制 user_code', { loginId: oauthLoginIdRef.current });
+      oauthLog('Đã sao chép mã user_code', { loginId: oauthLoginIdRef.current });
       setOauthUserCodeCopied(true);
       window.setTimeout(() => setOauthUserCodeCopied(false), 1200);
     } catch (e) {
@@ -2248,7 +2264,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
 
   const handleRetryOauth = useCallback(() => {
     const previousLoginId = oauthLoginIdRef.current ?? undefined;
-    oauthLog('用户点击刷新授权信息', {
+    oauthLog('Người dùng bấm làm mới thông tin ủy quyền', {
       loginId: previousLoginId,
       error: oauthCompleteError,
       timedOut: oauthTimedOut,
@@ -2283,7 +2299,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     if (oauthCompletingRef.current) return;
     const attemptSeq = ++oauthAttemptSeqRef.current;
 
-    oauthLog('用户点击重新轮询授权结果', {
+    oauthLog('Người dùng bấm kiểm tra lại kết quả ủy quyền', {
       loginId,
       error: oauthCompleteError,
       timedOut: oauthTimedOut,
@@ -2302,7 +2318,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
       .completeLogin(loginId)
       .then(async () => {
         if (attemptSeq !== oauthAttemptSeqRef.current) {
-          oauthLog('忽略过期 OAuth 重试成功回调', { loginId, attemptSeq });
+          oauthLog('Bỏ qua phản hồi gọi lại thử lại OAuth thành công đã hết hạn', { loginId, attemptSeq });
           return;
         }
         setOauthPolling(false);
@@ -2311,7 +2327,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
       })
       .catch((e) => {
         if (attemptSeq !== oauthAttemptSeqRef.current) {
-          oauthLog('忽略过期 OAuth 重试异常回调', {
+          oauthLog('Bỏ qua phản hồi gọi lại thử lại lỗi OAuth đã hết hạn', {
             loginId,
             attemptSeq,
             error: String(e),
@@ -2332,7 +2348,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   const handleOpenOauthUrlWithMode = useCallback(async (incognito: boolean) => {
     if (!oauthUrl) return;
     setOauthCompleteError(null);
-    oauthLog('用户点击打开授权链接', {
+    oauthLog('Người dùng bấm mở liên kết ủy quyền', {
       loginId: oauthLoginIdRef.current,
       authUrl: oauthUrl,
       incognito,

@@ -60,7 +60,7 @@ function formatRelativeSyncTime(value: number | null | undefined, isZh: boolean)
   }
   const diffSeconds = Math.max(0, Math.floor(Date.now() / 1000) - value);
   if (diffSeconds < 60) {
-    return isZh ? '刚刚' : 'just now';
+    return isZh ? 'Vừa xong' : 'just now';
   }
   if (diffSeconds < 3600) {
     const minutes = Math.floor(diffSeconds / 60);

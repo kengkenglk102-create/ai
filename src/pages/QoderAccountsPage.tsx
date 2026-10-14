@@ -864,17 +864,27 @@ export function QoderAccountsPage() {
     if (refreshingAll) return;
     setRefreshingAll(true);
     try {
-      await store.refreshAllTokens();
-      setMessage({ text: t('accounts.refreshAllSuccess', '已刷新全部账号') });
+      for (let i = 0; i < accounts.length; i++) {
+        if (i > 0) {
+          const jitter = Math.floor(Math.random() * 2000) + 1500;
+          await new Promise((resolve) => setTimeout(resolve, jitter));
+        }
+        try {
+          await store.refreshToken(accounts[i].id);
+        } catch (accountError) {
+          console.warn(`[Qoder] Làm mới tài khoản ${accounts[i].id} thất bại:`, accountError);
+        }
+      }
+      setMessage({ text: t('accounts.refreshAllSuccess', 'Đã làm mới tất cả tài khoản') });
     } catch (error) {
       setMessage({
         tone: 'error',
-        text: t('accounts.refreshAllFailed', '批量刷新失败：{{error}}', { error: String(error) }),
+        text: t('accounts.refreshAllFailed', 'Làm mới hàng loạt thất bại: {{error}}', { error: String(error) }),
       });
     } finally {
       setRefreshingAll(false);
     }
-  }, [refreshingAll, store, t]);
+  }, [accounts, refreshingAll, store, t]);
 
   const handleSwitch = useCallback(
     async (accountId: string) => {
@@ -1259,7 +1269,7 @@ export function QoderAccountsPage() {
           responseKeyCount: responseKeys.length,
           responseKeys: responseKeys.slice(0, 12),
         });
-        throw new Error('Qoder OAuth 授权链接为空');
+        throw new Error('Liên kết ủy quyền Qoder OAuth trống');
       }
       logQoderOauthUi('prepare:will-set-state', {
         loginId,
@@ -1619,7 +1629,10 @@ export function QoderAccountsPage() {
                 <button
                   className="card-action-btn success"
                   onClick={() => void handleSwitch(account.id)}
-                  title={t('dashboard.switch', '切换')}
+                  title={
+                    t('dashboard.switch', '切换') +
+                    "\n\nMẹo an toàn: Nếu dùng cố định 2-3 tài khoản, hãy dùng tính năng 'Đa cửa sổ' (Multi-instance) để tách biệt môi trường thay vì chuyển đổi ghi đè liên tục."
+                  }
                   disabled={isInjecting || deleting}
                 >
                   {isInjecting ? <RotateCw size={14} className="loading-spinner" /> : <Play size={14} />}
@@ -1765,7 +1778,10 @@ export function QoderAccountsPage() {
                 <button
                   className="action-btn"
                   onClick={() => void handleSwitch(account.id)}
-                  title={t('dashboard.switch', '切换')}
+                  title={
+                    t('dashboard.switch', '切换') +
+                    "\n\nMẹo an toàn: Nếu dùng cố định 2-3 tài khoản, hãy dùng tính năng 'Đa cửa sổ' (Multi-instance) để tách biệt môi trường thay vì chuyển đổi ghi đè liên tục."
+                  }
                   disabled={isInjecting || deleting}
                 >
                   {isInjecting ? <RotateCw size={14} className="loading-spinner" /> : <Play size={14} />}

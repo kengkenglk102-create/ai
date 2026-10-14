@@ -2,9 +2,9 @@
 export function conciseCodexCredentialFailure(value: unknown): string {
   const raw = typeof value === "string" ? value.trim() : "";
   if (!raw) return "";
-  const originalMarker = raw.lastIndexOf("原始错误:");
+  const originalMarker = raw.lastIndexOf("Lỗi gốc:");
   if (originalMarker >= 0) {
-    return raw.slice(originalMarker + "原始错误:".length).trim();
+    return raw.slice(originalMarker + "Lỗi gốc:".length).trim();
   }
   return raw.replace(/^Error:\s*/, "");
 }

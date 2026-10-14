@@ -41,8 +41,8 @@ const LOCAL_PROXY_ERROR_CODES = new Set([
 export function getLocalCodexProxyErrorCode(message?: string | null): string | null {
   let localMessage = message?.trim() ?? '';
   for (const prefix of [
-    'Token 已过期，刷新 Token 失败: ',
-    'Token 已过期且刷新失败: ',
+    'Token đã hết hạn, làm mới Token thất bại: ',
+    'Token đã hết hạn và làm mới thất bại: ',
   ]) {
     if (localMessage.startsWith(prefix)) localMessage = localMessage.slice(prefix.length);
   }

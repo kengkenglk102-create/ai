@@ -17,7 +17,7 @@ export interface GrokInstanceLaunchInfo {
   instanceId: string;
   userDataDir: string;
   launchCommand: string;
-  /** 非致命提示（如 invalid_grant 需重新授权）；有命令时仍可展示/执行 */
+  /** 非致命提示（如 invalid_grant 需Ủy quyền lại）；有命令时仍可展示/执行 */
   warning?: string | null;
 }
 
@@ -25,26 +25,26 @@ export interface GrokInstanceLaunchInfo {
 export function isGrokCliMissingError(error: unknown): boolean {
   const text = String(error ?? '').toLowerCase();
   return (
-    text.includes('未检测到 grok cli') ||
-    text.includes('grok cli 路径不存在') ||
-    text.includes('请先通过官方安装脚本安装') ||
+    text.includes('Không phát hiện thấy grok cli') ||
+    text.includes('Đường dẫn grok cli không tồn tại') ||
+    text.includes('Vui lòng cài đặt qua script cài đặt chính thức trước') ||
     (text.includes('grok cli') &&
-      (text.includes('不存在') ||
+      (text.includes('Không tồn tại') ||
         text.includes('not found') ||
-        text.includes('未检测') ||
-        text.includes('不可执行')))
+        text.includes('Chưa kiểm tra') ||
+        text.includes('Không thể thực thi')))
   );
 }
 
-/** token 吊销 / 需重新授权（不应引导安装 CLI） */
+/** token 吊销 / 需Ủy quyền lại（不应引导安装 CLI） */
 export function isGrokReauthError(error: unknown): boolean {
   const text = String(error ?? '').toLowerCase();
   return (
     text.includes('invalid_grant') ||
     text.includes('refresh token has been revoked') ||
-    text.includes('refresh_token 为空') ||
+    text.includes('refresh_token trống') ||
     text.includes('access_denied') ||
-    text.includes('重新授权')
+    text.includes('Ủy quyền lại')
   );
 }
 

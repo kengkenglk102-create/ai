@@ -276,16 +276,16 @@ export function getOfficialQuotaModel(account: CodebuddySuiteAccountBase): Offic
  */
 function resolvePackageName(resource: OfficialQuotaResource): string {
   if (resource.packageName) return resource.packageName;
-  if (resource.packageCode === PACKAGE_CODE.enterprise) return '企业版';
-  if (resource.packageCode === PACKAGE_CODE.extra) return '加量包';
-  if (resource.packageCode === PACKAGE_CODE.activity) return '活动赠送包';
+  if (resource.packageCode === PACKAGE_CODE.enterprise) return 'Bản Doanh nghiệp';
+  if (resource.packageCode === PACKAGE_CODE.extra) return 'Gói bổ sung';
+  if (resource.packageCode === PACKAGE_CODE.activity) return 'Gói tặng sự kiện';
   if (resource.packageCode === PACKAGE_CODE.free || resource.packageCode === PACKAGE_CODE.gift || resource.packageCode === PACKAGE_CODE.freeMon || resource.packageCode === PACKAGE_CODE.freeMonIntl) {
-    return '基础体验包';
+    return 'Gói trải nghiệm cơ bản';
   }
   if (resource.packageCode === PACKAGE_CODE.proMon || resource.packageCode === PACKAGE_CODE.proMonPlus || resource.packageCode === PACKAGE_CODE.proYear) {
-    return '专业版订阅';
+    return 'Gói Pro';
   }
-  return '基础包';
+  return 'Gói cơ bản';
 }
 
 /**
@@ -321,7 +321,7 @@ export function getQuotaDisplayItems(account: CodebuddySuiteAccountBase): QuotaD
 
     items.push({
       key: 'extra',
-      label: '加量包',
+      label: 'Gói bổ sung',
       used: model.extra.used,
       total: model.extra.total,
       remain: model.extra.remain,

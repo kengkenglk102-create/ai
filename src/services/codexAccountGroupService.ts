@@ -16,7 +16,7 @@ function generateId(): string {
 }
 
 /** 与设置页配额自动刷新预设一致（不含 inherit） */
-export const CODEX_GROUP_QUOTA_REFRESH_PRESETS = ['-1', '2', '5', '10', '15'] as const;
+export const CODEX_GROUP_QUOTA_REFRESH_PRESETS = ['-1', '2', '5', '10', '15', '30', '60'] as const;
 
 export const CODEX_GROUP_QUOTA_REFRESH_MIN = 1;
 export const CODEX_GROUP_QUOTA_REFRESH_MAX = 999;

@@ -666,7 +666,7 @@ export function WakeupTasksPage({ onNavigate }: WakeupPageProps) {
   const antigravityRuntimeTarget = useAntigravityRuntimeTarget();
   const { accounts, currentAccountsByTarget, fetchAccounts, fetchCurrentAccount } = useAccountStore();
   const currentAccount = currentAccountsByTarget[antigravityRuntimeTarget] ?? null;
-  const locale = i18n.language || 'zh-CN';
+  const locale = i18n.language || 'vi';
   const [tasks, setTasks] = useState<WakeupTask[]>(() => loadTasks(t('wakeup.defaultTaskName')));
   const [wakeupEnabled, setWakeupEnabled] = useState(() => {
     if (localStorage.getItem(WAKEUP_FORCE_DISABLE_MIGRATION_KEY) !== '1') {
@@ -2128,7 +2128,7 @@ export function WakeupTasksPage({ onNavigate }: WakeupPageProps) {
 
     // 如果启用了配额重置模式，确保刷新间隔满足最小要求
     if (formEnabled && formTriggerMode === 'quota_reset') {
-      await ensureMinRefreshInterval(2);
+      await ensureMinRefreshInterval(10);
     }
 
     setShowModal(false);
@@ -2234,6 +2234,23 @@ export function WakeupTasksPage({ onNavigate }: WakeupPageProps) {
         onNavigate={onNavigate}
         subtitle={t('wakeup.subtitle')}
       />
+      <div
+        className="wakeup-safety-warning-banner"
+        style={{
+          background: 'rgba(234, 179, 8, 0.1)',
+          border: '1px solid rgba(234, 179, 8, 0.3)',
+          borderRadius: '8px',
+          padding: '10px 14px',
+          color: '#eab308',
+          fontSize: '13px',
+          lineHeight: '1.5',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <span>⚠️ Lưu ý an toàn: Việc bật tự động đánh thức định kỳ có thể bị máy chủ AI nhận diện là lưu lượng tự động (Bot) và dẫn đến giới hạn tài khoản.</span>
+      </div>
       <div className="toolbar wakeup-toolbar">
         <div className="toolbar-left">
           <div className={`wakeup-global-toggle ${wakeupEnabled ? 'is-on' : 'is-off'}`}>

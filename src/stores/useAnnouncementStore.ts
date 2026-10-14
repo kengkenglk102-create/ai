@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { AnnouncementState } from '../types/announcement';
 import {
-  forceRefreshAnnouncements,
   getAnnouncementState,
   markAllAnnouncementsAsRead,
   markAnnouncementAsRead,
@@ -27,19 +26,9 @@ export const useAnnouncementStore = create<AnnouncementStoreState>((set) => ({
   loading: false,
   initialized: false,
 
-  fetchState: async (forceRefresh = false) => {
-    set({ loading: true });
-    try {
-      const nextState = forceRefresh
-        ? await forceRefreshAnnouncements()
-        : await getAnnouncementState();
-      set({ state: nextState, loading: false, initialized: true });
-      return nextState;
-    } catch (error) {
-      console.error('加载公告失败:', error);
-      set({ loading: false, initialized: true });
-      return EMPTY_STATE;
-    }
+  fetchState: async (_forceRefresh = false) => {
+    set({ state: EMPTY_STATE, loading: false, initialized: true });
+    return EMPTY_STATE;
   },
 
   markAsRead: async (id: string) => {

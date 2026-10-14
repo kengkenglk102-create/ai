@@ -22,41 +22,6 @@
 
 ---
 
-## 赞助商
-
-<table>
-  <tr>
-    <td width="120" align="center">
-      <a href="https://apikey.fun/register?aff=COCKPIT">
-        <img src="src/assets/icons/apikey-fun.png" alt="APIKEY.FUN" width="72" />
-      </a>
-    </td>
-    <td>
-      <a href="https://apikey.fun/register?aff=COCKPIT"><strong>APIKEY.FUN</strong></a> 是一家专业的企业级 AI 中转站，致力于为企业和个人开发者提供稳定、高效、低成本的 AI 模型 API 接入服务。平台支持 Claude、OpenAI、Gemini 等主流热门模型，价格低至官方原价的 7%。通过本项目 <a href="https://apikey.fun/register?aff=COCKPIT"><strong>专属链接</strong></a> 注册，还可享受最高 <strong>充值永久 95 折</strong> 专属优惠。
-    </td>
-  </tr>
-  <tr>
-    <td width="120" align="center">
-      <a href="https://go.apimart.ai/gh-cockpit-tools">
-        <img src="src/assets/icons/apimart.png" alt="APIMart" width="96" />
-      </a>
-    </td>
-    <td>
-      感谢 <a href="https://go.apimart.ai/gh-cockpit-tools"><strong>APIMart</strong></a> 赞助了本项目！<a href="https://go.apimart.ai/gh-cockpit-tools"><strong>APIMart</strong></a> 是专注 AI 图片/视频生成的低价 API 平台，GPT-Image-2 低至 <strong>$0.006/张</strong>，<strong>1 美元</strong>可出图 <strong>160+ 张</strong>。图片、视频一套异步 API 通吃，提交任务拿 ID、回调取结果，跑批<strong>万张</strong>不超时、换模型不改代码。按量付费、无月费，通过此<a href="https://go.apimart.ai/gh-cockpit-tools"><strong>注册链接</strong></a>注册即可开用。
-    </td>
-  </tr>
-  <tr>
-    <td width="120" align="center">
-      <a href="https://roxybrowser.cn?code=0326VTDA">
-        <img src="src/assets/icons/roxybrowser.jpg" alt="RoxyBrowser" width="96" />
-      </a>
-    </td>
-    <td>
-      <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser（Roxy浏览器）</strong></a> 是面向多账号运营与 AI 自动化场景的指纹浏览器，支持独立浏览器指纹环境、Cookie / 存储隔离、Roxy 原生住宅 IP、团队协作与 API / MCP 自动化能力，适合需要管理 AI 账号矩阵、降低账号关联风险、提升长期使用稳定性的用户。通过 Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>邀请链接</strong></a> 注册或购买，可享受 10% 粉丝折扣。
-    </td>
-  </tr>
-</table>
-
 ---
 
 ## 功能概览

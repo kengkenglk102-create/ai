@@ -354,7 +354,7 @@ export function WorkbuddyAutoCheckinConfigModal({
                         <div className="history-log-header" onClick={() => toggleExpand(log.id)}>
                           <div className="history-log-main-info">
                             <span className="log-timestamp">{log.timestamp}</span>
-                            <span className="log-duration-badge" title="累计签到耗时">
+                            <span className="log-duration-badge" title="Tổng thời gian điểm danh">
                               <Clock size={11} />
                               {formatDuration(log.durationMs)}
                             </span>
@@ -372,10 +372,10 @@ export function WorkbuddyAutoCheckinConfigModal({
                                 <XCircle size={12} />
                               )}
                               {isSuccess
-                                ? `成功 (${log.successCount + log.alreadyCheckedCount}/${log.totalAccounts})`
+                                ? `Thành công (${log.successCount + log.alreadyCheckedCount}/${log.totalAccounts})`
                                 : isPartial
-                                  ? `部分成功 (${log.successCount + log.alreadyCheckedCount}/${log.totalAccounts})`
-                                  : `未完成`}
+                                  ? `Thành công một phần (${log.successCount + log.alreadyCheckedCount}/${log.totalAccounts})`
+                                  : `Chưa hoàn thành`}
                             </span>
                             {log.details && log.details.length > 0 && (
                               <button className="btn-icon-toggle">
@@ -403,10 +403,10 @@ export function WorkbuddyAutoCheckinConfigModal({
                                   }`}
                                 >
                                   {item.status === 'success'
-                                    ? `签到成功 ${item.credit ? `(+${item.credit})` : ''}`
+                                    ? `Điểm danh thành công ${item.credit ? `(+${item.credit})` : ''}`
                                     : item.status === 'already_checked'
-                                      ? '今日已领'
-                                      : item.message || '签到异常'}
+                                      ? 'Hôm nay đã nhận'
+                                      : item.message || 'Điểm danh bất thường'}
                                 </span>
                               </div>
                             ))}

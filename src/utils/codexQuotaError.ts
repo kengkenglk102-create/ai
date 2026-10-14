@@ -101,7 +101,7 @@ export function isBlockingCodexQuotaError(
     errorCode === "refresh_token_reused" ||
     lower.includes("refresh_token_reused") ||
     lower.includes("refresh token has been reused") ||
-    lower.includes("refresh_token 已被其它客户端或实例使用过")
+    lower.includes("refresh_token đã được sử dụng bởi máy khách hoặc phiên bản khác")
   ) {
     return false;
   }
@@ -123,11 +123,11 @@ export function isBlockingCodexQuotaError(
     lower.includes("rate_limit_exceeded") ||
     lower.includes("quota exceeded") ||
     lower.includes("your authentication token has been invalidated") ||
-    lower.includes("refresh_token 已被其它客户端或实例使用过") ||
-    lower.includes("token 已过期且无 refresh_token") ||
-    lower.includes("缺少 refresh_token") ||
-    lower.includes("token 已过期且刷新失败") ||
-    lower.includes("刷新 token 失败")
+    lower.includes("refresh_token đã được sử dụng bởi máy khách hoặc phiên bản khác") ||
+    lower.includes("Token đã hết hạn và không có refresh_token") ||
+    lower.includes("Thiếu refresh_token") ||
+    lower.includes("Token đã hết hạn và làm mới thất bại") ||
+    lower.includes("Làm mới token thất bại")
   );
 }
 

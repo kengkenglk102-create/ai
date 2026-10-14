@@ -1219,7 +1219,7 @@ export function hasWindsurfQuotaData(account: WindsurfAccount): boolean {
   );
 }
 
-export function formatUnixSecondsToYmd(seconds: number, locale = 'zh-CN'): string {
+export function formatUnixSecondsToYmd(seconds: number, locale = 'vi'): string {
   const date = new Date(seconds * 1000);
   if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat(locale, { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
@@ -1228,7 +1228,7 @@ export function formatUnixSecondsToYmd(seconds: number, locale = 'zh-CN'): strin
 export function formatWindsurfAllowanceResetLine(
   account: WindsurfAccount,
   t: Translate,
-  locale = 'zh-CN',
+  locale = 'vi',
 ): string {
   const usage = getWindsurfUsage(account);
   const resetAt = usage.allowanceResetAt;

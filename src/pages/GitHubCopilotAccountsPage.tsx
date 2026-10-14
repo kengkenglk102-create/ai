@@ -69,7 +69,7 @@ const GHCP_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.github_copilot.flow_notice_colla
 const GHCP_CURRENT_ACCOUNT_ID_KEY = 'agtools.github_copilot.current_account_id';
 const GHCP_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('GitHubCopilot');
 const FILTER_TYPES_FIELD = 'filter_types';
-const GHCP_TOKEN_SINGLE_EXAMPLE = `ghu_xxx... 或 github_pat_xxx...`;
+const GHCP_TOKEN_SINGLE_EXAMPLE = `ghu_xxx... hoặc github_pat_xxx...`;
 const GHCP_TOKEN_BATCH_EXAMPLE = `[
   {
     "id": "ghcp_demo_1",
@@ -1259,17 +1259,17 @@ export function GitHubCopilotAccountsPage() {
                     {t('githubCopilot.token.desc', '粘贴您的 GitHub Copilot Access Token 或导出的 JSON 数据。')}
                   </p>
                   <details className="token-format-collapse">
-                    <summary className="token-format-collapse-summary">必填字段与示例（点击展开）</summary>
+                    <summary className="token-format-collapse-summary">Các trường bắt buộc và ví dụ (nhấp để mở rộng)</summary>
                     <div className="token-format">
                       <p className="token-format-required">
-                        必填字段：Token 模式直接粘贴 GitHub access token；JSON 模式需包含 id、github_login、github_id、github_access_token、copilot_token、created_at、last_used
+                        Trường bắt buộc: Chế độ Token dán trực tiếp GitHub access token; Chế độ JSON cần chứa id, github_login, github_id, github_access_token, copilot_token, created_at, last_used
                       </p>
                       <div className="token-format-group">
-                        <div className="token-format-label">单条示例（Token）</div>
+                        <div className="token-format-label">Ví dụ một mục (Token)</div>
                         <pre className="token-format-code">{GHCP_TOKEN_SINGLE_EXAMPLE}</pre>
                       </div>
                       <div className="token-format-group">
-                        <div className="token-format-label">批量示例（JSON）</div>
+                        <div className="token-format-label">Ví dụ hàng loạt (JSON)</div>
                         <pre className="token-format-code">{GHCP_TOKEN_BATCH_EXAMPLE}</pre>
                       </div>
                     </div>

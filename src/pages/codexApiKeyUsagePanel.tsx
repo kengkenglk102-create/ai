@@ -88,7 +88,7 @@ export function renderCodexApiKeyUsagePanel({
             <span>
               {t(
                 "codex.modelProviders.usage.fields.totalBalance",
-                "总余额",
+                "Tổng số dư",
               )}
             </span>
             <strong>
@@ -99,7 +99,7 @@ export function renderCodexApiKeyUsagePanel({
             <span>
               {t(
                 "codex.modelProviders.usage.fields.grantedBalance",
-                "赠金余额",
+                "Số dư tặng thưởng",
               )}
             </span>
             <strong>
@@ -110,7 +110,7 @@ export function renderCodexApiKeyUsagePanel({
             <span>
               {t(
                 "codex.modelProviders.usage.fields.toppedUpBalance",
-                "充值余额",
+                "Số dư nạp tiền",
               )}
             </span>
             <strong>
@@ -275,9 +275,9 @@ export function renderCodexApiKeyUsagePanel({
             {isDeepSeekUsage ? (
               <>
                 {[
-                  ["totalBalance", "总余额"],
-                  ["grantedBalance", "赠金余额"],
-                  ["toppedUpBalance", "充值余额"],
+                  ["totalBalance", "Tổng số dư"],
+                  ["grantedBalance", "Số dư tặng thưởng"],
+                  ["toppedUpBalance", "Số dư nạp tiền"],
                 ].map(([key, fallback]) => (
                   <div key={key}>
                     <span>

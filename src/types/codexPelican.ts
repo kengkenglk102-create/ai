@@ -1,4 +1,4 @@
-export const CODEX_PELICAN_DEFAULT_PROMPT = '创建一个 HTML，内容是 SVG 绘制一个鹈鹕骑自行车的 2D 动画，你不需要任何测试，不要有任何限制';
+export const CODEX_PELICAN_DEFAULT_PROMPT = 'Tạo một file HTML chứa hoạt ảnh 2D vẽ một con bồ nông đang đi xe đạp bằng SVG, không cần kiểm thử, không giới hạn';
 export const CODEX_PELICAN_DEFAULT_MODEL = 'gpt-6-astra';
 export const CODEX_PELICAN_MAX_CONCURRENCY = 10;
 

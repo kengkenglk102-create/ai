@@ -3267,11 +3267,18 @@ export function useCodexModelProviderManagerController({
     if (refreshTargets.length === 0) return;
     setProviderUsageRefreshingAll(true);
     try {
-      await Promise.all(
-        refreshTargets.map(({ provider, apiKey }) =>
-          refreshProviderUsage(provider, apiKey),
-        ),
-      );
+      for (let i = 0; i < refreshTargets.length; i++) {
+        const { provider, apiKey } = refreshTargets[i];
+        try {
+          await refreshProviderUsage(provider, apiKey);
+        } catch (error) {
+          console.error('Failed to refresh provider usage:', error);
+        }
+        if (i < refreshTargets.length - 1) {
+          const jitterMs = Math.floor(Math.random() * (3500 - 1500 + 1)) + 1500;
+          await new Promise((resolve) => setTimeout(resolve, jitterMs));
+        }
+      }
     } finally {
       setProviderUsageRefreshingAll(false);
     }

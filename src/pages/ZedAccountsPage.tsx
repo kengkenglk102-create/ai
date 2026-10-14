@@ -130,14 +130,14 @@ function isZedAccountAbnormal(account: ZedAccount): boolean {
   return tone === 'warning' || tone === 'forbidden';
 }
 
-function formatDateTime(timestamp?: number | null, locale = 'zh-CN'): string {
+function formatDateTime(timestamp?: number | null, locale = 'vi'): string {
   if (!timestamp) return '--';
   const date = new Date(timestamp * 1000);
   if (Number.isNaN(date.getTime())) return '--';
   return date.toLocaleString(locale);
 }
 
-function formatDateOnly(timestamp?: number | null, locale = 'zh-CN'): string {
+function formatDateOnly(timestamp?: number | null, locale = 'vi'): string {
   if (!timestamp) return '';
   const date = new Date(timestamp * 1000);
   if (Number.isNaN(date.getTime())) return '';
@@ -1307,12 +1307,12 @@ export function ZedAccountsPage() {
                     onChange={() => toggleSelectAll(paginatedIds)}
                   />
                 </th>
-                <th style={{ width: 240 }}>{pageT('common.shared.columns.email', '邮箱')}</th>
-                <th style={{ width: 120 }}>{pageT('common.shared.columns.plan', '计划')}</th>
+                <th style={{ width: 240 }}>{pageT('common.shared.columns.email', 'Email')}</th>
+                <th style={{ width: 120 }}>{pageT('common.shared.columns.plan', 'Gói')}</th>
                 <th>{t('zed.page.tokenSpend', 'Token Spend')}</th>
-                <th>{pageT('common.detail', '详情')}</th>
+                <th>{pageT('common.detail', 'Chi tiết')}</th>
                 <th className="sticky-action-header table-action-header">
-                  {pageT('common.shared.columns.actions', '操作')}
+                  {pageT('common.shared.columns.actions', 'Thao tác')}
                 </th>
               </tr>
             </thead>
@@ -1345,12 +1345,12 @@ export function ZedAccountsPage() {
                     onChange={() => toggleSelectAll(paginatedIds)}
                   />
                 </th>
-                <th style={{ width: 240 }}>{pageT('common.shared.columns.email', '邮箱')}</th>
-                <th style={{ width: 120 }}>{pageT('common.shared.columns.plan', '计划')}</th>
+                <th style={{ width: 240 }}>{pageT('common.shared.columns.email', 'Email')}</th>
+                <th style={{ width: 120 }}>{pageT('common.shared.columns.plan', 'Gói')}</th>
                 <th>{t('zed.page.tokenSpend', 'Token Spend')}</th>
-                <th>{pageT('common.detail', '详情')}</th>
+                <th>{pageT('common.detail', 'Chi tiết')}</th>
                 <th className="sticky-action-header table-action-header">
-                  {pageT('common.shared.columns.actions', '操作')}
+                  {pageT('common.shared.columns.actions', 'Thao tác')}
                 </th>
               </tr>
             </thead>

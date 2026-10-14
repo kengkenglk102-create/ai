@@ -21,41 +21,6 @@ A **universal AI IDE account management tool**, currently supporting **Antigravi
 
 ---
 
-## Sponsors
-
-<table>
-  <tr>
-    <td width="120" align="center">
-      <a href="https://apikey.fun/register?aff=COCKPIT">
-        <img src="src/assets/icons/apikey-fun.png" alt="APIKEY.FUN" width="72" />
-      </a>
-    </td>
-    <td>
-      <a href="https://apikey.fun/register?aff=COCKPIT"><strong>APIKEY.FUN</strong></a> is a professional enterprise-grade AI relay focused on stable, efficient, and low-cost AI model API access for companies and individual developers. It supports popular models such as Claude, OpenAI, and Gemini, with prices as low as 7% of official pricing. Register through this project <a href="https://apikey.fun/register?aff=COCKPIT"><strong>exclusive link</strong></a> to receive an exclusive <strong>permanent 5% top-up discount</strong>.
-    </td>
-  </tr>
-  <tr>
-    <td width="120" align="center">
-      <a href="https://go.apimart.ai/gh-cockpit-tools">
-        <img src="src/assets/icons/apimart.png" alt="APIMart" width="96" />
-      </a>
-    </td>
-    <td>
-      Thanks to <a href="https://go.apimart.ai/gh-cockpit-tools"><strong>APIMart</strong></a> for sponsoring this project! <a href="https://go.apimart.ai/gh-cockpit-tools"><strong>APIMart</strong></a> is a low-cost API platform for AI image &amp; video generation — GPT-Image-2 from <strong>$0.006/image</strong>, <strong>160+ images per dollar</strong>. One async API covers both image and video: submit a task, get an ID, fetch results via polling or callback. Batch <strong>tens of thousands of images</strong> without timeouts, switch models without changing code. Pay-as-you-go with no monthly fee — <a href="https://go.apimart.ai/gh-cockpit-tools"><strong>sign up here</strong></a> to get started.
-    </td>
-  </tr>
-  <tr>
-    <td width="120" align="center">
-      <a href="https://roxybrowser.cn?code=0326VTDA">
-        <img src="src/assets/icons/roxybrowser.jpg" alt="RoxyBrowser" width="96" />
-      </a>
-    </td>
-    <td>
-      <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser</strong></a> is an anti-detect browser for multi-account operations and AI automation, supporting isolated browser fingerprint environments, Cookie / storage isolation, Roxy native residential IPs, team collaboration, and API / MCP automation. It helps users manage AI account matrices, reduce account association risk, and improve long-term stability. Register or purchase through the Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>invite link</strong></a> to get a 10% fan discount.
-    </td>
-  </tr>
-</table>
-
 ---
 
 ## Feature Overview

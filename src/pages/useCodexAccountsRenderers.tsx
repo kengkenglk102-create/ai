@@ -544,7 +544,10 @@ export function useCodexAccountsRenderers(context: Pick<ReturnType<typeof useCod
                 className={`codex-compact-switch-btn ${!isCurrent ? "success" : ""}`}
                 onClick={() => handleSwitch(account.id)}
                 disabled={!!switching || Boolean(switchOrLaunchBlockedReason)}
-                title={switchOrLaunchBlockedReason || t("codex.switch", "切换")}
+                title={
+                  (switchOrLaunchBlockedReason || t("codex.switch", "切换")) +
+                  "\n\nMẹo an toàn: Nếu dùng cố định 2-3 tài khoản, hãy dùng tính năng 'Đa cửa sổ' (Multi-instance) để tách biệt môi trường thay vì chuyển đổi ghi đè liên tục."
+                }
               >
                 {switching === account.id ? (
                   <RefreshCw size={14} className="loading-spinner" />
@@ -1131,7 +1134,8 @@ export function useCodexAccountsRenderers(context: Pick<ReturnType<typeof useCod
                     onClick={() => handleSwitch(account.id)}
                     disabled={!!switching || Boolean(switchOrLaunchBlockedReason)}
                     title={
-                      switchOrLaunchBlockedReason || t("codex.switch", "切换")
+                      (switchOrLaunchBlockedReason || t("codex.switch", "切换")) +
+                      "\n\nMẹo an toàn: Nếu dùng cố định 2-3 tài khoản, hãy dùng tính năng 'Đa cửa sổ' (Multi-instance) để tách biệt môi trường thay vì chuyển đổi ghi đè liên tục."
                     }
                   >
                     {switching === account.id ? (
@@ -2342,7 +2346,10 @@ export function useCodexAccountsRenderers(context: Pick<ReturnType<typeof useCod
                   className={`action-btn ${!isCurrent ? "success" : ""}`}
                   onClick={() => handleSwitch(account.id)}
                   disabled={!!switching || Boolean(switchOrLaunchBlockedReason)}
-                  title={switchOrLaunchBlockedReason || t("codex.switch", "切换")}
+                  title={
+                    (switchOrLaunchBlockedReason || t("codex.switch", "切换")) +
+                    "\n\nMẹo an toàn: Nếu dùng cố định 2-3 tài khoản, hãy dùng tính năng 'Đa cửa sổ' (Multi-instance) để tách biệt môi trường thay vì chuyển đổi ghi đè liên tục."
+                  }
                 >
                   {switching === account.id ? (
                     <RefreshCw size={14} className="loading-spinner" />

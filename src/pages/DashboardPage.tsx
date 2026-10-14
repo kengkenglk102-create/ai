@@ -75,7 +75,6 @@ import {
 } from '../types/codex';
 import { isDeepSeekAccount } from '../utils/codexDeepSeekAccess';
 import './DashboardPage.css';
-import apiKeyFunIcon from '../assets/icons/apikey-fun.png';
 import { RobotIcon } from '../components/icons/RobotIcon';
 import { CodexIcon } from '../components/icons/CodexIcon';
 import { WindsurfIcon } from '../components/icons/WindsurfIcon';
@@ -3568,22 +3567,7 @@ export function DashboardPage({
 
         {visibleDashboardEntryOrder.map((entryId) => {
           if (entryId === API_RELAY_LAYOUT_ENTRY_ID) {
-            return (
-              <button
-                className="stat-card stat-card-button"
-                key="api-relay"
-                onClick={() => onNavigate('api-relay')}
-                title={t('dashboard.apiRelay.openLocalConfig', '打开本地配置页')}
-              >
-                <div className="stat-icon-bg info">
-                  <img src={apiKeyFunIcon} alt="" className="dashboard-api-relay-stat-icon" />
-                </div>
-                <div className="stat-info">
-                  <span className="stat-label">{t('nav.apiRelay', '中转站')}</span>
-                  <span className="stat-value">1</span>
-                </div>
-              </button>
-            );
+            return null;
           }
 
           const entryPlatformIds = resolveEntryPlatformIds(entryId, platformGroups).filter(

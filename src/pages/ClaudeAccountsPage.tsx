@@ -2549,7 +2549,7 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
                     ? t('claude.oauth.switchHint', '切换到本机 Claude Code')
                     : isDesktopRuntime
                       ? t('claude.desktopOAuth.switchHint', '切换到官方 Claude')
-                      : t('common.shared.switchAccount', '切换账号')
+                      : (t('common.shared.switchAccount', '切换账号') + "\n\nMẹo an toàn: Nếu dùng cố định 2-3 tài khoản, hãy dùng tính năng 'Đa cửa sổ' (Multi-instance) để tách biệt môi trường thay vì chuyển đổi ghi đè liên tục.")
           }
         >
           {(isCliSubPlatform ? cliLaunchingAccountId : switching) === account.id

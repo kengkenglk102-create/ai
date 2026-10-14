@@ -28,7 +28,7 @@ function normalizeTraeOAuthStartResponse(raw: TraeOAuthStartResponseRaw): TraeOA
   const callbackUrl = raw.callbackUrl ?? raw.callback_url ?? null;
 
   if (!loginId || !verificationUri) {
-    throw new Error('Trae OAuth start 响应缺少关键字段');
+    throw new Error('Phản hồi Trae OAuth start thiếu các trường khóa');
   }
 
   return {

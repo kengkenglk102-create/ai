@@ -67,9 +67,9 @@ export function QoderInstancesContent({
       appType="qoder"
       isSupported={isSupportedPlatform}
       unsupportedTitleKey="common.shared.instances.unsupported.title"
-      unsupportedTitleDefault="暂不支持当前系统"
+      unsupportedTitleDefault="Hệ điều hành hiện tại chưa được hỗ trợ"
       unsupportedDescKey="qoder.instances.unsupported.descPlatform"
-      unsupportedDescDefault="Qoder 应用多开仅支持 macOS、Windows 和 Linux。"
+      unsupportedDescDefault="Đa cửa sổ Qoder chỉ hỗ trợ macOS, Windows và Linux."
     />
   );
 }
