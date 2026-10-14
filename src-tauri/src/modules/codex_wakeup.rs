@@ -2,6 +2,8 @@ use crate::modules::{account, codex_account, codex_local_access, logger, process
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
 use serde::{Deserialize, Serialize};
+use rand::seq::SliceRandom;
+use rand::Rng;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io;
@@ -22,6 +24,36 @@ const REQUIRED_RUNTIME_PATH_CODEX_CLI: &str = "codex_cli_path";
 const REQUIRED_RUNTIME_PATH_NODE: &str = "node_path";
 const CLI_VERSION_PROBE_TIMEOUT: Duration = Duration::from_secs(3);
 pub const DEFAULT_PROMPT: &str = "hi";
+
+pub const NATURAL_WAKEUP_PROMPTS: &[&str] = &[
+    "Write a quick TypeScript interface for a user profile.",
+    "Show a concise Rust example of using match on Option.",
+    "Give a 1-line Python list comprehension example.",
+    "How to check if a slice contains an element in Go?",
+    "Explain the difference between let and const in JavaScript in one sentence.",
+    "Write a regex to match an email address.",
+    "Show a quick snippet to format a Date in ISO string in JS.",
+    "How to reverse a string in Python concisely?",
+    "What is the best way to handle errors with Result in Rust?",
+    "Give an example of CSS flexbox centering.",
+    "Show how to parse JSON in Python.",
+    "What is the time complexity of binary search?",
+];
+
+pub fn pick_safe_wakeup_prompt(custom_prompt: Option<&str>) -> String {
+    if let Some(p) = custom_prompt {
+        let trimmed = p.trim();
+        if !trimmed.is_empty() && trimmed.to_lowercase() != "hi" && trimmed.to_lowercase() != "test" {
+            return trimmed.to_string();
+        }
+    }
+    let mut rng = rand::thread_rng();
+    NATURAL_WAKEUP_PROMPTS
+        .choose(&mut rng)
+        .copied()
+        .unwrap_or(DEFAULT_PROMPT)
+        .to_string()
+}
 pub const PROGRESS_EVENT: &str = "codex://wakeup-progress";
 const REASONING_EFFORT_LOW: &str = "low";
 const REASONING_EFFORT_MEDIUM: &str = "medium";
@@ -3100,11 +3132,11 @@ pub async fn run_batch(
         return Err("至少选择一个有效账号（已删除的账号不会被执行）".to_string());
     }
 
-    let prompt = prompt
+    let raw_prompt = prompt
         .as_ref()
         .map(|item| item.trim().to_string())
-        .filter(|item| !item.is_empty())
-        .unwrap_or_else(|| DEFAULT_PROMPT.to_string());
+        .filter(|item| !item.is_empty());
+    let prompt = pick_safe_wakeup_prompt(raw_prompt.as_deref());
     let total = cleaned_ids.len();
     let runtime = wakeup_runtime_status();
     let run_id = run_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
@@ -3127,12 +3159,20 @@ pub async fn run_batch(
     let mut failure_count = 0usize;
 
     for (index, account_id) in cleaned_ids.into_iter().enumerate() {
+        if index > 0 {
+            // Anti-ban: Thêm độ trễ ngẫu nhiên 1.5 - 3.5 giây giữa các tài khoản
+            let delay_ms = rand::thread_rng().gen_range(1500..3500);
+            tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
+        }
+
+        let current_prompt = pick_safe_wakeup_prompt(raw_prompt.as_deref());
+
         if is_scope_cancelled(cancel_flag.as_ref()) {
             let record = create_cancelled_record(
                 &run_id,
                 &context,
                 &account_id,
-                Some(prompt.clone()),
+                Some(current_prompt.clone()),
                 &execution_config,
                 None,
             );
@@ -3171,7 +3211,7 @@ pub async fn run_batch(
             &run_id,
             &context,
             &account_id,
-            &prompt,
+            &current_prompt,
             &execution_config,
             cancel_flag.as_ref(),
         )

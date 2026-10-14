@@ -103,50 +103,77 @@ function main() {
     (name) => !name.endsWith('.sig') && name !== 'latest.json' && name !== 'SHA256SUMS.txt'
   );
 
-  const darwinAarch64Tar = findAsset(assets, /_aarch64\.app\.tar\.gz$/, 'darwin-aarch64');
-  const darwinX64Tar = findAsset(assets, /_x64\.app\.tar\.gz$/, 'darwin-x86_64');
-  const windowsMsi = findAsset(assets, /_x64_en-US\.msi$/, 'windows-x86_64-msi');
-  const windowsNsis = findAsset(assets, /_x64-setup\.exe$/, 'windows-x86_64-nsis');
-  const linuxX64AppImage = findAsset(assets, /_amd64\.AppImage$/, 'linux-x86_64-appimage');
-  const linuxArmAppImage = findAsset(assets, /_aarch64\.AppImage$/, 'linux-aarch64-appimage');
-  const linuxX64Deb = findAsset(assets, /_amd64\.deb$/, 'linux-x86_64-deb');
-  const linuxArmDeb = findAsset(assets, /_arm64\.deb$/, 'linux-aarch64-deb');
-  const linuxX64Rpm = findAsset(assets, /-1\.x86_64\.rpm$/, 'linux-x86_64-rpm');
-  const linuxArmRpm = findAsset(assets, /-1\.aarch64\.rpm$/, 'linux-aarch64-rpm');
+  const platforms = {};
 
-  const darwinAarch64Entry = buildPlatformEntry(darwinAarch64Tar, signatures, repo, version);
-  const darwinX64Entry = buildPlatformEntry(darwinX64Tar, signatures, repo, version);
-  const windowsMsiEntry = buildPlatformEntry(windowsMsi, signatures, repo, version);
-  const windowsNsisEntry = buildPlatformEntry(windowsNsis, signatures, repo, version);
-  const linuxX64AppImageEntry = buildPlatformEntry(linuxX64AppImage, signatures, repo, version);
-  const linuxArmAppImageEntry = buildPlatformEntry(linuxArmAppImage, signatures, repo, version);
-  const linuxX64DebEntry = buildPlatformEntry(linuxX64Deb, signatures, repo, version);
-  const linuxArmDebEntry = buildPlatformEntry(linuxArmDeb, signatures, repo, version);
-  const linuxX64RpmEntry = buildPlatformEntry(linuxX64Rpm, signatures, repo, version);
-  const linuxArmRpmEntry = buildPlatformEntry(linuxArmRpm, signatures, repo, version);
+  const darwinAarch64Tar = assets.find((name) => /_aarch64\.app\.tar\.gz$/.test(name));
+  if (darwinAarch64Tar) {
+    const entry = buildPlatformEntry(darwinAarch64Tar, signatures, repo, version);
+    platforms['darwin-aarch64'] = entry;
+    platforms['darwin-aarch64-app'] = cloneEntry(entry);
+  }
+
+  const darwinX64Tar = assets.find((name) => /_x64\.app\.tar\.gz$/.test(name));
+  if (darwinX64Tar) {
+    const entry = buildPlatformEntry(darwinX64Tar, signatures, repo, version);
+    platforms['darwin-x86_64'] = entry;
+    platforms['darwin-x86_64-app'] = cloneEntry(entry);
+  }
+
+  const windowsMsi = assets.find((name) => /_x64_en-US\.msi$/.test(name));
+  if (windowsMsi) {
+    const entry = buildPlatformEntry(windowsMsi, signatures, repo, version);
+    platforms['windows-x86_64'] = entry;
+    platforms['windows-x86_64-msi'] = cloneEntry(entry);
+  }
+
+  const windowsNsis = assets.find((name) => /_x64-setup\.exe$/.test(name));
+  if (windowsNsis) {
+    const entry = buildPlatformEntry(windowsNsis, signatures, repo, version);
+    platforms['windows-x86_64-nsis'] = entry;
+    if (!platforms['windows-x86_64']) {
+      platforms['windows-x86_64'] = cloneEntry(entry);
+    }
+  }
+
+  const linuxX64AppImage = assets.find((name) => /_amd64\.AppImage$/.test(name));
+  if (linuxX64AppImage) {
+    const entry = buildPlatformEntry(linuxX64AppImage, signatures, repo, version);
+    platforms['linux-x86_64'] = entry;
+    platforms['linux-x86_64-appimage'] = cloneEntry(entry);
+  }
+
+  const linuxArmAppImage = assets.find((name) => /_aarch64\.AppImage$/.test(name));
+  if (linuxArmAppImage) {
+    const entry = buildPlatformEntry(linuxArmAppImage, signatures, repo, version);
+    platforms['linux-aarch64'] = entry;
+    platforms['linux-aarch64-appimage'] = cloneEntry(entry);
+  }
+
+  const linuxX64Deb = assets.find((name) => /_amd64\.deb$/.test(name));
+  if (linuxX64Deb) {
+    platforms['linux-x86_64-deb'] = buildPlatformEntry(linuxX64Deb, signatures, repo, version);
+  }
+
+  const linuxArmDeb = assets.find((name) => /_arm64\.deb$/.test(name));
+  if (linuxArmDeb) {
+    platforms['linux-aarch64-deb'] = buildPlatformEntry(linuxArmDeb, signatures, repo, version);
+  }
+
+  const linuxX64Rpm = assets.find((name) => /-1\.x86_64\.rpm$/.test(name));
+  if (linuxX64Rpm) {
+    platforms['linux-x86_64-rpm'] = buildPlatformEntry(linuxX64Rpm, signatures, repo, version);
+  }
+
+  const linuxArmRpm = assets.find((name) => /-1\.aarch64\.rpm$/.test(name));
+  if (linuxArmRpm) {
+    platforms['linux-aarch64-rpm'] = buildPlatformEntry(linuxArmRpm, signatures, repo, version);
+  }
 
   const latest = {
     version,
     notes: readText(notesFile),
     pub_date: publishedAt,
-    platforms: {
-      'darwin-aarch64': darwinAarch64Entry,
-      'darwin-aarch64-app': cloneEntry(darwinAarch64Entry),
-      'darwin-x86_64': darwinX64Entry,
-      'darwin-x86_64-app': cloneEntry(darwinX64Entry),
-      // Unknown/generic Windows target prefers MSI (see #1320 / desktop_updater_target fallback).
-      'windows-x86_64': windowsMsiEntry,
-      'windows-x86_64-msi': cloneEntry(windowsMsiEntry),
-      'windows-x86_64-nsis': windowsNsisEntry,
-      'linux-x86_64': linuxX64AppImageEntry,
-      'linux-x86_64-appimage': cloneEntry(linuxX64AppImageEntry),
-      'linux-x86_64-deb': linuxX64DebEntry,
-      'linux-x86_64-rpm': linuxX64RpmEntry,
-      'linux-aarch64': linuxArmAppImageEntry,
-      'linux-aarch64-appimage': cloneEntry(linuxArmAppImageEntry),
-      'linux-aarch64-deb': linuxArmDebEntry,
-      'linux-aarch64-rpm': linuxArmRpmEntry,
-    },
+    platforms,
   };
 
   fs.writeFileSync(output, `${JSON.stringify(latest, null, 2)}\n`);

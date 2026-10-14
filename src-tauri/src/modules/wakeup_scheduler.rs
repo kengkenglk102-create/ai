@@ -7,12 +7,45 @@ use std::time::Duration;
 use chrono::{DateTime, Datelike, Local, TimeZone, Timelike};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
+use rand::seq::SliceRandom;
+use rand::Rng;
 use tauri_plugin_notification::NotificationExt;
 use tokio::time::sleep;
 
 use crate::modules;
 
 const DEFAULT_PROMPT: &str = "hi";
+
+pub const NATURAL_WAKEUP_PROMPTS: &[&str] = &[
+    "Write a quick TypeScript interface for a user profile.",
+    "Show a concise Rust example of using match on Option.",
+    "Give a 1-line Python list comprehension example.",
+    "How to check if a slice contains an element in Go?",
+    "Explain the difference between let and const in JavaScript in one sentence.",
+    "Write a regex to match an email address.",
+    "Show a quick snippet to format a Date in ISO string in JS.",
+    "How to reverse a string in Python concisely?",
+    "What is the best way to handle errors with Result in Rust?",
+    "Give an example of CSS flexbox centering.",
+    "Show how to parse JSON in Python.",
+    "What is the time complexity of binary search?",
+];
+
+pub fn pick_safe_wakeup_prompt(custom_prompt: Option<&str>) -> String {
+    if let Some(p) = custom_prompt {
+        let trimmed = p.trim();
+        if !trimmed.is_empty() && trimmed.to_lowercase() != "hi" && trimmed.to_lowercase() != "test" {
+            return trimmed.to_string();
+        }
+    }
+    let mut rng = rand::thread_rng();
+    NATURAL_WAKEUP_PROMPTS
+        .choose(&mut rng)
+        .copied()
+        .unwrap_or(DEFAULT_PROMPT)
+        .to_string()
+}
+
 const RESET_TRIGGER_COOLDOWN_MS: i64 = 10 * 60 * 1000;
 const RESET_SAFETY_MARGIN_MS: i64 = 2 * 60 * 1000;
 const WAKEUP_TASKS_FILE: &str = "wakeup_tasks.json";
@@ -941,6 +974,9 @@ async fn run_scheduler_once(app: &AppHandle) {
                 let task_clone = task.clone();
                 let trigger_source = trigger_source.to_string();
                 tauri::async_runtime::spawn(async move {
+                    // Anti-ban: Thêm jitter ngẫu nhiên 2 - 20s để không gửi request đúng phút :00:00 sắc bén
+                    let jitter_secs = rand::thread_rng().gen_range(2..20);
+                    tokio::time::sleep(tokio::time::Duration::from_secs(jitter_secs)).await;
                     run_task(&app_handle, &task_clone, &trigger_source).await;
                 });
             }
@@ -1229,26 +1265,22 @@ async fn run_task_with_models(
         guard.running_tasks.insert(task.id.clone());
     }
 
-    let prompt = task
-        .schedule
-        .custom_prompt
-        .as_ref()
-        .and_then(|p| {
-            if p.trim().is_empty() {
-                None
-            } else {
-                Some(p.trim().to_string())
-            }
-        })
-        .unwrap_or_else(|| DEFAULT_PROMPT.to_string());
     let max_tokens = normalize_max_tokens(task.schedule.max_output_tokens);
 
     let mut history: Vec<modules::wakeup_history::WakeupHistoryItem> = Vec::new();
+    let mut request_index = 0usize;
     for account in &selected_accounts {
         for model in &models {
+            if request_index > 0 {
+                // Anti-ban: Thêm độ trễ ngẫu nhiên 1.5 - 3.5 giây giữa các yêu cầu để tránh kích hoạt anti-bot
+                let delay_ms = rand::thread_rng().gen_range(1500..3500);
+                tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
+            }
+            request_index += 1;
+            let current_prompt = pick_safe_wakeup_prompt(task.schedule.custom_prompt.as_deref());
             let started = chrono::Utc::now();
             let result =
-                modules::wakeup::trigger_wakeup(&account.id, model, &prompt, max_tokens, None)
+                modules::wakeup::trigger_wakeup(&account.id, model, &current_prompt, max_tokens, None)
                     .await;
             let duration = chrono::Utc::now()
                 .signed_duration_since(started)

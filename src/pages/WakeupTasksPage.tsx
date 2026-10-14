@@ -2249,7 +2249,7 @@ export function WakeupTasksPage({ onNavigate }: WakeupPageProps) {
           gap: '8px',
         }}
       >
-        <span>⚠️ Lưu ý an toàn: Việc bật tự động đánh thức định kỳ có thể bị máy chủ AI nhận diện là lưu lượng tự động (Bot) và dẫn đến giới hạn tài khoản.</span>
+        <span>⚠️ Lưu ý an toàn &amp; Chống khóa (Anti-ban): Đã tích hợp prompt ngẫu nhiên và giãn cách jitter giữa các yêu cầu. Khuyến nghị: Tránh bật tự động đánh thức 24/7 khi không làm việc, và không tập trung quá nhiều tài khoản trên cùng một IP.</span>
       </div>
       <div className="toolbar wakeup-toolbar">
         <div className="toolbar-left">
