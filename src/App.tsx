@@ -1058,7 +1058,16 @@ function MainApp() {
     const syncLanguageFromConfig = async () => {
       try {
         const config = await invoke<GeneralConfigLanguage>('get_general_config');
-        const nextLanguage = await syncLanguage(config.language);
+        let targetLanguage = config.language;
+        const VI_DEFAULT_MIGRATION_KEY = 'agtools.language.migrated_to_vi_v1';
+        if (localStorage.getItem(VI_DEFAULT_MIGRATION_KEY) !== '1') {
+          localStorage.setItem(VI_DEFAULT_MIGRATION_KEY, '1');
+          if (!targetLanguage || targetLanguage.toLowerCase().startsWith('zh')) {
+            targetLanguage = 'vi';
+            void invoke('patch_general_config', { updates: { language: 'vi' } }).catch(() => {});
+          }
+        }
+        const nextLanguage = await syncLanguage(targetLanguage);
         if (disposed) {
           return;
         }
