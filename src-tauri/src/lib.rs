@@ -1,3 +1,7 @@
+// HTTP/2 transport and credential-refresh futures need the same trait-checking
+// depth in Windows production builds as in the test harness.
+#![recursion_limit = "256"]
+
 mod commands;
 pub mod error;
 mod models;
@@ -321,6 +325,9 @@ fn summarize_deep_link_args(args: &[String]) -> Vec<String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    if let Some(code) = modules::codex_continuity_worker::try_run() {
+        std::process::exit(code);
+    }
     logger::init_logger();
     modules::diagnostics::install_panic_hook();
     modules::diagnostics::start_frontend_ready_watchdog();
@@ -556,6 +563,7 @@ pub fn run() {
             // 官方客户端临时登录会留下一次性 profile，成功/失败/取消都会清理；
             // 这里额外启动巡检，兜住异常退出后残留的临时目录与钥匙串条目。
             modules::codex_temp_login::ensure_cleanup_loop_started();
+            modules::codex_quota_sync::ensure_started();
 
             // Wakeup restore/start and Deep Link registration/read can hit disk or OS
             // APIs — never block setup (window + skeleton tray first).
@@ -933,6 +941,7 @@ pub fn run() {
             commands::system::save_refresh_interval_config,
             commands::system::save_tray_platform_layout,
             commands::system::set_app_path,
+            commands::system::validate_codex_app_path,
             commands::system::set_claude_app_scan_roots,
             commands::system::set_trae_app_scan_roots,
             commands::system::set_codex_launch_on_switch,
@@ -991,9 +1000,11 @@ pub fn run() {
             commands::update::update_last_check_time,
             commands::update::get_update_settings,
             commands::update::patch_update_settings,
-            commands::update::save_pending_update_notes,
             commands::update::check_version_jump,
             commands::update::get_release_history,
+            commands::update::get_bundled_release_notes,
+            commands::update::get_pending_release_notes,
+            commands::update::save_pending_update_notes,
             commands::update::update_log,
             commands::update::get_update_runtime_info,
             commands::update::install_linux_update,
@@ -1036,7 +1047,6 @@ pub fn run() {
             commands::codex::update_codex_account_app_speed,
             commands::codex::refresh_codex_account_profile,
             commands::codex::force_refresh_codex_tokens,
-            commands::codex::codex_clear_client_auth_observation,
             commands::codex::switch_codex_account,
             commands::codex::codex_cancel_account_switch,
             commands::codex::list_codex_recycled_accounts,
@@ -1067,6 +1077,9 @@ pub fn run() {
             commands::codex::get_codex_batch_import_preview,
             commands::codex::confirm_codex_batch_import,
             commands::codex::refresh_codex_quota,
+            modules::codex_quota_sync::set_codex_quota_sync_disabled_emails,
+            modules::codex_device_restrictions::codex_list_device_restrictions,
+            modules::codex_device_restrictions::codex_allow_device_restriction_retry,
             commands::codex::refresh_codex_quotas_batch,
             commands::codex::get_codex_reset_credits,
             commands::codex::consume_codex_reset_credit,
@@ -1074,6 +1087,22 @@ pub fn run() {
             commands::codex::refresh_all_codex_quotas,
             commands::codex::refresh_current_codex_quota,
             commands::codex::codex_oauth_login_start,
+            commands::chatgpt_plan::chatgpt_plan_start_login,
+            commands::chatgpt_plan::chatgpt_plan_poll_login,
+            commands::chatgpt_plan::chatgpt_plan_cancel_login,
+            commands::chatgpt_plan::chatgpt_plan_submit_callback_url,
+            commands::chatgpt_plan::chatgpt_plan_open_incognito_window,
+            commands::chatgpt_plan::chatgpt_plan_list_accounts,
+            commands::chatgpt_plan::chatgpt_plan_list_models,
+            commands::chatgpt_plan::chatgpt_plan_verify,
+            commands::chatgpt_plan::chatgpt_plan_check_authorization,
+            commands::chatgpt_plan::chatgpt_plan_bind_account,
+            commands::chatgpt_plan::chatgpt_plan_disconnect,
+            commands::chatgpt_plan_service::chatgpt_plan_join,
+            commands::chatgpt_plan_service::chatgpt_plan_set_service_mode,
+            commands::chatgpt_plan_service::chatgpt_plan_unbind_account,
+            commands::chatgpt_plan_service::chatgpt_plan_release_authorization,
+            commands::chatgpt_plan_service::chatgpt_plan_remove_from_service,
             commands::codex::codex_oauth_device_auth_start,
             commands::codex::codex_oauth_open_incognito_window,
             commands::codex::codex_oauth_login_completed,
@@ -1161,6 +1190,8 @@ pub fn run() {
             commands::codex::import_codex_model_config,
             commands::codex::export_codex_model_config,
             commands::codex::codex_query_model_provider_usage,
+            commands::codex::codex_discover_remote_service,
+            commands::codex::codex_query_remote_key_data,
             commands::codex::codex_local_access_get_state,
             commands::codex::codex_local_access_get_request_detail,
             commands::codex::codex_local_access_get_request_payload_logging,
@@ -1196,7 +1227,6 @@ pub fn run() {
             commands::codex::codex_local_access_update_timeouts,
             commands::codex::codex_local_access_update_timeout_presets,
             commands::codex::codex_local_access_update_upstream_proxy_config,
-            commands::codex::codex_local_access_update_gateway_mode,
             commands::codex::codex_local_access_update_debug_logs,
             commands::codex::codex_local_access_update_image_generation_model,
             commands::codex::codex_local_access_update_image_generation_model_catalog,
@@ -1640,14 +1670,47 @@ pub fn run() {
                     modules::logger::log_info("[Window] 主窗口已销毁，应用继续在托盘运行");
                 } else {
                     let first_shutdown = modules::app_lifecycle::begin_shutdown();
+                    let wait_for_native =
+                        first_shutdown && modules::codex_local_access::native_api_running();
+                    if wait_for_native {
+                        api.prevent_exit();
+                        // An async timeout cannot preempt a synchronous filesystem/process probe.
+                        let watchdog_app = app_handle.clone();
+                        if let Err(error) = std::thread::Builder::new()
+                            .name("native-api-exit-watchdog".into())
+                            .spawn(move || {
+                                std::thread::sleep(std::time::Duration::from_secs(20));
+                                watchdog_app.exit(0);
+                            })
+                        {
+                            modules::logger::log_warn(&format!(
+                                "Unable to start API exit watchdog: {error}"
+                            ));
+                            app_handle.exit(0);
+                        }
+                    }
                     if first_shutdown {
                         commands::codex_instance::restore_mixed_model_profiles_for_app_exit();
                     }
                     modules::codex_app_injection::stop_all();
                     modules::codex_proxy_engine::shutdown_all();
-                    tauri::async_runtime::spawn(async {
-                        modules::codex_local_access::shutdown_local_access_gateway_for_app_exit()
-                            .await;
+                    let app_to_exit = app_handle.clone();
+                    tauri::async_runtime::spawn(async move {
+                        if tokio::time::timeout(
+                            std::time::Duration::from_secs(20),
+                            modules::codex_local_access::shutdown_local_access_gateway_for_app_exit(
+                            ),
+                        )
+                        .await
+                        .is_err()
+                        {
+                            modules::logger::log_warn(
+                                "API service shutdown exceeded the exit deadline",
+                            );
+                        }
+                        if wait_for_native {
+                            app_to_exit.exit(0);
+                        }
                     });
                 }
             }

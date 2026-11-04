@@ -22,6 +22,31 @@
 
 ---
 
+## 赞助商
+
+<table>
+  <tr>
+    <td width="120" align="center">
+      <a href="https://apikey.fan/register?aff=COCKPIT">
+        <img src="src/assets/icons/apikey-fun.png" alt="APIKEY.FUN" width="72" />
+      </a>
+    </td>
+    <td>
+      <a href="https://apikey.fan/register?aff=COCKPIT"><strong>APIKEY.FUN</strong></a> 是一家专业的企业级 AI 中转站，致力于为企业和个人开发者提供稳定、高效、低成本的 AI 模型 API 接入服务。平台支持 Claude、OpenAI、Gemini 等主流热门模型，价格低至官方原价的 7%。通过本项目 <a href="https://apikey.fan/register?aff=COCKPIT"><strong>专属链接</strong></a> 注册，还可享受最高 <strong>充值永久 95 折</strong> 专属优惠。
+    </td>
+  </tr>
+  <tr>
+    <td width="120" align="center">
+      <a href="https://roxybrowser.cn?code=0326VTDA">
+        <img src="src/assets/icons/roxybrowser.jpg" alt="RoxyBrowser" width="96" />
+      </a>
+    </td>
+    <td>
+      <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser（Roxy浏览器）</strong></a> 是面向多账号运营与 AI 自动化场景的指纹浏览器，支持独立浏览器指纹环境、Cookie / 存储隔离、Roxy 原生住宅 IP、团队协作与 API / MCP 自动化能力，适合需要管理 AI 账号矩阵、降低账号关联风险、提升长期使用稳定性的用户。通过 Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>邀请链接</strong></a> 注册或购买，可享受 10% 粉丝折扣。
+    </td>
+  </tr>
+</table>
+
 ---
 
 ## 功能概览
@@ -63,8 +88,13 @@
 - **专属支持**：专为 Codex 优化的账号管理体验
 - **配额展示**：清晰展示 Hourly 和 Weekly 配额状态
 - **计划识别**：自动识别账号 Plan 类型 (Basic, Plus, Team 等)
-- **API 服务**：本地 Codex API 服务由内置 CLIProxyAPI sidecar 驱动，Cockpit Tools 负责账号同步、配置投影、状态与用量统计；Base URL、API Key 与用户操作方式保持不变。
-- **语音反代**：支持 Codex backend 实时语音路由与 `/transcribe` 转写入口，并提供 `/v1/audio/transcriptions`、`/v1/audio/translations`、`/v1/audio/speech` 及无 `/v1` 的别名。OAuth 转写使用 ChatGPT backend：兼容入口支持 `file`、`language` 和 JSON／纯文本返回，`model` 仅作为兼容字段，实际模型由 backend 决定；字幕时间戳、流式转写及其他音频操作需使用支持相应接口的 API Key 供应商。原生 `/transcribe` 请求保留原有 multipart 参数，供应商侧未指定模型时使用 `gpt-4o-mini-transcribe`。请求上限为 26 MiB，超时为 2 分钟，音频内容不写入请求快照。只处理实际发送到本地网关的请求；客户端仍直连官方转写服务或自行限制麦克风时，不会因设置模型供应商而自动改走本地网关。
+- **ChatGPT 官方授权**：在“API 服务 → 管理成员（添加账号）”中主动选择官方通道，可在独立弹框中为已有 Codex 账号绑定 OpenAI Sign in with ChatGPT 授权。打开后自动准备并显示授权链接和手动回调输入，可复制链接、使用无痕窗口或手动提交回调；授权窗口可以取消；未加入服务的账号仅保存授权，不会自动加入。卡片和添加账号列表以紧凑的「官」标识显示官方授权绑定状态；有效绑定始终高亮，不受是否加入 API 服务影响，服务成员状态单独显示。API 服务选择“官方优先”后，优先使用已绑定的官方授权；遇到可安全重试的授权拒绝、通道或连接异常时，先尝试同账号原有的本地 OAuth 通道，再沿用当前 Key 范围内的账号池规则。“仅本地”保留明确选择；回退不解除授权，仍执行账号、模型、额度、并发与代理限制。已输出内容或执行状态不明的请求不重放。资格拒绝会暂停官方通道，检查或重新授权后可恢复；临时错误按退避时间重新尝试官方。官方通道按默认速度发送，不传递 Fast/超快等速度覆盖；此适配不视为授权拒绝，也不触发回退或暂停模型。若随后因真实异常回退本地，则保留原始速度选择，由本地上游决定是否支持。请求记录显示原始速度、官方默认速度适配、源账号、实际拒绝、预检或暂停跳过、本地尝试、上游请求 ID 与最终结果；上游回报的档位单独保留，不据此推断实际加速。鹈鹕测智和手动、定时唤醒优先使用原账号绑定的官方第三方授权，未绑定时沿用原通道，不依赖 API 服务是否启动或加入集合。测智与唤醒在已绑定但失效时仍提示处理授权，不静默改用原凭据，不换号或重复生成。服务成员始终使用原账号，成员弹框在账号名和优先级之间用下拉选择“官方优先 / 仅本地”，其余字段位置不变；未授权时选择官方会打开授权弹框，成功后更新草稿，取消保持原方式。勾选和保存集合均不弹引导，保存时统一提交成员与接入方式，关闭弹框仍保留已完成的账号授权。本版本取消启动、页面进入和普通账号添加时的官方授权自动提示及新功能提醒；没有官方授权时默认使用本地网关，已有明确接入方式仍保留。后续可在“API 服务 → 管理成员（添加账号）”中选择接入方式或进入授权管理，统计区和总览工具栏不再单独放入口。名称、套餐、额度和分组始终沿用原账号资料。不改变原 Codex 客户端登录、切号或实例绑定；两套凭据独立加密保存并自动刷新。首次授权完成后直接保存并绑定；授权及加入流程无需选择模型、唤醒或发送测试推理。移除 API 服务成员会保留授权和上次接入方式，重新加入时直接复用，必要时自动续期。授权作为原账号的附加能力，列表只保留“授权/管理授权”，管理操作打开独立弹框；管理与重新授权不会自动加入服务。切换接入方式保留服务成员及 Key 范围和优先级；解除官方授权时明确选择改用本地网关或暂停，成员继续保留。暂停仅影响当前 API 服务，Rust 引擎会阻止该成员处理新请求，不改客户端登录；只有显式移出服务才移除成员。检查授权不会生成回复；官网撤销后会在检查、请求或续期时识别，不提供实时撤销通知。官方通道生图固定禁止。Rust 原生引擎通过官方公共 Responses HTTP/SSE 调用，支持本地 function/custom 工具、客户端工具发现和结果回传；工具由客户端执行，网关不代为执行本地操作。客户端 WebSocket 由本地网关转为 HTTP/SSE，连续对话仅使用经过调用者与账号归属校验的本地历史，未知 `previous_response_id` 仍需补齐完整 `input`。套餐通道不提供 compact、音频或官方未开放的托管工具。未知订阅不显示 Free；本地请求与 Token 统计仅代表本服务用量，剩余套餐额度和授权在 ChatGPT 设置中查看与管理。
+- **自动能力兜底**：当前账号不支持请求能力时，API 服务自动在当前 Key 已授权的账号池中寻找兼容账号，无需单独开启或填写备用名单。候选继续受模型映射、配额及并发限制；未知能力先由当前上游处理，不发起付费探测。换号会发送必要的对话内容并消耗目标账号额度，请求详情保留相关证据。仅对明确执行前拒绝、历史完整且可安全迁移的请求换号；不重放已输出或执行状态不明的请求，不丢弃私有文件、向量库、容器引用或不兼容密文。Files、向量库和容器管理接口不属于此功能。
+- **Claude 模型网关**：在 Codex「模型供应商」选择 Anthropic 协议，填写网关地址与 Key，选择 `x-api-key` 或 Bearer 鉴权；可从剪贴板导入 Claude Code settings 或桌面端 Gateway 配置，获取或手动填写模型目录。将对应 API Key 账号加入 API 服务后，模型会进入服务目录及接管的 Codex 模型选择器。Claude 协议行为参考 CLIProxyAPI `9717e325`：Rust 引擎支持流式回复、客户端工具发现、function/custom/namespace 与 MCP 工具回传、网页搜索结果及引用回放，以及 `/responses/compact` 和会话内压缩。搜索结果按调用方、账号与会话缓存，便于在 Codex 保存历史时缺少专有字段的情况下继续回放；压缩使用当前 Claude 模型生成摘要并保存为可继续使用的状态。终端、文件修改和多 Agent 等客户端工具仍由 Codex 执行并受其权限控制。结构化输出采用格式指令适配，不保证严格 JSON Schema 约束；网页搜索需要上游开放相应工具，Claude 协议适配本身不会增加生图等上游未提供的服务端能力。
+- **API 服务**：统一由宿主内的 Rust 引擎运行，支持 Responses HTTP/SSE/WebSocket、上下文压缩及 Chat Completions、Claude、Gemini、Ollama 协议兼容。旧 Go/legacy 选择自动迁移，保留账号池、代理、设置、端口、API Key 与历史记录；实例网关继续按 profile 隔离。已移除 Go 引擎和切换入口，不再依赖 Go 工具链或 sidecar。
+- **请求身份对照**：Rust 的请求记录「详情」可对照客户端原始 `Session-Id`、`Thread-Id`，以及每次上游尝试使用的请求头、账号和传输方式。关闭或清除正文快照仍保留这些本地诊断信息；客户端未提供与历史未采集分别显示，不按当前配置补填旧记录。这些头值不代表上游已接收请求。
+- **自动续接上下文**：Rust 默认自动尝试续接历史对话，支持切换账号，缺少本地归属记录不再单独阻断请求。调用方、账号池权限及 profile 隔离继续生效。完整 Responses 历史原样保留，包括 reasoning、compaction、工具与子 Agent 密文及 `item.id`／`call_id`；不解密、不丢弃，也不以摘要替代。完整自包含 `input` 可在授权目标账号建立新的上游 Session／Thread，保留客户端 Thread；增量请求继续使用有效上游状态、完整检查点或 WebSocket 历史，缺失上下文或上游明确拒绝时仍可能失败并保留原历史。Rust 在转发完整官方 Agent 通信工具调用前登记消息密文归属；缺少记录的历史通信密文也自动尝试续接，新的续接归属仅在有效完整响应后保存。Rust 保留本地 `codex_native_api/identity.sqlite` 明文／密文历史缓存，实例网关使用各 profile 隔离目录内的 `native-identity.sqlite`，独立于正文诊断／快照开关。缓存上限为每个检查点 8 MiB、总计 64 MiB 和 128 个检查点，淘汰不删除会话或密文归属。重放可能增加输入 token，上游对跨账号密文的接受情况仍待真实请求验证。失败不覆盖已成功代次，已成功代次在升级和重启后保留；新的上游对话不改变目标账号身份。
+- **语音反代**：支持 Codex backend 实时语音路由与 `/transcribe` 转写入口，并提供 `/v1/audio/transcriptions`、`/v1/audio/translations`、`/v1/audio/speech` 及无 `/v1` 的别名。OAuth 转写使用 ChatGPT backend：兼容入口支持 `file`、`language` 和 JSON／纯文本返回，`model` 仅作为兼容字段，实际模型由 backend 决定；字幕时间戳、流式转写及其他音频操作需使用支持相应接口的 API Key 供应商。原生 `/transcribe` 请求保留原有 multipart 参数，供应商侧未指定模型时使用 `gpt-4o-mini-transcribe`。请求上限为 26 MiB，超时为 2 分钟，音频内容不写入请求快照。只处理实际发送到本地网关的请求；客户端仍直连官方转写服务或自行限制麦克风时，不会因设置模型供应商而自动改走本地网关。 OAuth 转写可能被上游拒绝（包括 `403 cloudflare challenge`），本地适配无法保证上游接受。API 服务绑定的 Codex 客户端保留原生听写入口与转写流程，是否显示和可用由客户端原生能力与设置决定；Cockpit 不接管听写或强制启用麦克风。当前官方实时语音按钮仍要求 ChatGPT 登录态；网关实时语音从账号池选择 OAuth，不要求该账号就是绑定账号，尚未开放纯 API Key 实时语音路由。
 
 > ![Codex Accounts](docs/images/codex_list.png)
 
@@ -207,7 +237,7 @@ Grok CLI 默认实例通常直接沿用官方 `~/.grok` 目录，启动时不设
 - **账号导入**：支持本机导入与 JSON 导入
 - **配额视图**：展示套餐原始值、美元消耗/总额度与重置时间
 - **批量管理**：支持标签、筛选、导出与批量删除/刷新
-- **Trae 套件**：支持 Trae、TRAE SOLO、Trae CN、TRAE SOLO CN 默认客户端的本机导入与切号注入，默认归入 Trae 分组
+- **Trae 套件**：支持 Trae、TRAE SOLO、Trae CN、TRAE SOLO CN 默认客户端的本机导入与切号注入，默认独立展示，可在顶部布局中手动分组
 - **切号注入**：支持切号后按各客户端真实落盘规则写回并启动目标客户端
 
 #### 11.1 Trae 应用多开
@@ -271,6 +301,21 @@ Grok CLI 默认实例通常直接沿用官方 `~/.grok` 目录，启动时不设
   1. 不使用插件联动时，可关闭 WebSocket 服务。
   2. 不要把用户目录直接打包分享；备份前注意脱敏 token 文件。
   3. 在公共或共用电脑上，使用后删除账号并退出应用。
+
+### WebSocket 账号切换 API
+
+`request.switch_account` 支持明确选择 Antigravity 客户端。未传 `runtime_target`，或传 `"antigravity_ide"`，保持原有 IDE 切号流程及现有启动/无感双通道设置；不会读取前端选择的客户端。
+
+切换 Antigravity 桌面版及使用同一系统凭据的 `agy` CLI，可发送：
+
+```json
+{"type":"request.switch_account","payload":{"account_id":"<account-id>","request_id":"x","runtime_target":"antigravity","launch_on_switch":false}}
+```
+
+- `runtime_target: "antigravity"`：复用桌面版切号认证规则；2.0 及以上版本写入系统凭据，并同步桌面版的本地回退文件 `~/.gemini/jetski-standalone-oauth-token`（保留 `id_token`，Unix 权限为 `0600`）；旧版写入本地 SQLite 登录状态。只有真实凭据及回退文件写入成功后才更新当前账号、默认实例绑定并通知切号结果。回退文件同步失败会明确报告系统凭据已写入并提示重试。
+- `launch_on_switch`：仅用于 `"antigravity"`，默认 `false`；不关闭或启动客户端，已运行桌面版可能需下次启动才使用新账号。显式传 `true` 才执行与桌面版 UI 相同的关闭、写入、重启流程。IDE 请求不要传此字段，继续使用现有设置。
+- `request_id`：可选，传入后返回对应的 `response.success` 或 `response.error`。不支持的目标、凭据写入失败或并发桌面切号会返回错误，不报告成功；凭据已切换但启动失败会明确报告启动错误。无效目标返回 `WS_SWITCH_TARGET_INVALID`，在 IDE 请求中传启动策略返回 `WS_SWITCH_LAUNCH_POLICY_INVALID`；并发桌面切号返回 `ANTIGRAVITY_SWITCH_BUSY`，账号准备超时返回 `ANTIGRAVITY_SWITCH_PREPARATION_TIMEOUT`。
+- `ANTIGRAVITY_SWITCH_STATE_SAVE_FAILED` 表示客户端凭据已切换，但 Tools 当前账号状态保存失败，请重试切号。默认实例绑定更新保留原有尽力保存行为，失败会记录日志。
 
 ## 设置项说明（小白版）
 
@@ -340,11 +385,7 @@ brew tap jlcodes99/cockpit-tools https://github.com/jlcodes99/cockpit-tools
 brew install --cask cockpit-tools
 ```
 
-如果遇到 macOS “应用已损坏”或无法打开，也可以使用 `--no-quarantine` 安装：
-
-```bash
-brew install --cask --no-quarantine cockpit-tools
-```
+macOS 正式包的发布流程要求 Apple Developer ID 签名与公证；正常安装无需添加 `--no-quarantine`。历史未签名版本不会因流程更新而自动获得签名。
 
 如果提示已存在应用（例如：`already an App at '/Applications/Cockpit Tools.app'`），请先删除旧版本再安装：
 
@@ -362,16 +403,10 @@ brew install --cask --force cockpit-tools
 ### 🛠️ 常见问题排查 (Troubleshooting)
 
 #### macOS 提示“应用已损坏，无法打开”？
-由于 macOS 的安全机制，非 App Store 下载的应用可能会触发此提示。当前开源发布流程尚未接入 Apple Developer ID 签名和公证，因此部分系统版本会显示更严格的 Gatekeeper 提示。您可以按照以下步骤快速修复：
 
-1.  **命令行修复** (推荐):
-    打开终端，执行以下命令：
-    ```bash
-    sudo xattr -rd com.apple.quarantine "/Applications/Cockpit Tools.app"
-    ```
-    > **注意**: 如果您修改了应用名称，请在命令中相应调整路径。
+新的 macOS 正式发布流程会验证 Developer ID 签名、Apple 公证和公证票据，覆盖应用、自动更新包及最终 DMG。首次打开仍可能出现“从互联网下载，是否打开”的正常确认。
 
-2.  **或者**: 在“系统设置” -> “隐私与安全性”中点击“仍要打开”。
+如果仍提示损坏，请从[官方 Releases](https://github.com/jlcodes99/cockpit-tools/releases)重新下载已注明签名与公证的版本，核对 `SHA256SUMS.txt` 并重新安装。历史未签名包、本地开发包或被修改的应用仍可能被拦截；不要直接把安全警告视为误报，也不需要默认关闭 Gatekeeper 或移除隔离属性。问题持续时，请提供版本、芯片架构及完整提示。
 
 ---
 
@@ -411,13 +446,13 @@ npm run tauri build
 
 ## 💬 交流群
 
-QQ 交流群、微信群或新建的 Telegram 畅聊群都可以加入。
+可以通过微信联系，或加入新建的 Telegram 畅聊群。
 
 新建 Telegram 畅聊群：[点击加入](https://t.me/+Y8gMv4SlZUU2MWY1)
 
-| QQ 群 | 微信（个人） |
-| :---: | :---: |
-| <img src="docs/images/qq_group_20260404_183718.png" width="200" /> | <img src="docs/images/wechat_info.jpg" width="200" /> |
+| 微信（个人） |
+| :---: |
+| <img src="docs/images/wechat_info.jpg" alt="微信联系二维码" width="200" /> |
 
 ---
 

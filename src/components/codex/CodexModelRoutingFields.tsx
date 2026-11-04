@@ -44,6 +44,7 @@ export type CodexModelRoutingAccount = {
   api_provider_name?: string | null;
   api_model_catalog?: string[] | null;
   api_wire_api?: string | null;
+  api_auth_scheme?: "x-api-key" | "bearer" | null;
 };
 
 const PINYIN_TABLE: Record<string, string> = {
@@ -624,7 +625,11 @@ export function CodexModelRoutingEditor({
     const isCurrentRequest = () =>
       !disabledRef.current && fetchRevisionRef.current === requestRevision;
     try {
-      const result = await listModelProviderModels({ baseUrl, apiKey });
+      const result = await listModelProviderModels({
+        baseUrl, apiKey,
+        wireApi: account.api_wire_api ?? undefined,
+        authScheme: account.api_auth_scheme ?? undefined,
+      });
       if (!isCurrentRequest()) return;
       const models = Array.from(
         new Set(
@@ -933,7 +938,7 @@ export function CodexModelRoutingEditor({
                       }}
                       placeholder={t(
                         "instances.form.modelRouting.manualPlaceholder",
-                        "gpt-5.5, grok-4.6",
+                        "gpt-5.6-sol, grok-4.6",
                       )}
                     />
                     <button
@@ -1425,7 +1430,7 @@ export function CodexModelRoutingFields({
             <p>
               {t(
                 "instances.form.modelRouting.rowSummary",
-                "普通模型使用当前订阅；带前缀模型（如 cpa/gpt-5.5）转发到第三方 API。两者都依赖本地分流服务。",
+                "普通模型使用当前订阅；带前缀模型（如 cpa/gpt-5.6-sol）转发到第三方 API。两者都依赖本地分流服务。",
               )}
             </p>
             <div className="codex-launch-preview-tool-meta">
@@ -1497,7 +1502,7 @@ export function CodexModelRoutingFields({
           <p className="form-hint">
             {t(
               "instances.form.modelRouting.summary",
-              "普通模型使用当前订阅；带前缀模型（如 cpa/gpt-5.5）转发到第三方 API。两者都依赖本地分流服务。",
+              "普通模型使用当前订阅；带前缀模型（如 cpa/gpt-5.6-sol）转发到第三方 API。两者都依赖本地分流服务。",
             )}
           </p>
         </div>

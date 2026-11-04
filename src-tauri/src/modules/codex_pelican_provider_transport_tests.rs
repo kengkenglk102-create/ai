@@ -78,6 +78,27 @@ async fn mock_provider(wire: &str) -> (String, tokio::task::JoinHandle<Value>) {
             "post /v1/chat/completions "
         }));
         let body: Value = serde_json::from_slice(&raw[header_end..header_end + length]).unwrap();
+        let installation = headers
+            .lines()
+            .find_map(|line| line.strip_prefix("x-codex-installation-id:").map(str::trim));
+        if wire == "responses" {
+            let installation = installation.expect("Codex provider installation header");
+            assert_eq!(
+                uuid::Uuid::parse_str(installation)
+                    .unwrap()
+                    .get_version_num(),
+                4
+            );
+            assert_eq!(
+                body["client_metadata"]["x-codex-installation-id"],
+                installation
+            );
+        } else {
+            assert!(
+                installation.is_none(),
+                "Do not inject Codex installation headers into Chat providers"
+            );
+        }
         assert_eq!(body["model"], "provider-model");
         assert_eq!(body["stream"], true);
         assert!(!body.to_string().contains("max_output_tokens\":256"));
@@ -109,6 +130,7 @@ async fn pelican_provider_protocols_stream_and_clean_up_without_enrolling_accoun
     for wire in ["responses", "chat_completions"] {
         let (base_url, upstream) = mock_provider(wire).await;
         let request = CodexModelProviderGatewayChatTestRequest {
+        auth_scheme: None,
             run_id: uuid::Uuid::new_v4().to_string(),
             provider_id: "fixture-provider".into(),
             provider_name: "Fixture".into(),
@@ -124,12 +146,7 @@ async fn pelican_provider_protocols_stream_and_clean_up_without_enrolling_accoun
         let (_cancel, receiver) = watch::channel(false);
         let result = timeout(
             Duration::from_secs(45),
-            run_pelican_provider_chat(
-                request,
-                "medium".into(),
-                receiver,
-                |_| {},
-            ),
+            run_pelican_provider_chat(request, "medium".into(), receiver, |_| {}),
         )
         .await
         .unwrap()
@@ -162,12 +179,17 @@ async fn pelican_provider_cancel_closes_stream_and_removes_temporary_gateway() {
         stream.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\n").await.unwrap();
         let _ = started.send(());
         let mut remaining = Vec::new();
-        timeout(Duration::from_secs(10), stream.read_to_end(&mut remaining))
+        let closed = timeout(Duration::from_secs(10), stream.read_to_end(&mut remaining))
             .await
-            .unwrap()
-            .unwrap();
+            .expect("cancellation must close the upstream connection");
+        if let Err(error) = closed {
+            // Cancellation may abort the socket with unread bytes rather than
+            // perform an orderly FIN. Both prove that the upstream was closed.
+            assert_eq!(error.kind(), std::io::ErrorKind::ConnectionReset);
+        }
     });
     let request = CodexModelProviderGatewayChatTestRequest {
+        auth_scheme: None,
         run_id: uuid::Uuid::new_v4().to_string(),
         provider_id: "cancel-fixture".into(),
         provider_name: "Fixture".into(),

@@ -27,15 +27,15 @@ fn collect_instances() -> Result<Vec<CodexSyncInstance>, String> {
     Ok(instances)
 }
 
+fn instance_process_home(instance: &CodexSyncInstance) -> Option<&str> {
+    if instance.id == DEFAULT_INSTANCE_ID { None } else { instance.data_dir.to_str() }
+}
+
 fn is_instance_running(
     instance: &CodexSyncInstance,
     process_entries: &[(u32, Option<String>)],
 ) -> bool {
-    let codex_home = if instance.id == DEFAULT_INSTANCE_ID {
-        None
-    } else {
-        instance.data_dir.to_str()
-    };
+    let codex_home = instance_process_home(instance);
     modules::process::resolve_codex_pid_from_entries(instance.last_pid, codex_home, process_entries)
         .is_some()
 }
@@ -332,6 +332,7 @@ fn collect_referenced_rollout_provider_changes(
 ) -> Result<Vec<RolloutProviderChange>, String> {
     let mut candidates: HashMap<PathBuf, Option<SystemTime>> = HashMap::new();
     for db_path in sqlite_candidate_paths_for_options(data_dir, options) {
+        check_launch_visibility_budget("scan_rollout_references")?;
         collect_referenced_rollout_paths_for_db(
             data_dir,
             &db_path,
@@ -343,7 +344,11 @@ fn collect_referenced_rollout_provider_changes(
     }
 
     let mut changes = Vec::new();
-    for (rollout_path, target_modified_at) in candidates {
+    for (index, (rollout_path, target_modified_at)) in candidates.into_iter().enumerate() {
+        check_launch_visibility_budget("scan_rollout_headers")?;
+        if index % 64 == 0 {
+            std::thread::yield_now();
+        }
         if !rollout_path.exists() || !is_plain_rollout_file(&rollout_path) {
             continue;
         }
@@ -408,6 +413,7 @@ fn collect_referenced_rollout_paths_for_db(
             ));
         }
     };
+    configure_launch_visibility_connection(&connection)?;
 
     let mut table_info = connection
         .prepare("PRAGMA table_info(threads)")
@@ -486,6 +492,7 @@ fn collect_referenced_rollout_paths_for_db(
         })?;
 
     for row in rows {
+        check_launch_visibility_budget("read_rollout_references")?;
         let (thread_id, rollout_path, updated_at, updated_at_ms) = row.map_err(|error| {
             format_sqlite_read_error(db_path, "读取 SQLite rollout 引用失败", &error)
         })?;
@@ -573,13 +580,25 @@ fn source_text_marks_non_root_agent(source: &str) -> bool {
 }
 
 fn read_first_line(path: &Path) -> Result<Option<(String, String)>, String> {
+    check_launch_visibility_budget("read_rollout_header")?;
     let file = fs::File::open(path)
         .map_err(|error| format!("打开 rollout 文件失败 ({}): {}", path.display(), error))?;
-    let mut reader = BufReader::new(file);
+    // Limit only the launch path. Manual repair keeps its historical semantics;
+    // a malformed multi-GB first line must never be allocated during switching.
+    let limit = launch_visibility_budget()
+        .map(|_| MAX_LAUNCH_ROLLOUT_FIRST_LINE_BYTES + 1)
+        .unwrap_or(u64::MAX);
+    let mut reader = BufReader::new(std::io::Read::take(file, limit));
     let mut buffer = Vec::new();
     let bytes_read = reader
         .read_until(b'\n', &mut buffer)
         .map_err(|error| format!("读取 rollout 首行失败 ({}): {}", path.display(), error))?;
+    check_launch_visibility_budget("read_rollout_header")?;
+    if launch_visibility_budget().is_some()
+        && bytes_read as u64 > MAX_LAUNCH_ROLLOUT_FIRST_LINE_BYTES
+    {
+        return Err(format!("{LAUNCH_VISIBILITY_LINE_TOO_LARGE}: {}", path.display()));
+    }
     if bytes_read == 0 {
         return Ok(None);
     }
@@ -808,7 +827,6 @@ fn normalized_global_state_entries(
     let mut normalized = serde_json::Map::new();
     for key in [
         "electron-saved-workspace-roots",
-        "project-order",
         "active-workspace-roots",
     ] {
         let Some(value) = state.get(key) else {
@@ -825,6 +843,18 @@ fn normalized_global_state_entries(
             JsonValue::Array(paths.into_iter().map(JsonValue::String).collect())
         };
         normalized.insert(key.to_string(), next);
+    }
+    // New clients store project IDs here; old clients used workspace paths.
+    // Only path-shaped entries may be normalized, never case-fold project IDs.
+    if let Some(order) = state.get("project-order").and_then(JsonValue::as_array) {
+        let mut seen = HashSet::new();
+        let values = order.iter().map(|value| {
+            value.as_str().filter(|path| is_windows_workspace_path(path)
+                || path.to_ascii_lowercase().starts_with(r"\\?\"))
+                .and_then(to_desktop_workspace_path).map(JsonValue::String)
+                .unwrap_or_else(|| value.clone())
+        }).filter(|value| seen.insert(value.to_string())).collect();
+        normalized.insert("project-order".into(), JsonValue::Array(values));
     }
     if let Some(labels) = state
         .get("electron-workspace-root-labels")

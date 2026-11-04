@@ -1,13 +1,16 @@
+import { codexOverviewMutableAccountIds } from "../utils/chatgptPlanOverview";
 import { resolveCodexAccountDisplayName } from "../utils/codexAccountDisplayName";
 import { useEffect, useMemo, useCallback, type MouseEvent as ReactMouseEvent } from "react";
 import { RefreshCw, RotateCw } from "lucide-react";
+import { CodexResetCreditExpiry } from '../components/CodexResetCreditExpiry';
 import * as codexService from "../services/codexService";
 import * as codexLocalAccessService from "../services/codexLocalAccessService";
 import { type CodexAccountGroup } from "../services/codexAccountGroupService";
-import { hasCodexAccountStructure, hasCodexAccountName, getCodexQuotaWindows, isCodexApiKeyAccount, isCodexAgentIdentityAccount, isCodexNewApiAccount, isCodexTeamLikePlan } from "../types/codex";
+import { hasCodexAccountStructure, hasCodexAccountName, isCodexApiKeyAccount, isCodexChatgptPlanAccount, isCodexAgentIdentityAccount, isCodexNewApiAccount, isCodexTeamLikePlan } from "../types/codex";
 import { summarizeCodexQuotaErrorMessage } from "../utils/codexQuotaError";
 import { buildCodexAccountPresentation } from "../presentation/platformAccountPresentation";
-import { buildCodexAccountWindowStatQueries, formatCodexWindowStatsText, type CodexWindowStats } from "../utils/codexWindowStats";
+import { formatCodexWindowStatsText } from "../utils/codexWindowStats";
+import { useCodexAccountWindowStats } from "../hooks/useCodexAccountWindowStats";
 import { type CodexLaunchPreviewAction, type CodexLaunchPreviewSummary } from "../components/codex/CodexLaunchPreviewModal";
 import { CodexImageModelSelect } from "../components/CodexImageModelConfig";
 import { useCodexImageForwardConfig } from "../components/CodexImageForwardConfig";
@@ -109,7 +112,6 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
   | "resolveUsageProviderForApiKeyAccount"
   | "searchQuery"
   | "selected"
-  | "sessionWindowStats"
   | "setApiKeyUsageDetailAccountId"
   | "setBatchDeleteBusy"
   | "setBatchDeleteJob"
@@ -126,7 +128,6 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
   | "setMessage"
   | "setRefreshingGroupId"
   | "setSelected"
-  | "setSessionWindowStats"
   | "setShowCustomSortModal"
   | "setSortBy"
   | "showAdditionalQuota"
@@ -225,7 +226,6 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
     resolveUsageProviderForApiKeyAccount,
     searchQuery,
     selected,
-    sessionWindowStats,
     setApiKeyUsageDetailAccountId,
     setBatchDeleteBusy,
     setBatchDeleteJob,
@@ -242,7 +242,6 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
     setMessage,
     setRefreshingGroupId,
     setSelected,
-    setSessionWindowStats,
     setShowCustomSortModal,
     setSortBy,
     showAdditionalQuota,
@@ -262,66 +261,9 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
       : (currentAccount?.id ?? null);
 
   
-    useEffect(() => {
-      if (activeTab !== "overview") {
-        setSessionWindowStats({ ready: false, byAccountId: {} });
-        return;
-      }
-      const memberAccounts = (localAccessCollection?.accountIds ?? [])
-        .map((accountId) => accounts.find((account) => account.id === accountId))
-        .filter((account): account is CodexAccount => Boolean(account));
-      const now = Math.floor(Date.now() / 1000);
-      const queries = memberAccounts.flatMap((account) =>
-        buildCodexAccountWindowStatQueries(
-          account.id,
-          getCodexQuotaWindows(account.quota),
-          now,
-        ),
-      );
-      if (queries.length === 0) {
-        setSessionWindowStats({ ready: false, byAccountId: {} });
-        return;
-      }
-      let cancelled = false;
-      void (async () => {
-        try {
-          const rows =
-            await codexLocalAccessService.queryCodexLocalAccessAccountWindowStats(
-              queries,
-            );
-          if (cancelled) return;
-          const byAccountId: Record<
-            string,
-            { primary?: CodexWindowStats; secondary?: CodexWindowStats }
-          > = {};
-          rows.forEach((row) => {
-            const stats: CodexWindowStats = {
-              requestCount: row.requestCount,
-              inputTokens: row.inputTokens,
-              cachedInputTokens: row.cachedTokens,
-              outputTokens: row.outputTokens,
-              totalTokens: row.totalTokens,
-              estimatedCostUsd: row.estimatedCostUsd,
-            };
-            const current = byAccountId[row.accountId] ?? {};
-            if (row.windowKey === "secondary") {
-              current.secondary = stats;
-            } else if (row.windowKey === "primary") {
-              current.primary = stats;
-            }
-            byAccountId[row.accountId] = current;
-          });
-          setSessionWindowStats({ ready: true, byAccountId });
-        } catch {
-          if (!cancelled) {
-            setSessionWindowStats({ ready: false, byAccountId: {} });
-          }
-        }
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }, [accounts, activeTab, localAccessCollection?.accountIds]);
+    const sessionWindowStats = useCodexAccountWindowStats(
+      activeTab === "overview", accounts, localAccessCollection?.accountIds ?? [],
+    );
   
     const applyWindowStatsToQuotaItems = useCallback(
       (
@@ -329,18 +271,10 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
         items: ReturnType<typeof buildCodexAccountPresentation>["quotaItems"],
       ) => {
         const memberIds = localAccessCollection?.accountIds ?? [];
-        if (!memberIds.includes(account.id)) {
+        if (!memberIds.includes(account.id) || !sessionWindowStats.ready) {
           return items;
         }
         const accountStats = sessionWindowStats.byAccountId[account.id] ?? {};
-        const emptyStats = {
-          requestCount: 0,
-          inputTokens: 0,
-          cachedInputTokens: 0,
-          outputTokens: 0,
-          totalTokens: 0,
-          estimatedCostUsd: 0,
-        };
         return items.map((item) => {
           if (item.key !== "primary" && item.key !== "secondary") {
             return item;
@@ -348,7 +282,8 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
           const stats =
             (item.key === "primary"
               ? accountStats.primary
-              : accountStats.secondary) ?? emptyStats;
+              : accountStats.secondary);
+          if (!stats) return item;
           const windowStatsText = formatCodexWindowStatsText(stats);
           const hint = t(
             "codex.quota.windowStatsHint",
@@ -414,12 +349,10 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
                 .join(" · "),
           statusLabel: account.requires_reauth
             ? t("codex.authError.badge", "授权异常")
-            : account.client_auth_status === "login_required"
-              ? t("codex.switchAuth.apiOnlyBadge", "客户端需授权")
-              : overviewCurrentAccountId === account.id
+            : overviewCurrentAccountId === account.id
                 ? t("codex.current", "当前")
                 : undefined,
-          statusTone: account.requires_reauth || account.client_auth_status === "login_required"
+          statusTone: account.requires_reauth
             ? "warning"
             : overviewCurrentAccountId === account.id
               ? "success"
@@ -721,8 +654,8 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
           description: `${accountName} · ${t("instances.defaultName", "默认实例")}`,
           actionLabel: t("common.open", "打开"),
           disabled: cliLaunchingAccountId === account.id,
-          onAction: async () => {
-            await handleLaunchCodexCli(account);
+          onAction: async (launchOptions) => {
+            await handleLaunchCodexCli(account, launchOptions);
           },
         },
       );
@@ -990,8 +923,8 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
             description: `${t("codex.localAccess.title", "API 服务")} · ${baseUrl}`,
             actionLabel: t("common.open", "打开"),
             disabled: cliLaunchingAccountId === CODEX_API_SERVICE_BIND_ID,
-            onAction: async () => {
-              await handleLaunchLocalAccessCli();
+            onAction: async (launchOptions) => {
+              await handleLaunchLocalAccessCli(launchOptions);
             },
           },
           {
@@ -1105,7 +1038,7 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
     );
   
     const sortedAccountsForInstances = useMemo(
-      () => [...accounts].sort(compareAccountsBySort),
+      () => accounts.filter((account) => account.api_provider_id !== "cockpit_chatgpt_plan").sort(compareAccountsBySort),
       [accounts, compareAccountsBySort],
     );
   
@@ -1138,8 +1071,16 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
       ],
     );
   
+    useEffect(() => {
+      const planIds = new Set(overviewAccounts.filter(isCodexChatgptPlanAccount).map((account) => account.id));
+      setSelected((previous) => {
+        if (![...previous].some((id) => planIds.has(id))) return previous;
+        return new Set([...previous].filter((id) => !planIds.has(id)));
+      });
+    }, [overviewAccounts, setSelected]);
+
     const filteredIds = useMemo(
-      () => filteredAccounts.map((account) => account.id),
+      () => codexOverviewMutableAccountIds(filteredAccounts),
       [filteredAccounts],
     );
     const overviewTotalCount = overviewAccounts.length;
@@ -1180,7 +1121,7 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
     ]);
     const errorAccountIds = useMemo(
       () =>
-        filteredAccounts.filter(isAbnormalAccount).map((account) => account.id),
+        codexOverviewMutableAccountIds(filteredAccounts.filter(isAbnormalAccount)),
       [filteredAccounts, isAbnormalAccount],
     );
     const hasDetectableFullQuotaWakeupAccounts = useMemo(
@@ -1228,13 +1169,13 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
     });
     const paginatedAccounts = pagination.pageItems;
     const paginatedIds = useMemo(
-      () => paginatedAccounts.map((account) => account.id),
+      () => codexOverviewMutableAccountIds(paginatedAccounts),
       [paginatedAccounts],
     );
     const isCustomSortActive = sortBy === "custom";
     const customSortAccounts = useMemo(() => {
       const accountMap = new Map(
-        accounts.map((account) => [account.id, account]),
+        overviewAccounts.map((account) => [account.id, account]),
       );
       const result: CodexAccount[] = [];
       const seen = new Set<string>();
@@ -1246,14 +1187,14 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
         seen.add(accountId);
       });
   
-      accounts.forEach((account) => {
+      overviewAccounts.forEach((account) => {
         if (seen.has(account.id)) return;
         result.push(account);
         seen.add(account.id);
       });
   
       return result;
-    }, [accounts, customSortOrder]);
+    }, [overviewAccounts, customSortOrder]);
     const customSortAccountIds = useMemo(
       () => customSortAccounts.map((account) => account.id),
       [customSortAccounts],
@@ -1307,8 +1248,8 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
       [customSortAccountIds, draggedCustomSortAccountId],
     );
     const resetCustomSortOrder = useCallback(() => {
-      setCustomSortOrder(accounts.map((account) => account.id));
-    }, [accounts]);
+      setCustomSortOrder(overviewAccounts.map((account) => account.id));
+    }, [overviewAccounts]);
     const handleSortByChange = useCallback(
       (value: string) => {
         setSortBy(value);
@@ -1343,10 +1284,11 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
   
     const handleToggleOverviewAccount = useCallback(
       (accountId: string) => {
+        if (overviewAccounts.some((account) => account.id === accountId && isCodexChatgptPlanAccount(account))) return;
         setIsAllFilteredSelected(false);
         toggleSelect(accountId);
       },
-      [toggleSelect],
+      [toggleSelect, overviewAccounts],
     );
   
     const handleToggleSelectAllPaginated = useCallback(() => {
@@ -1368,7 +1310,7 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
     const handleCodexBatchDelete = useCallback(() => {
       const ids = isAllFilteredSelectionActive
         ? filteredIds
-        : Array.from(selected);
+        : Array.from(selected).filter((id) => accounts.some((account) => account.id === id && !isCodexChatgptPlanAccount(account)));
       if (ids.length === 0) return;
       setDeleteConfirm({
         ids,
@@ -1381,6 +1323,7 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
           : t("messages.batchDeleteConfirm", { count: ids.length }),
       });
     }, [
+      accounts,
       filteredIds,
       isAllFilteredSelectionActive,
       selected,
@@ -1706,7 +1649,7 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
       [showAdditionalQuota, showCodeReviewQuota],
     );
   
-    const renderResetCreditControls = (account: CodexAccount) => {
+    const renderResetCreditControls = (account: CodexAccount, mode: 'controls' | 'expiry' = 'controls') => {
       if (isCodexApiKeyAccount(account) || isCodexAgentIdentityAccount(account))
         return null;
   
@@ -1718,6 +1661,14 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
         availableCount ?? creditDetails.filter(isAvailableResetCredit).length;
       const isResetting = resettingResetCreditAccountId === account.id;
       const isDisabled = isResetting;
+      if (mode === 'expiry') {
+        return displayCount > 0 ? (
+          <div className="codex-account-reset-expiry-line">
+            <CodexResetCreditExpiry key={account.id} accountId={account.id} quota={account.quota}
+              disabled={isDisabled} onClick={() => openResetCreditConfirmModal(account)} />
+          </div>
+        ) : null;
+      }
       const titleText =
         displayCount > 0
           ? buildResetCreditsTitle(account, displayCount)
@@ -1751,6 +1702,7 @@ export function useCodexAccountsOverviewController(context: Pick<ReturnType<type
     buildLocalAccessLaunchPreviewActions,
     buildLocalAccessLaunchPreviewSummary,
     canSelectAllFilteredAccounts,
+    compareAccountsBySort,
     confirmCodexDelete,
     customSortAccounts,
     errorAccountIds,

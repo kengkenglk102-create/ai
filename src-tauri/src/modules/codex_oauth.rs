@@ -577,16 +577,20 @@ async fn poll_device_token(
                 }
                 return;
             }
-            Ok(response)
-                if response.status() == reqwest::StatusCode::FORBIDDEN
-                    || response.status() == reqwest::StatusCode::NOT_FOUND => {}
             Ok(response) => {
-                emit_device_auth_error(
-                    &app_handle,
-                    &login_id,
-                    format!("Codex 设备授权轮询失败: status={}", response.status()),
-                );
-                return;
+                let status = response.status();
+                let started = crate::modules::codex_device_restrictions::now();
+                let body = crate::modules::codex_device_restrictions::bounded_error_body(response).await.unwrap_or_default();
+                if crate::modules::codex_device_restrictions::explicit_message(&body) {
+                    crate::modules::codex_device_restrictions::observe(format!("login:{login_id}"),
+                        crate::modules::codex_device_restrictions::OAUTH, "device_authorization", None, started, true).await;
+                    emit_device_auth_error(&app_handle, &login_id, crate::modules::codex_device_restrictions::paused_message());
+                    return;
+                }
+                if status != reqwest::StatusCode::FORBIDDEN && status != reqwest::StatusCode::NOT_FOUND {
+                    emit_device_auth_error(&app_handle, &login_id, format!("Codex 设备授权轮询失败: status={}", status));
+                    return;
+                }
             }
             Err(error) => logger::log_warn(&format!("Codex 设备授权轮询请求失败: {}", error)),
         }
@@ -813,12 +817,6 @@ pub fn open_incognito_oauth_window(app: &AppHandle, auth_url: &str) -> Result<()
         return Err("Codex OAuth 授权地址与当前登录会话不匹配".to_string());
     }
 
-    if let Some(window) = app.get_webview_window(OAUTH_WINDOW_LABEL) {
-        window
-            .destroy()
-            .map_err(|error| format!("重置 Codex OAuth 无痕窗口失败: {}", error))?;
-    }
-
     let browser_proxy = if pending.proxy_required {
         if cfg!(target_os = "macos") {
             return Err("PROXY_OAUTH_BROWSER_UNSUPPORTED".into());
@@ -828,9 +826,35 @@ pub fn open_incognito_oauth_window(app: &AppHandle, auth_url: &str) -> Result<()
     } else {
         None
     };
-    let callback_port = pending.port;
-    let mut builder =
-        WebviewWindowBuilder::new(app, OAUTH_WINDOW_LABEL, WebviewUrl::External(parsed));
+    let callback = Url::parse(&format!("http://localhost:{}/auth/callback", pending.port))
+        .map_err(|_| "Codex OAuth callback is invalid")?;
+    build_incognito_oauth_window(
+        app,
+        OAUTH_WINDOW_LABEL,
+        "Codex OAuth",
+        parsed,
+        callback,
+        browser_proxy,
+        &pending.login_id,
+    )
+}
+
+/// Shared ephemeral WebView for independent OAuth registrations. The caller
+/// must supply its own session-owned URL and exact loopback callback.
+/// This uses the native WebView, not a shell/browser subprocess on Windows.
+pub(crate) fn build_incognito_oauth_window(
+    app: &AppHandle,
+    label: &str,
+    title: &str,
+    authorize: Url,
+    callback: Url,
+    browser_proxy: Option<Url>,
+    login_id: &str,
+) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window(label) {
+        window.destroy().map_err(|_| "OAuth window reset failed")?;
+    }
+    let mut builder = WebviewWindowBuilder::new(app, label, WebviewUrl::External(authorize));
     if let Some(proxy) = browser_proxy {
         #[cfg(windows)]
         {
@@ -841,7 +865,7 @@ pub fn open_incognito_oauth_window(app: &AppHandle, auth_url: &str) -> Result<()
                 .app_cache_dir()
                 .map_err(|_| "PROXY_OAUTH_UNAVAILABLE")?
                 .join("oauth-proxy-webview")
-                .join(&pending.login_id);
+                .join(login_id);
             builder = builder.data_directory(isolated);
         }
         builder = builder.proxy_url(proxy).on_new_window(|_, _| {
@@ -851,13 +875,18 @@ pub fn open_incognito_oauth_window(app: &AppHandle, auth_url: &str) -> Result<()
         });
     }
     builder
-        .title("Codex OAuth")
+        .title(title)
         .inner_size(920.0, 720.0)
         .min_inner_size(640.0, 560.0)
         .center()
         .incognito(true)
         .on_navigation(move |url| {
-            if is_callback_navigation(url, callback_port) {
+            if url.origin() == callback.origin()
+                && url.path() == callback.path()
+                && url.username().is_empty()
+                && url.password().is_none()
+                && url.fragment().is_none()
+            {
                 logger::log_info("Codex OAuth 无痕窗口正在访问本地回调地址");
                 return true;
             }
@@ -873,10 +902,6 @@ pub fn open_incognito_oauth_window(app: &AppHandle, auth_url: &str) -> Result<()
         .build()
         .map_err(|error| format!("创建 Codex OAuth 无痕窗口失败: {}", error))?;
 
-    logger::log_info(&format!(
-        "Codex OAuth 无痕窗口已打开: login_id={}, port={}",
-        pending.login_id, pending.port
-    ));
     Ok(())
 }
 
@@ -1142,6 +1167,16 @@ async fn start_callback_server(
                     continue;
                 }
 
+                if params.get("error_description").is_some_and(|text|
+                    crate::modules::codex_device_restrictions::explicit_message(text)) {
+                    crate::modules::codex_device_restrictions::observe(format!("login:{expected_login_id}"),
+                        crate::modules::codex_device_restrictions::OAUTH, "oauth_callback", None,
+                        crate::modules::codex_device_restrictions::now(), true).await;
+                    emit_device_auth_error(&app_handle, &expected_login_id, crate::modules::codex_device_restrictions::paused_message());
+                    let _ = request.respond(Response::from_string(crate::modules::codex_device_restrictions::paused_message()).with_status_code(403));
+                    break;
+                }
+
                 if code.is_empty() {
                     let mut param_keys = params.keys().cloned().collect::<Vec<_>>();
                     param_keys.sort();
@@ -1278,12 +1313,14 @@ async fn start_callback_server(
 }
 
 async fn exchange_code_for_token_internal(
+    login_id: &str,
     code: &str,
     code_verifier: &str,
     port: u16,
     exchange_redirect_uri: Option<&str>,
     proxy_url: Option<&str>,
 ) -> Result<CodexTokens, String> {
+    let observation_started = crate::modules::codex_device_restrictions::now();
     let redirect_uri = resolve_exchange_redirect_uri(port, exchange_redirect_uri);
     let mut builder = reqwest::Client::builder()
         .connect_timeout(TOKEN_REFRESH_TIMEOUT)
@@ -1328,6 +1365,11 @@ async fn exchange_code_for_token_internal(
     })?;
 
     if !status.is_success() {
+        if crate::modules::codex_device_restrictions::explicit_message(&body) {
+            crate::modules::codex_device_restrictions::observe(format!("login:{login_id}"),
+                crate::modules::codex_device_restrictions::OAUTH, "oauth_exchange", None, observation_started, true).await;
+            return Err(crate::modules::codex_device_restrictions::paused_message());
+        }
         let response_summary = serde_json::from_str::<serde_json::Value>(&body)
             .map(|value| crate::modules::codex_auth_diagnostic::oauth_response_summary(&value))
             .unwrap_or_else(|_| serde_json::json!({"body_type":"non_json"}));
@@ -1382,6 +1424,10 @@ async fn exchange_code_for_token_internal(
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
 
+    if !access_token.trim().is_empty() && !id_token.trim().is_empty() {
+        crate::modules::codex_device_restrictions::observe(format!("login:{login_id}"),
+            crate::modules::codex_device_restrictions::OAUTH, "oauth_exchange", None, observation_started, false).await;
+    }
     Ok(CodexTokens {
         id_token,
         access_token,
@@ -1445,6 +1491,7 @@ pub async fn complete_oauth_login(login_id: &str) -> Result<CodexOAuthCompletion
     };
 
     let tokens = match exchange_code_for_token_internal(
+        login_id,
         &code,
         &code_verifier,
         port,
@@ -1705,6 +1752,11 @@ pub async fn refresh_access_token_with_account_proxy(
     current_id_token: Option<&str>,
     account: Option<&crate::models::codex::CodexAccount>,
 ) -> Result<CodexTokens, String> {
+    use crate::modules::codex_device_restrictions as restrictions;
+    if let Some(account) = account {
+        restrictions::ensure_allowed(&account.id, restrictions::TOKEN).await?;
+    }
+    let observation_started = restrictions::now();
     let builder = reqwest::Client::builder()
         .connect_timeout(TOKEN_REFRESH_TIMEOUT)
         .timeout(TOKEN_REFRESH_TIMEOUT);
@@ -1737,6 +1789,12 @@ pub async fn refresh_access_token_with_account_proxy(
         .map_err(|e| format!("读取响应失败: {}", e))?;
 
     if !status.is_success() {
+        if restrictions::explicit_message(&body) {
+            if let Some(account) = account {
+                restrictions::observe_account(account, restrictions::TOKEN, "token_response", observation_started, true).await;
+            }
+            return Err(restrictions::paused_message());
+        }
         let error_code = extract_token_error_code(&body);
         let response_summary = serde_json::from_str::<serde_json::Value>(&body)
             .map(|value| crate::modules::codex_auth_diagnostic::oauth_response_summary(&value))
@@ -1799,6 +1857,9 @@ pub async fn refresh_access_token_with_account_proxy(
         }),
     );
 
+    if let Some(account) = account {
+        restrictions::observe_account(account, restrictions::TOKEN, "token_response", observation_started, false).await;
+    }
     Ok(refreshed_tokens)
 }
 
@@ -2006,6 +2067,7 @@ mod tests {
     #[test]
     fn oauth_proxy_use_keeps_resource_snapshots_backend_side() {
         let catalog = crate::modules::codex_proxy_subscription_parser::ParsedCatalog {
+            native: None,
             nodes: vec![crate::modules::codex_proxy_subscription_parser::ParsedNode {
                 id: "node-1".into(),
                 name: "Alpha".into(),

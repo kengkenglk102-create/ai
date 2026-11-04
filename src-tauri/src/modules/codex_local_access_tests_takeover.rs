@@ -1,5 +1,30 @@
 // Codex Local Access 测试：Takeover reconciliation, gateway configuration and remaining integration cases。
 // 测试与生产实现共享 super 作用域，验证真实网关、持久化和请求协议行为。
+    #[test]
+    fn managed_voice_gateway_config_respects_voice_overrides() {
+        let config = r#"
+model_provider = "codex_local_access"
+experimental_realtime_ws_base_url = "http://127.0.0.1:8317/v1"
+[model_providers.codex_local_access]
+base_url = "http://127.0.0.1:8317/v1"
+experimental_bearer_token = "agt_codex_test"
+"#;
+        let cases = [
+            ("managed gateway", config.to_string(), true),
+            ("localhost gateway", config.replace("127.0.0.1", "localhost"), true),
+            ("account login", "model_provider = \"openai\"".to_string(), false),
+            ("custom creation URL", format!("experimental_realtime_webrtc_call_base_url = \"https://voice.example.test\"\n{config}"), false),
+            ("custom WS URL", config.replacen("http://127.0.0.1:8317/v1", "https://voice.example.test/v1", 1), false),
+            ("missing WS URL", config.replace("experimental_realtime_ws_base_url = \"http://127.0.0.1:8317/v1\"", ""), false),
+            ("nonlocal gateway", config.replace("127.0.0.1", "voice.example.test"), false),
+            ("unmanaged key", config.replace("agt_codex_test", "external-test-key"), false),
+            ("invalid config", "not valid TOML".to_string(), false),
+        ];
+        for (name, config_text, expected) in cases {
+            assert_eq!(super::has_managed_voice_gateway_config(&config_text), expected, "{name}");
+        }
+    }
+
     fn realtime_mixed_test_collection() -> CodexLocalAccessCollection {
         let mut collection = test_local_access_collection(Vec::new());
         collection.api_key = "mixed-realtime-test-key".to_string();
@@ -130,6 +155,7 @@
         let mut account_key = build_local_access_api_key(Some("DeepSeek pool"));
         account_key.id = "provider_gateway_deepseek".to_string();
         account_key.provider_gateway = Some(CodexLocalAccessProviderGateway {
+        auth_scheme: None,
             base_url: "https://api.deepseek.com/v1".to_string(),
             api_key: "sk-deepseek".to_string(),
             upstream_model: "deepseek-v4-pro".to_string(),
@@ -420,8 +446,8 @@
         let profile = make_temp_dir("local-access-context-overrides");
         let definitions = vec![
             crate::models::codex::CodexExperimentalModelDefinition {
-                model_id: "gpt-5.5".into(),
-                display_name: "GPT-5.5".into(),
+                model_id: "gpt-5.6-sol".into(),
+                display_name: "GPT-5.6 Sol".into(),
                 reasoning_efforts: None,
                 default_reasoning_effort: None,
                 context_window: Some(516_000),
@@ -462,7 +488,7 @@
         // for models without an override.
         super::write_local_access_profile_model_catalog_with_definitions(
             &profile, false, Some(vec![
-                ("gpt-5.5".into(), "GPT-5.5".into()),
+                ("gpt-5.6-sol".into(), "GPT-5.6 Sol".into()),
                 ("gpt-6-astra".into(), "GPT-6 Astra".into()),
             ]),
         ).unwrap();
@@ -470,7 +496,7 @@
             &fs::read_to_string(profile.join(super::CODEX_MANAGED_MODEL_CATALOG_FILE)).unwrap(),
         ).unwrap();
         let models = catalog["models"].as_array().unwrap();
-        assert_eq!(models.iter().find(|model| model["slug"] == "gpt-5.5").unwrap()["context_window"], 516_000);
+        assert_eq!(models.iter().find(|model| model["slug"] == "gpt-5.6-sol").unwrap()["context_window"], 516_000);
         let defaults = super::codex_protocol::build_codex_client_models_response(&["gpt-6-astra".into()]);
         assert_eq!(models.iter().find(|model| model["slug"] == "gpt-6-astra").unwrap()["context_window"], defaults["models"][0]["context_window"]);
         // Disabling model management must stop applying persisted overrides.
@@ -478,12 +504,12 @@
             &profile, false, Vec::new(), None,
         ).unwrap();
         super::write_local_access_profile_model_catalog_with_definitions(
-            &profile, false, Some(vec![("gpt-5.5".into(), "GPT-5.5".into())]),
+            &profile, false, Some(vec![("gpt-5.6-sol".into(), "GPT-5.6 Sol".into())]),
         ).unwrap();
         let catalog: Value = serde_json::from_str(
             &fs::read_to_string(profile.join(super::CODEX_MANAGED_MODEL_CATALOG_FILE)).unwrap(),
         ).unwrap();
-        let defaults = super::codex_protocol::build_codex_client_models_response(&["gpt-5.5".into()]);
+        let defaults = super::codex_protocol::build_codex_client_models_response(&["gpt-5.6-sol".into()]);
         assert_eq!(catalog["models"][0]["context_window"], defaults["models"][0]["context_window"]);
         fs::remove_dir_all(profile).unwrap();
     }
@@ -581,6 +607,7 @@
             label: "Provider Gateway: DeepSeek".to_string(),
             key: key.clone(),
             provider_gateway: Some(CodexLocalAccessProviderGateway {
+        auth_scheme: None,
                 base_url: "https://api.deepseek.com/v1".to_string(),
                 api_key: "sk-deepseek".to_string(),
                 upstream_model: "deepseek-v4-pro".to_string(),
@@ -600,6 +627,8 @@
             excluded_models: Vec::new(),
             token_limit: None,
             token_used: 0,
+            budget: Default::default(),
+            budget_usage: Default::default(),
             enabled: true,
             created_at: 0,
             updated_at: 0,
@@ -764,6 +793,7 @@
         );
 
         let provider_gateway = CodexLocalAccessProviderGateway {
+        auth_scheme: None,
             base_url: "https://relay.example/v1".to_string(),
             api_key: "sk-test".to_string(),
             upstream_model: "upstream-model".to_string(),
@@ -889,7 +919,6 @@
             ("gpt-5.6-sol", "GPT-5.6 Sol"),
             ("gpt-5.6-terra", "GPT-5.6 Terra"),
             ("gpt-5.6-luna", "GPT-5.6 Luna"),
-            ("gpt-5.5", "GPT-5.5"),
         ] {
             assert_eq!(
                 names.get(slug).map(String::as_str),
@@ -897,6 +926,10 @@
                 "开启模型管理时 GPT 显示名仍必须带官方前缀: {names:?}"
             );
         }
+        assert!(
+            !names.contains_key("gpt-5.5"),
+            "retired saved model survived: {names:?}"
+        );
         assert_eq!(
             names.get("gpt-reserve").map(String::as_str),
             Some("GPT-5.6 Reserve")
@@ -1585,7 +1618,7 @@
     }
 
     #[test]
-    fn sanitize_collection_migrates_legacy_gateway_to_sidecar() {
+    fn sanitize_collection_migrates_legacy_gateway_to_native() {
         let mut collection = test_local_access_collection(Vec::new());
         collection.gateway_mode = CodexLocalAccessGatewayMode::Legacy;
 
@@ -1595,7 +1628,7 @@
         assert!(changed);
         assert_eq!(
             collection.gateway_mode,
-            CodexLocalAccessGatewayMode::Sidecar
+            CodexLocalAccessGatewayMode::Native
         );
     }
 
@@ -1655,6 +1688,7 @@
         let mut api_key = build_local_access_api_key(Some("Provider Gateway"));
         api_key.inherit_account_pool = Some(false);
         api_key.provider_gateway = Some(CodexLocalAccessProviderGateway {
+        auth_scheme: None,
             base_url: "https://api.deepseek.com/v1".to_string(),
             api_key: "sk-test".to_string(),
             upstream_model: "deepseek-v4-pro".to_string(),
@@ -1707,6 +1741,7 @@
         let mut api_key = build_local_access_api_key(Some("Provider Gateway"));
         api_key.inherit_account_pool = Some(false);
         api_key.provider_gateway = Some(CodexLocalAccessProviderGateway {
+        auth_scheme: None,
             base_url: "https://api.deepseek.com/v1".to_string(),
             api_key: "sk-test".to_string(),
             upstream_model: "deepseek-v4-pro".to_string(),
@@ -2109,4 +2144,24 @@
 
         fs::remove_dir_all(profile_dir).expect("cleanup fixture");
         fs::remove_dir_all(gateway_profile_dir).expect("cleanup fixture");
+    }
+
+    #[test]
+    fn takeover_restore_does_not_revive_retired_speed_catalog() {
+        let dir = tempfile::tempdir().unwrap();
+        let legacy = crate::modules::codex_model_catalog_capabilities::FILE_NAME;
+        let current = "model_provider = 'codex_local_access'\nmodel_catalog_json = 'cockpit-model-catalog.json'\n";
+        for reference in [legacy.to_string(), dir.path().join(legacy).to_string_lossy().into_owned()] {
+            let backup = format!("model_catalog_json = '{reference}'\n[profiles.old]\nmodel_catalog_json = '{reference}'\n[profiles.custom]\nmodel_catalog_json = 'user.json'\n");
+            let restored = super::restore_profile_config_toml_from_takeover_backup(
+                dir.path(), Some(current), Some(&backup),
+            ).unwrap().unwrap();
+            let doc = restored.parse::<Document>().unwrap();
+            assert!(doc.get("model_catalog_json").is_none());
+            assert!(!restored.contains(legacy));
+            let custom = super::restore_profile_config_toml_from_takeover_backup(
+                dir.path(), Some(current), Some("model_catalog_json = 'user.json'\n"),
+            ).unwrap().unwrap();
+            assert!(custom.contains("user.json"));
+        }
     }

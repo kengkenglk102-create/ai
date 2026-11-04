@@ -1316,7 +1316,7 @@ async fn run_task_with_models(
                 task_name: Some(task.name.clone()),
                 account_email: account.email.clone(),
                 model_id: model.clone(),
-                prompt: Some(prompt.clone()),
+                prompt: Some(current_prompt.clone()),
                 success,
                 status: if success {
                     Some("success".to_string())

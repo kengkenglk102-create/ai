@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { open as chooseDirectory } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
 import { Activity, ArrowDown, ArrowUp, ArrowRight, ChevronDown, Download, GripVertical, Layers, Link2, MoreHorizontal, Plus, RefreshCw, Search, ShieldCheck, Star, Trash2, TriangleAlert, Pencil, X } from 'lucide-react';
 import { useEscCloseTopmost } from '../../hooks/useEscClose';
@@ -21,7 +22,7 @@ import { strategyCandidates, strategyKindKey, strategyKindOf } from '../../servi
 import { formatProxyBytes, formatProxyDateTime } from '../../utils/codexProxyFormat';
 import type { CodexProxyProbeResult } from '../../services/codexAccountProxyService';
 import { cancelProxyCatalog, catalogErrorKey, clearProxyCatalogDefault, getProxyCatalog, importProxyCatalog, probeProxyCatalog,
-  setProxyCatalogDefault, setProxyNodeInsecure, refreshProxyCatalog, removeProxyCatalog, reorderProxyCatalog, setProxyCatalogAutoUpdate, renameProxySource, getProxyCatalogDependencies,
+  setProxyCatalogDefault, refreshProxyCatalog, removeProxyCatalog, reorderProxyCatalog, renameProxySource, getProxyCatalogDependencies,
   type ProxyCatalog, type ProxyCatalogSource, type ProxyCatalogDependencies, type ProxyCatalogSelections } from '../../services/codexProxyCatalogService';
 import '../../styles/pages/codex-proxy-resources.css';
 
@@ -328,7 +329,13 @@ export function CodexProxyResources({ onAssign, onBindingsChanged }: {
                   <button type="button" className="btn btn-secondary" disabled={orderDisabled || index === visibleSources.length - 1} onClick={() => ordering.moveBy(entry.id, 1)}><ArrowDown size={14} />{t('codex.more.moveDown')}</button>
                   {strategy ? <button type="button" className="btn btn-secondary" onClick={() => openStrategy(entry.id)}><Pencil size={14} />{t('codex.proxy.catalog.strategyEdit')}</button>
                     : <button type="button" className="btn btn-secondary" onClick={() => editSource(entry)}><Pencil size={14} />{t('codex.proxy.catalog.rename')}</button>}
-                  {entry.kind === 'subscription' && <button type="button" className="btn btn-secondary" onClick={() => { setMenuId(''); void run('refresh', async (id) => { const next = await refreshProxyCatalog(id, entry.id); if (mounted.current) { apply(next); setResult(null); } }, true); }}><RefreshCw size={14} />{t('common.refresh')}</button>}
+                  {(entry.kind === 'subscription' || entry.nativeProfile) && <button type="button" className="btn btn-secondary" onClick={() => { setMenuId(''); void run('refresh', async (id) => { const next = await refreshProxyCatalog(id, entry.id); if (mounted.current) { apply(next); setResult(null); } }, true); }}><RefreshCw size={14} />{t('common.refresh')}</button>}
+                  {(entry.kind === 'subscription' || entry.nativeProfile) && <button type="button" className="btn btn-secondary" onClick={() => { setMenuId(''); void run('refresh', async (id) => {
+                    const directory = await chooseDirectory({ directory: true, multiple: false });
+                    if (typeof directory !== 'string' || !mounted.current) return;
+                    const next = await refreshProxyCatalog(id, entry.id, directory);
+                    if (mounted.current) { apply(next); setResult(null); }
+                  }, true); }}>{t('codex.proxy.catalog.resourceDirectory')}</button>}
                   <button type="button" className="btn btn-secondary" onClick={() => { if (sourceId !== entry.id) changeSource(entry.id); setExpanded(true); setAdvanced(true); setMenuId(''); }}><Star size={14} />{t('common.advancedSettings')}</button>
                   <button type="button" className="btn btn-secondary codex-resource-delete-action" onClick={(event) => { deleteButton.current = event.currentTarget.closest('.codex-resource-more')?.querySelector<HTMLButtonElement>('.codex-resource-more-trigger') ?? null; setMenuId(''); if (strategy) setStrategyDeleting(entry.id); else { setDeleting({ id: entry.id, name: entry.name }); setDeleteError(''); } }}><Trash2 size={14} />{t('common.delete')}</button>
                 </div>}
@@ -343,8 +350,7 @@ export function CodexProxyResources({ onAssign, onBindingsChanged }: {
             {source.kind === 'strategy' ? <CodexProxyPicker key={source.id} source={source} itemId={itemId} selectedGroupId={groupId} selections={selectedChoices} busy={!!busy || !!defaultPending} latency={latency} choose={choose} chooseMember={chooseMember}
               onCatalogChange={(next) => { apply(next); setResult(null); }} onPendingChange={setCatalogPending} />
               : <>
-                <CodexProxyResourceNodes key={source.id} source={source} itemId={itemId} busy={locked} latency={latency} onChoose={(id) => choose(id, '')}
-                  onInsecure={(nodeId, enabled) => void run('insecure', async () => { const next = await setProxyNodeInsecure(source.id, nodeId, source.revision, enabled); if (mounted.current) { apply(next); setResult(null); } })} />
+                <CodexProxyResourceNodes key={source.id} source={source} itemId={itemId} busy={locked} latency={latency} onChoose={(id) => choose(id, '')} />
                 {!!source.groups.length && <details className="codex-resource-group-options"><summary>{t('codex.proxy.catalog.groups')}</summary>
                   <CodexProxyPicker key={source.id} source={source} itemId={itemId} selectedGroupId={groupId} selections={selectedChoices} busy={!!busy || !!defaultPending} latency={latency} choose={choose} chooseMember={chooseMember} onCatalogChange={(next) => { apply(next); setResult(null); }} onPendingChange={setCatalogPending} />
                 </details>}
@@ -356,8 +362,7 @@ export function CodexProxyResources({ onAssign, onBindingsChanged }: {
             </div>
             {result && <output className="codex-proxy-check-result" aria-live="polite"><ShieldCheck size={18} /><div><strong>{t('codex.proxy.testPassed')}</strong><span>{result.protocol} · {result.ip} · {result.latencyMs} ms</span><time dateTime={new Date(result.checkedAt).toISOString()}>{new Date(result.checkedAt).toLocaleString()}</time></div></output>}
             <details className="codex-resource-advanced" open={advanced} onToggle={(event) => setAdvanced(event.currentTarget.open)}><summary>{t('common.advancedSettings')}</summary>
-              {source.kind === 'subscription' && <div className="codex-resource-auto"><button type="button" role="switch" aria-checked={source.autoUpdate} className={`codex-resource-switch${source.autoUpdate ? ' on' : ''}`} disabled={locked} aria-label={t('codex.proxy.catalog.autoUpdate')}
-                onClick={() => void run('auto', async () => { const next = await setProxyCatalogAutoUpdate(source.id, !source.autoUpdate); if (mounted.current) apply(next); })}><span /></button><span>{t('codex.proxy.catalog.autoUpdate')}</span></div>}
+              {source.kind === 'subscription' && <p className="codex-proxy-page-note">{t('codex.proxy.catalog.autoUpdate')}</p>}
               <div className={`codex-resource-default${source.default ? ' is-set' : ''}`}><div className="codex-resource-default-head"><Star size={16} /><strong>{t('codex.proxy.catalog.defaultLabel')}</strong><span>{source.default ? defaultLabel : t('codex.proxy.catalog.defaultEmpty')}</span></div>
                 <div className="codex-resource-default-actions"><button type="button" className="btn btn-secondary compact" disabled={locked || !selectionReady} onClick={() => void applyDefault('set')}>{defaultPending === 'set' && <RefreshCw size={14} className="loading-spinner" />}{t('codex.proxy.catalog.setDefault')}</button>
                   {(source.default || source.defaultInvalidated) && <button type="button" className="btn btn-secondary compact" disabled={locked} onClick={() => void applyDefault('clear')}>{t('codex.proxy.catalog.clearDefault')}</button>}</div></div>

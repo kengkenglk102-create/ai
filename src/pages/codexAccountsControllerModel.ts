@@ -60,7 +60,8 @@ export const CODEX_TOKEN_BATCH_EXAMPLE = `[
 ]`;
 export const OPENAI_OFFICIAL_PRESET_ID = "openai_official";
 export const OPENAI_OFFICIAL_BASE_URL = "https://api.openai.com/v1";
-export const DEFAULT_OAUTH_QUOTA_RESERVE_PERCENT = 10;
+export const DEFAULT_OAUTH_HOURLY_QUOTA_RESERVE_PERCENT = 30;
+export const DEFAULT_OAUTH_WEEKLY_QUOTA_RESERVE_PERCENT = 10;
 
 export function parseOAuthQuotaReservePercent(value: string): number | null {
   const normalized = value.trim();
@@ -78,15 +79,10 @@ export function resolveOAuthBindingQuotaReserve(
     const hourlyPercent = parseOAuthQuotaReservePercent(String(reserve.hourlyPercent));
     const weeklyPercent = parseOAuthQuotaReservePercent(String(reserve.weeklyPercent));
     return hourlyPercent !== null && weeklyPercent !== null
-      ? { hourlyPercent, weeklyPercent }
+      ? { ...reserve, hourlyPercent, weeklyPercent }
       : null;
   }
-  // 已绑定且未保留额度表示保存过关闭状态；仅新绑定使用默认值。
-  if (collection?.boundOauthAccountId?.trim()) return null;
-  return {
-    hourlyPercent: DEFAULT_OAUTH_QUOTA_RESERVE_PERCENT,
-    weeklyPercent: DEFAULT_OAUTH_QUOTA_RESERVE_PERCENT,
-  };
+  return null;
 }
 
 export function normalizeCodexApiBaseUrl(rawValue?: string | null): string {
@@ -400,13 +396,15 @@ export function getCockpitApiStatsRecord(
 
 export function resolveApiKeyUsageMode(
   summary?: CodexModelProviderUsageSummary,
-): "new_api" | "sub2api" | "deepseek" | "token_plan" | null {
+): "new_api" | "sub2api" | "deepseek" | "token_plan" | "openai_official" | "cockpit" | null {
   if (!summary) return null;
+  if (summary.cockpit) return "cockpit";
   if (
     summary.mode === "new_api" ||
     summary.mode === "sub2api" ||
     summary.mode === "deepseek" ||
-    summary.mode === "token_plan"
+    summary.mode === "token_plan" ||
+    summary.mode === "openai_official"
   ) {
     return summary.mode;
   }
@@ -610,7 +608,7 @@ export interface SponsorApiProviderTemplate {
   supportsVision: boolean;
   website: string;
   apiKeyUrl: string;
-  wireApi?: "responses" | "chat_completions" | null;
+  wireApi?: "responses" | "chat_completions" | "anthropic" | null;
   integrationType?: "sub2api" | "new_api" | null;
 }
 

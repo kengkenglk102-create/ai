@@ -142,14 +142,14 @@ fn plain_and_base64_links_preserve_labels() {
     }
 }
 #[test]
-fn unsupported_nodes_and_groups_remain_visible_but_cannot_bind() {
+fn declared_tls_exceptions_are_supported_without_separate_permission() {
     let input=fixture("    skip-cert-verify: true\nproxy-groups:\n  - {name: Pick, type: select, proxies: [Alpha]}\n  - {name: Failover, type: fallback, proxies: [Alpha]}");
     let c = parse(&input).unwrap();
     assert!(c.nodes[0]
         .outbound
         .as_ref()
         .is_some_and(|o| o["proxy"]["skip-cert-verify"] == true));
-    assert_eq!(c.nodes[0].error.as_deref(), Some("PROXY_TLS_INSECURE"));
+    assert!(c.nodes[0].error.is_none());
     assert!(super::super::codex_proxy_catalog_binding::encode(
         "source",
         "source",
@@ -157,14 +157,13 @@ fn unsupported_nodes_and_groups_remain_visible_but_cannot_bind() {
         &c,
         &std::collections::BTreeMap::new()
     )
-    .is_err());
-    assert!(c.groups.iter().all(|g| g.error.is_some()));
+    .is_ok());
+    assert!(c.groups.iter().all(|g| g.error.is_none()));
     assert_eq!(c.groups[1].members, vec!["Alpha"]);
 }
 #[test]
 fn native_parameters_are_preserved_and_runtime_boundaries_are_rejected() {
     for extra in [
-        "    dialer-proxy: Evil\n",
         "    certificate: /private/certificate.pem\n",
         "    unknown-option: {config-path: /private/key}\n",
     ] {
@@ -226,7 +225,7 @@ fn group_diagnostics_shared_descendants_are_not_misreported_as_cycles() {
 }
 #[test]
 fn ignores_top_level_executable_and_network_configuration() {
-    let c=parse(&fixture("script: {code: evil}\nproxy-providers: {evil: {url: 'file:///private'}}\nrules: [MATCH,DIRECT]\nexternal-controller: '0.0.0.0:1'\n")).unwrap();
+    let c=parse(&fixture("script: {code: evil}\nrules: [MATCH,DIRECT]\nexternal-controller: '0.0.0.0:1'\n")).unwrap();
     assert_eq!(c.nodes.len(), 1);
     let out = c.nodes[0].outbound.as_ref().unwrap().to_string();
     assert!(!out.contains("evil"));
@@ -293,8 +292,7 @@ fn include_all_local_nodes_is_supported_without_fetching_providers() {
     .unwrap();
     assert_eq!(c.groups[0].members, vec!["Alpha"]);
     assert!(c.groups[0].error.is_none());
-    let c=parse(&fixture("proxy-providers: {remote: {url: 'https://example.com/token'}}\nproxy-groups:\n  - {name: All, type: select, include-all: true}")).unwrap();
-    assert!(c.groups[0].error.is_some());
+    assert!(parse(&fixture("proxy-providers: {remote: {type: http, url: 'https://example.com/token'}}\nproxy-groups:\n  - {name: All, type: select, include-all: true}")).unwrap().groups[0].error.is_some());
 }
 
 #[test]
@@ -341,9 +339,7 @@ fn vless_subscription_metadata_survives_binding_and_runtime_without_changing_pro
     assert_eq!(groups[0]["type"], "url-test");
 
     for extra in [
-        "    dialer-proxy: DIRECT\n",
         "    private-key: /private/key\n",
-        "    unknown-option: {routing-mark: 1}\n",
     ] {
         let rejected =
             parse(&input.replace("    alterId: 0\n", &format!("    alterId: 0\n{extra}"))).unwrap();
@@ -362,10 +358,7 @@ fn vless_subscription_metadata_survives_binding_and_runtime_without_changing_pro
         "    tls: true\n    skip-cert-verify: true\n",
     ))
     .unwrap();
-    assert_eq!(
-        insecure.nodes[0].error.as_deref(),
-        Some("PROXY_TLS_INSECURE")
-    );
+    assert!(insecure.nodes[0].error.is_none());
     assert!(insecure.nodes[0].outbound.is_some());
     assert!(binding::encode(
         "s",
@@ -374,7 +367,7 @@ fn vless_subscription_metadata_survives_binding_and_runtime_without_changing_pro
         &insecure,
         &Default::default()
     )
-    .is_err());
+    .is_ok());
 }
 
 #[test]
@@ -395,7 +388,7 @@ fn hysteria2_bandwidth_and_duplicate_port_hopping_fields_are_preserved() {
         "hop-interval: 30, skip-cert-verify: true}",
     );
     let insecure_node = parse(&insecure).unwrap().nodes.remove(0);
-    assert_eq!(insecure_node.error.as_deref(), Some("PROXY_TLS_INSECURE"));
+    assert!(insecure_node.error.is_none());
     assert_eq!(
         insecure_node.outbound.unwrap()["proxy"]["ports"],
         "20000-20002"
@@ -426,16 +419,13 @@ fn hysteria2_bandwidth_and_duplicate_port_hopping_fields_are_preserved() {
 }
 
 #[test]
-fn hysteria2_ignored_udp_metadata_keeps_native_parameters_and_tls_permissions() {
+fn hysteria2_metadata_and_declared_tls_exceptions_reach_runtime_directly() {
     use super::super::codex_proxy_catalog_binding as binding;
     let input = "proxies:\n  - {name: HY, type: hysteria2, server: localhost, port: 443, password: secret, sni: example.test, up: 50, down: 100, ports: '20000-20002', mport: '20000-20002', udp: true, skip-cert-verify: true}\nproxy-groups:\n  - {name: Auto, type: url-test, proxies: [REJECT, HY]}\n";
     let mut catalog = parse(input).unwrap();
-    assert_eq!(
-        catalog.nodes[0].error.as_deref(),
-        Some("PROXY_TLS_INSECURE")
-    );
+    assert!(catalog.nodes[0].error.is_none());
     assert!(catalog.nodes[0].outbound.is_some());
-    assert!(catalog.groups[0].error.is_some());
+    assert!(catalog.groups[0].error.is_none());
     assert!(binding::encode(
         "s",
         "s",
@@ -443,10 +433,7 @@ fn hysteria2_ignored_udp_metadata_keeps_native_parameters_and_tls_permissions() 
         &catalog,
         &Default::default()
     )
-    .is_err());
-    // This is the explicit per-node certificate permission path, not an import default.
-    catalog.nodes[0].error = None;
-    validate(&mut catalog).unwrap();
+    .is_ok());
     let raw = binding::encode(
         "s",
         "s",
@@ -466,16 +453,13 @@ fn hysteria2_ignored_udp_metadata_keeps_native_parameters_and_tls_permissions() 
     assert_eq!(groups[0]["proxies"][0], "REJECT");
     for ignored in ["false", "'true'", "1", "null"] {
         let catalog = parse(&input.replace("udp: true", &format!("udp: {ignored}"))).unwrap();
-        assert_eq!(
-            catalog.nodes[0].error.as_deref(),
-            Some("PROXY_TLS_INSECURE")
-        );
+        assert!(catalog.nodes[0].error.is_none());
         let expected: Value = serde_yaml::from_str(ignored).unwrap();
         assert_eq!(
             catalog.nodes[0].outbound.as_ref().unwrap()["proxy"]["udp"],
             expected
         );
-        assert!(catalog.groups[0].error.is_some());
+        assert!(catalog.groups[0].error.is_none());
     }
 }
 
@@ -532,9 +516,6 @@ fn native_protocol_matrix_cannot_hide_files_or_routes_in_extra_parameters() {
     .unwrap();
     for original in input["proxies"].as_array().unwrap() {
         for (key, value) in [
-            ("dialer-proxy", json!("DIRECT")),
-            ("interface-name", json!("en0")),
-            ("routing-mark", json!(1)),
             ("config-path", json!("/private/key")),
             ("certificate", json!("/private/certificate.pem")),
         ] {
@@ -559,7 +540,7 @@ fn quoted_password_tags_are_data_and_explicit_yaml_tags_are_rejected() {
 }
 
 #[test]
-fn eager_health_checks_remain_native() {
+fn legacy_eager_health_checks_are_overridden_only_when_preparing_runtime() {
     let c = parse(&fixture(
         "proxy-groups:\n  - {name: Auto, type: url-test, proxies: [Alpha], lazy: false}",
     ))
@@ -567,6 +548,10 @@ fn eager_health_checks_remain_native() {
     assert!(c.groups[0].error.is_none());
     assert_eq!(c.groups[0].native.as_ref().unwrap()["lazy"], false);
     assert_eq!(c.groups[0].members, vec!["Alpha"]);
+    let binding = super::super::codex_proxy_catalog_binding::encode("s", "s", &c.groups[0].id, &c, &Default::default()).unwrap();
+    let (_, groups) = super::super::codex_proxy_catalog_binding::runtime_parts(json!(super::super::codex_proxy_catalog_binding::outbounds(&binding).unwrap())).unwrap();
+    assert_eq!(groups[0]["lazy"], true);
+
     let c = parse(&fixture(
         "proxy-groups:\n  - {name: Auto, type: url-test, proxies: [Alpha], lazy: true}",
     ))
@@ -669,28 +654,11 @@ fn enabled_ech_dns_override_maps_without_removing_handshake_security() {
 #[test]
 fn compatibility_failures_have_safe_specific_codes() {
     for (extra, code) in [
-        ("    skip-cert-verify: true\n", "PROXY_TLS_INSECURE"),
-        ("    dialer-proxy: DIRECT\n", UNSUPPORTED),
         ("    private-key: /private/SECRET\n", UNSUPPORTED),
     ] {
         let c = parse(&fixture(extra)).unwrap();
         assert_eq!(c.nodes[0].error.as_deref(), Some(code));
-        if code == "PROXY_TLS_INSECURE" {
-            assert_eq!(
-                c.nodes[0].outbound.as_ref().unwrap()["proxy"]["skip-cert-verify"],
-                true
-            );
-            assert!(super::super::codex_proxy_catalog_binding::encode(
-                "source",
-                "source",
-                &c.nodes[0].id,
-                &c,
-                &std::collections::BTreeMap::new()
-            )
-            .is_err());
-        } else {
-            assert!(c.nodes[0].outbound.is_none());
-        }
+        assert!(c.nodes[0].outbound.is_none());
     }
     let c = parse(&fixture(
         "proxy-groups:\n  - {name: Auto, type: url-test, proxies: [Alpha], timeout: 12000}\n",
@@ -754,7 +722,7 @@ fn native_protocol_parameters_and_group_strategies_survive_to_runtime() {
     assert_eq!(proxies[0]["smux"]["enabled"], true);
     assert_eq!(groups[0]["strategy"], "round-robin");
     assert_eq!(groups[1]["timeout"], 8000);
-    assert_eq!(groups[1]["lazy"], false);
+    assert_eq!(groups[1]["lazy"], true, "legacy lazy false is ignored at runtime");
     assert!(groups.iter().all(|g| g["empty-fallback"] == "REJECT"));
 }
 
@@ -763,9 +731,6 @@ fn native_catalog_never_enables_local_files_system_routes_or_direct_fallback() {
     for extra in [
         "    private-key: /private/secret\n",
         "    certificate: cert.pem\n",
-        "    dialer-proxy: DIRECT\n",
-        "    interface-name: eth0\n",
-        "    routing-mark: 123\n",
         "    ws-opts: {config_path: /private/secret}\n",
     ] {
         let catalog = parse(&fixture(extra)).unwrap();
@@ -776,25 +741,13 @@ fn native_catalog_never_enables_local_files_system_routes_or_direct_fallback() {
 }
 
 #[test]
-fn nested_tls_bypass_is_rejected_until_explicitly_approved() {
+fn nested_tls_exceptions_are_accepted_while_invalid_types_remain_rejected() {
     for key in ["skip-cert-verify", "skip_cert_verify", "insecure"] {
         let input = fixture(&format!(
             "    network: xhttp\n    xhttp-opts: {{download-settings: {{{key}: true}}}}\n"
         ));
-        let mut catalog = parse(&input).unwrap();
-        assert_eq!(
-            catalog.nodes[0].error.as_deref(),
-            Some("PROXY_TLS_INSECURE")
-        );
-        assert!(super::super::codex_proxy_catalog_binding::encode(
-            "s",
-            "s",
-            &catalog.nodes[0].id,
-            &catalog,
-            &Default::default()
-        )
-        .is_err());
-        catalog.nodes[0].error = None;
+        let catalog = parse(&input).unwrap();
+        assert!(catalog.nodes[0].error.is_none());
         let binding = super::super::codex_proxy_catalog_binding::encode(
             "s",
             "s",

@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { CODEX_PATH_RECOVERY_CANCELLED, codexPathRecoveryKey, withCodexPathRecovery } from "../stores/useCodexPathRecoveryStore";
 import type {
   CodexLocalAccessChatMessage,
   CodexLocalAccessChatResult,
@@ -6,7 +7,6 @@ import type {
   CodexLocalAccessAccountModelRule,
   CodexLocalAccessAppendAccountsResult,
   CodexLocalAccessClientBaseUrlHost,
-  CodexLocalAccessGatewayMode,
   CodexLocalAccessModelAlias,
   CodexLocalAccessAccountWindowQuery,
   CodexLocalAccessAccountWindowStats,
@@ -39,6 +39,8 @@ export async function saveCodexLocalAccessAccounts(
   sessionAffinity?: boolean,
   sessionAffinityTtlMs?: number,
   imageGenerationAccountPolicies?: Record<string, CodexLocalAccessImageGenerationPolicy>,
+  officialAccountBindings?: Record<string, string>,
+  sessionIdentityMappingEnabled?: boolean,
 ): Promise<CodexLocalAccessState> {
   return await invoke("codex_local_access_save_accounts", {
     accountIds,
@@ -48,6 +50,8 @@ export async function saveCodexLocalAccessAccounts(
     sessionAffinity: sessionAffinity ?? null,
     sessionAffinityTtlMs: sessionAffinityTtlMs ?? null,
     imageGenerationAccountPolicies: imageGenerationAccountPolicies ?? null,
+    officialAccountBindings: officialAccountBindings ?? null,
+    sessionIdentityMappingEnabled: sessionIdentityMappingEnabled ?? null,
   });
 }
 
@@ -61,6 +65,13 @@ export async function removeCodexLocalAccessAccount(
   accountId: string,
 ): Promise<CodexLocalAccessState> {
   return await invoke("codex_local_access_remove_account", { accountId });
+}
+
+/** Both historical endpoints of one explicitly linked card may still be members. */
+export async function removeCodexLocalAccessAccounts(accountIds: string[]): Promise<CodexLocalAccessState> {
+  let state: CodexLocalAccessState | undefined;
+  for (const id of new Set(accountIds)) state = await removeCodexLocalAccessAccount(id);
+  return state ?? getCodexLocalAccessState();
 }
 
 export async function recoverCodexLocalAccessAccounts(
@@ -131,8 +142,11 @@ export async function queryCodexLocalAccessRequestLogs(
     endAt: query.endAt ?? null,
     modelQuery: query.modelQuery ?? null,
     accountQuery: query.accountQuery ?? null,
+    accountId: query.accountId ?? null,
+    apiKeyId: query.apiKeyId ?? null,
     apiKeyQuery: query.apiKeyQuery ?? null,
     instanceQuery: query.instanceQuery ?? null,
+    sessionQuery: query.sessionQuery?.trim() || null,
     gatewayMode: query.gatewayMode ?? null,
     requestKind: query.requestKind ?? null,
     success: query.success ?? null,
@@ -184,7 +198,8 @@ export async function prepareCodexLocalAccessForRestart(): Promise<CodexLocalAcc
 }
 
 export async function restartCodexLocalAccessSidecar(): Promise<CodexLocalAccessState> {
-  return await invoke("codex_local_access_restart_sidecar");
+  const state = await invoke<CodexLocalAccessState>("codex_local_access_restart_sidecar");
+  return state;
 }
 
 export async function killCodexLocalAccessPort(): Promise<CodexLocalAccessPortCleanupResult> {
@@ -242,6 +257,7 @@ export async function repriceCodexLocalAccessRequestLogs(): Promise<CodexLocalAc
 }
 
 export async function updateCodexLocalAccessRoutingOptions(payload: {
+  sessionIdentityMappingEnabled: boolean;
   sessionAffinity: boolean;
   sessionAffinityTtlMs: number;
   responsesWebsocketsEnabled: boolean;
@@ -284,13 +300,6 @@ export async function updateCodexLocalAccessUpstreamProxyConfig(
   });
 }
 
-export async function updateCodexLocalAccessGatewayMode(
-  gatewayMode: CodexLocalAccessGatewayMode,
-): Promise<CodexLocalAccessState> {
-  return await invoke("codex_local_access_update_gateway_mode", {
-    gatewayMode,
-  });
-}
 
 export async function updateCodexLocalAccessDebugLogs(
   debugLogs: boolean,
@@ -372,6 +381,7 @@ export async function updateCodexLocalAccessApiKey(
     allowedModels?: string[] | null;
     excludedModels?: string[] | null;
     tokenLimit?: number | null;
+    budget?: import('../types/codexRemoteService').CodexApiKeyBudget;
     accountIds?: string[] | null;
     inheritAccountPool?: boolean | null;
   },
@@ -384,6 +394,7 @@ export async function updateCodexLocalAccessApiKey(
     allowedModels: payload.allowedModels ?? null,
     excludedModels: payload.excludedModels ?? null,
     tokenLimit: payload.tokenLimit ?? null,
+    budget: payload.budget ?? null,
     accountIds: payload.accountIds ?? null,
     inheritAccountPool: payload.inheritAccountPool ?? null,
   });
@@ -416,19 +427,60 @@ export async function deleteCodexLocalAccessApiKey(
 export async function setCodexLocalAccessEnabled(
   enabled: boolean,
 ): Promise<CodexLocalAccessState> {
-  return await invoke("codex_local_access_set_enabled", { enabled });
+  const state = enabled
+    ? await withCodexPathRecovery(
+        () => invoke<CodexLocalAccessState>("codex_local_access_set_enabled", { enabled }),
+        { key: codexPathRecoveryKey("codex_local_access_set_enabled", { enabled }) },
+      )
+    : await invoke<CodexLocalAccessState>("codex_local_access_set_enabled", { enabled });
+  return state;
 }
 
 export async function activateCodexLocalAccess(
   instanceId?: string | null,
+  launchAfterSwitch?: boolean,
 ): Promise<CodexLocalAccessState> {
   const startedAt = performance.now();
   console.info("[Codex API Service Switch][Service] invoke codex_local_access_activate started");
+  let attempted = false;
+  let continuedWithoutDesktop = false;
+  const cancelLaunchProgress = () => {
+    const targetId = instanceId?.trim() || "__default__";
+    window.dispatchEvent(new CustomEvent("codex:instance-launch-progress", { detail: {
+      type: "cancelled", cancelled: true, instanceId: targetId,
+      isDefault: targetId === "__default__", operation: "instance-launch", canRetry: false,
+    } }));
+  };
   try {
-    return await invoke("codex_local_access_activate", {
+    const args = {
       autoRepairMode: null,
+      pathRecoveryManaged: true,
       instanceId: instanceId ?? null,
-    });
+      launchAfterSwitch: launchAfterSwitch ?? null,
+    };
+    const state = await withCodexPathRecovery(
+      () => {
+        attempted = true;
+        return invoke<CodexLocalAccessState>("codex_local_access_activate", args);
+      },
+      {
+        key: codexPathRecoveryKey("codex_local_access_activate", args),
+        withoutDesktop: launchAfterSwitch === false ? undefined : async () => {
+          const result = await invoke<CodexLocalAccessState>(
+            "codex_local_access_activate", { ...args, launchAfterSwitch: false },
+          );
+          continuedWithoutDesktop = true;
+          return result;
+        },
+      },
+    );
+    if (continuedWithoutDesktop) cancelLaunchProgress();
+    return state;
+  } catch (error) {
+    if (attempted && String(error).replace(/^Error:\s*/, "") === CODEX_PATH_RECOVERY_CANCELLED) {
+      cancelLaunchProgress();
+    }
+    throw error;
   } finally {
     console.info(
       "[Codex API Service Switch][Service] invoke codex_local_access_activate finished",
