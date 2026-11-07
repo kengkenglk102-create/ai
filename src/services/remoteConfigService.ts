@@ -32,7 +32,7 @@ type RemoteConfigStateRaw = {
 };
 
 const DEFAULT_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
-const NEVER_REMOTE_HIDE_PLATFORM_IDS = new Set<PlatformId>(['claude_manager']);
+const NEVER_REMOTE_HIDE_PLATFORM_IDS = new Set<PlatformId>(['antigravity', 'codex']);
 
 function normalizeUpdatePromptMode(value: unknown): RemoteUpdatePromptMode {
   return typeof value === 'string' && value.trim().toLowerCase() === 'popup'

@@ -114,21 +114,32 @@ pub fn prepare_isolated_antigravity_user_home(
     let user_home = profile_dir.join("UserHome");
     let gemini_dir = user_home.join(".gemini");
     let cache_dir = gemini_dir.join("cache");
+    let local_cache_dir = user_home.join("AppData").join("Local").join(".gemini").join("cache");
 
     std::fs::create_dir_all(&cache_dir)
         .map_err(|e| format!("创建隔离缓存目录失败: {}", e))?;
+    let _ = std::fs::create_dir_all(&local_cache_dir);
 
     let future_time =
         std::time::SystemTime::now() + std::time::Duration::from_secs(10 * 365 * 86400);
-    for marker_name in &["antigravity-keyring-unavailable", "gemini-keyring-unavailable"] {
-        let marker_path = cache_dir.join(marker_name);
-        if let Ok(file) = std::fs::OpenOptions::new()
-            .create(true)
-            .write(true)
-            .truncate(true)
-            .open(&marker_path)
-        {
-            let _ = file.set_modified(future_time);
+    for target_dir in [&cache_dir, &local_cache_dir] {
+        for marker_name in &[
+            "antigravity-keyring-unavailable",
+            "gemini-keyring-unavailable",
+            "jetski-keyring-unavailable",
+            "agy-keyring-unavailable",
+            "-keyring-unavailable",
+            "keyring-unavailable",
+        ] {
+            let marker_path = target_dir.join(marker_name);
+            if let Ok(file) = std::fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(&marker_path)
+            {
+                let _ = file.set_modified(future_time);
+            }
         }
     }
 
@@ -181,6 +192,12 @@ pub fn prepare_isolated_antigravity_user_home(
         let fallback_path = gemini_dir.join("jetski-standalone-oauth-token");
         crate::modules::atomic_write::write_secret_string_atomic(&fallback_path, &payload_json)
             .map_err(|e| format!("写入独立 jetski 凭据失败: {}", e))?;
+        let local_gemini = user_home.join("AppData").join("Local").join(".gemini");
+        let _ = std::fs::create_dir_all(&local_gemini);
+        let _ = crate::modules::atomic_write::write_secret_string_atomic(
+            &local_gemini.join("jetski-standalone-oauth-token"),
+            &payload_json,
+        );
     }
 
     Ok(user_home)

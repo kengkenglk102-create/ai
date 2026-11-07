@@ -1,6 +1,7 @@
 #[cfg(target_os = "macos")]
 use swift_rs::SwiftLinker;
 
+#[cfg(target_os = "macos")]
 use std::path::PathBuf;
 
 #[cfg(target_os = "macos")]

@@ -152,35 +152,6 @@ fn roots_and_defaults() -> Result<(Vec<PlatformRoot>, Vec<PathBuf>), String> {
     platform!("antigravity", instance);
     platform!("antigravity-legacy", antigravity_legacy_instance);
     platform!("codex", codex_instance);
-    platform!("claude", claude_instance);
-    platform!("github_copilot", github_copilot_instance);
-    platform!("windsurf", windsurf_instance);
-    platform!("cursor", cursor_instance);
-    platform!("kiro", kiro_instance);
-    platform!("codebuddy", codebuddy_instance);
-    platform!("codebuddy_cn", codebuddy_cn_instance);
-    platform!("qoder", qoder_instance);
-    platform!("workbuddy", workbuddy_instance);
-    platform!("zcode", zcode_instance);
-    platform!("grok", grok_instance);
-    use modules::trae_account::TraePlatformKind;
-    for (name, kind) in [
-        ("trae", TraePlatformKind::Trae),
-        ("trae-solo", TraePlatformKind::TraeSolo),
-        ("trae-cn", TraePlatformKind::TraeCn),
-        ("trae-solo-cn", TraePlatformKind::TraeSoloCn),
-    ] {
-        roots.push(PlatformRoot {
-            platform: name.into(),
-            root: modules::trae_instance::get_default_instances_root_dir_for_platform(kind)?,
-        });
-        defaults.push(path_key(
-            &modules::trae_instance::get_default_trae_user_data_dir_for_platform(kind)?,
-        ));
-    }
-    defaults.push(path_key(
-        &modules::claude_instance::get_default_claude_cli_config_dir()?,
-    ));
     // The host itself can inherit a managed CODEX_HOME; the official desktop's
     // default home remains protected independently of that environment override.
     if let Some(home) = dirs::home_dir() {

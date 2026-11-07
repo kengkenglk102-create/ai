@@ -1045,70 +1045,9 @@ async fn fetch_deepseek_balance(
 ///
 /// 数据来自 Cockpit 本地保存的 Grok 平台账号额度（账号保活会定期刷新），
 /// 因此这里不发额外网络请求；池里没有 Grok 账号时返回空列表，弹框不显示该行。
-#[path = "codex_app_injection_grok_quota.rs"]
-mod grok_quota;
 
-async fn api_service_grok_quota_lines(locale: &str) -> Option<Vec<InjectionGrokQuotaLine>> {
-    let state = codex_local_access::get_local_access_state().await.ok()?;
-    let Some(collection) = state.collection else {
-        return Some(Vec::new());
-    };
-    let shared_label = i18n::translate(locale, "grok.quota.sharedPool", &[]);
-    match tauri::async_runtime::spawn_blocking(move || {
-        let mut grouped: std::collections::BTreeMap<String, (i64, i64)> =
-            std::collections::BTreeMap::new();
-        for account_id in collection.account_ids {
-            let Some(account) = codex_account::load_account(&account_id) else {
-                return None;
-            };
-            if !codex_account::is_grok_upstream_provider(&account) {
-                continue;
-            }
-            let Some(grok_account_id) = account
-                .upstream_grok_account_id
-                .as_deref()
-                .map(str::trim)
-                .filter(|value| !value.is_empty())
-            else {
-                continue;
-            };
-            let Some(grok_account) = crate::modules::grok_account::load_account(grok_account_id)
-            else {
-                return None;
-            };
-            let Some(quota) = grok_account.quota else {
-                continue;
-            };
-            for (product, remaining_percent) in grok_quota::quota_lines(&quota, &shared_label) {
-                let entry = grouped.entry(product).or_insert((0, remaining_percent));
-                entry.0 += 1;
-                entry.1 = entry.1.max(remaining_percent);
-            }
-        }
-        Some(
-            grouped
-                .into_iter()
-                .map(
-                    |(product, (count, remaining_percent))| InjectionGrokQuotaLine {
-                        product,
-                        count,
-                        remaining_percent,
-                    },
-                )
-                .collect(),
-        )
-    })
-    .await
-    {
-        Ok(lines) => lines,
-        Err(error) => {
-            logger::log_warn(&format!(
-                "[Codex App Injection] Grok 额度读取任务失败: {}",
-                error
-            ));
-            None
-        }
-    }
+async fn api_service_grok_quota_lines(_locale: &str) -> Option<Vec<InjectionGrokQuotaLine>> {
+    Some(Vec::new())
 }
 
 /// API 服务账号池里的 DeepSeek 官方余额汇总（按币种合并成一行），供点击弹框显示。

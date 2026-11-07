@@ -7,8 +7,7 @@
 //
 // 通过 include! 保持原 modules::codex_account 作用域和私有调用关系。
 
-use crate::models::grok::{GrokAccount, GrokAuthMode};
-use crate::modules::grok_account;
+// Grok platform disabled
 
 /// Grok 供应商账号的 provider id（与前端预设保持一致）。
 pub(crate) const GROK_PROVIDER_ID: &str = "grok";
@@ -90,161 +89,32 @@ pub(crate) fn build_grok_provider_account_id(grok_account_id: &str) -> String {
     )
 }
 
-/// 读取该供应商账号绑定的 Grok 平台账号。
-pub(crate) fn grok_upstream_account(account: &CodexAccount) -> Option<GrokAccount> {
-    let grok_account_id = account.upstream_grok_account_id.as_deref()?.trim();
-    if grok_account_id.is_empty() {
-        return None;
-    }
-    grok_account::load_account(grok_account_id)
+pub fn grok_sidecar_auth_file_name(account_id: &str) -> String {
+    format!("grok_auth_{account_id}.json")
 }
 
-/// sidecar 中该账号的 xai auth 文件名。
-pub(crate) fn grok_sidecar_auth_file_name(account_id: &str) -> String {
-    format!("xai-{}.json", account_id.trim())
-}
-
-/// 生成 sidecar 使用的 xai OAuth auth 文件内容。
-///
-/// 只写入访问令牌，不写 refresh_token：Cockpit 保持 Token Authority，令牌轮换后
-/// 由宿主回写该文件，sidecar 通过 auth 目录监听热更新，不需要重启网关。
-///
-/// `proxy_url` 为该账号绑定的代理：sidecar 读取 auth 文件里的 `proxy_url` 后，
-/// 会为这个账号单独建立代理传输层，做到同进程内不同账号走不同出口。
 pub(crate) fn grok_sidecar_auth_json(
-    account: &CodexAccount,
-    proxy_url: Option<&str>,
+    _account: &CodexAccount,
+    _proxy_url: Option<&str>,
 ) -> Result<serde_json::Value, String> {
-    let grok_account = grok_upstream_account(account)
-        .ok_or_else(|| "Grok 供应商账号未绑定可用的 Grok 平台账号".to_string())?;
-    if grok_account.auth_mode == GrokAuthMode::ApiKey {
-        return Err("Grok 供应商账号只支持绑定 OAuth(订阅) 类型的 Grok 账号".to_string());
-    }
-    let access_token = grok_account.access_token.trim();
-    if access_token.is_empty() {
-        return Err("Grok 账号缺少访问令牌，请先在 Grok 页面重新授权".to_string());
-    }
-    let mut value = serde_json::json!({
-        "type": "xai",
-        "auth_kind": "oauth",
-        "access_token": access_token,
-        "token_type": grok_account
-            .token_type
-            .clone()
-            .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "Bearer".to_string()),
-        "email": grok_account.email.clone(),
-        "base_url": GROK_CLI_CHAT_PROXY_BASE_URL,
-        // OAuth 账号走 Grok CLI 聊天代理；官方 API 仅用于 compact 等端点。
-        "using_api": false,
-        "grok_account_id": grok_account.id.clone(),
-    });
-    if let Some(proxy_url) = proxy_url.map(str::trim).filter(|value| !value.is_empty()) {
-        value["proxy_url"] = serde_json::json!(proxy_url);
-    }
-    if let Some(expires_at) = grok_account.expires_at {
-        if let Some(expired) = grok_access_token_expired_at(expires_at) {
-            value["expired"] = serde_json::json!(expired);
-        }
-    }
-    Ok(value)
+    Err("Grok platform is disabled".to_string())
 }
 
-/// Grok 账号的过期时间在本地以 Unix 秒时间戳保存，这里转换成 xAI auth 使用的 RFC3339。
+pub fn upsert_grok_provider_account(
+    _grok_account_id: &str,
+    _grok_email: &str,
+    _model_catalog: Option<Vec<String>>,
+    _account_name: Option<String>,
+) -> Result<CodexAccount, String> {
+    Err("Grok platform is disabled".to_string())
+}
+
 fn grok_access_token_expired_at(expires_at_seconds: i64) -> Option<String> {
     if expires_at_seconds <= 0 {
         return None;
     }
     chrono::DateTime::<chrono::Utc>::from_timestamp(expires_at_seconds, 0)
         .map(|value| value.to_rfc3339_opts(chrono::SecondsFormat::Secs, true))
-}
-
-/// 由 Grok 平台账号创建（或更新）一个 Codex 供应商账号。
-pub fn upsert_grok_provider_account(
-    grok_account_id: &str,
-    grok_email: &str,
-    model_catalog: Option<Vec<String>>,
-    account_name: Option<String>,
-) -> Result<CodexAccount, String> {
-    let grok_account_id = grok_account_id.trim();
-    if grok_account_id.is_empty() {
-        return Err("请选择要绑定的 Grok 账号".to_string());
-    }
-    let grok_account = grok_account::load_account(grok_account_id)
-        .ok_or_else(|| "Grok 账号不存在，请先在 Grok 页面登录".to_string())?;
-    if grok_account.auth_mode == GrokAuthMode::ApiKey {
-        return Err("Grok API Key 账号请改用「API Key」方式添加".to_string());
-    }
-
-    let account_id = build_grok_provider_account_id(grok_account_id);
-    let email = match normalize_optional_value(Some(grok_email.to_string())) {
-        Some(value) => value,
-        None => grok_account.email.clone(),
-    };
-    let mut index = load_account_index();
-    let existing = load_account(&account_id);
-    let is_new = existing.is_none();
-    let catalog = select_grok_provider_model_catalog(model_catalog, existing.as_ref());
-    let mut account = existing.unwrap_or_else(|| {
-        CodexAccount::new_api_key(
-            account_id.clone(),
-            email.clone(),
-            String::new(),
-            CodexApiProviderMode::Custom,
-            Some(GROK_CLI_CHAT_PROXY_BASE_URL.to_string()),
-            Some(GROK_PROVIDER_ID.to_string()),
-            Some(GROK_PROVIDER_NAME.to_string()),
-            catalog.clone(),
-        )
-    });
-
-    account.auth_mode = CodexAuthMode::Apikey;
-    account.email = email.clone();
-    account.openai_api_key = None;
-    account.api_provider_mode = CodexApiProviderMode::Custom;
-    account.api_base_url = Some(GROK_CLI_CHAT_PROXY_BASE_URL.to_string());
-    account.api_provider_id = Some(GROK_PROVIDER_ID.to_string());
-    account.api_provider_name = Some(GROK_PROVIDER_NAME.to_string());
-    account.api_model_catalog = catalog;
-    account.grok_model_catalog_version = Some(GROK_MODEL_CATALOG_VERSION);
-    account.api_wire_api = Some("responses".to_string());
-    account.api_supports_websockets = false;
-    if is_new {
-        account.api_supports_vision = true;
-        account.api_model_vision_support = grok_provider_vision_support();
-        account.api_vision_routing_model = None;
-    }
-    account.api_sync_model_catalog_to_codex = false;
-    account.plan_type = Some(API_KEY_LOGIN_PLAN_TYPE.to_string());
-    account.upstream_grok_account_id = Some(grok_account_id.to_string());
-    if let Some(name) = normalize_optional_value(account_name) {
-        account.account_name = Some(name);
-    }
-    account.update_last_used();
-    save_account_from_user_action(&mut account)?;
-
-    if let Some(summary) = index.accounts.iter_mut().find(|item| item.id == account.id) {
-        summary.email = account.email.clone();
-        summary.plan_type = account.plan_type.clone();
-        summary.subscription_active_until = account.subscription_active_until.clone();
-        summary.last_used = account.last_used;
-    } else {
-        index.accounts.push(CodexAccountSummary {
-            id: account.id.clone(),
-            email: account.email.clone(),
-            plan_type: account.plan_type.clone(),
-            subscription_active_until: account.subscription_active_until.clone(),
-            created_at: account.created_at,
-            last_used: account.last_used,
-        });
-    }
-    save_account_index(&index)?;
-
-    logger::log_info(&format!(
-        "Codex Grok 供应商账号已保存: account_id={}, grok_account_id={}",
-        account.id, grok_account_id
-    ));
-    Ok(account)
 }
 
 #[cfg(test)]

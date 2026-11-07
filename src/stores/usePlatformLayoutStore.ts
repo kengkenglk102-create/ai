@@ -7,11 +7,8 @@ import { CLASSIC_SIDEBAR_ENTRY_LIMIT } from './useSideNavLayoutStore';
 const PLATFORM_LAYOUT_STORAGE_KEY = 'agtools.platform_layout.v1';
 const LEGACY_TRAY_CORE_IDS: PlatformId[] = ['antigravity', 'codex'];
 const TRAY_MIGRATED_PLATFORM_IDS: PlatformId[] = ['antigravity_ide'];
-const DEFAULT_CODEBUDDY_GROUP_ID = 'codebuddy-suite';
 const DEFAULT_ANTIGRAVITY_GROUP_ID = 'antigravity-suite';
-const DEFAULT_TRAE_GROUP_ID = 'trae-suite';
 const DEFAULT_CODEX_GROUP_ID = 'codex-suite';
-const TRAE_SUITE_PLATFORM_IDS: PlatformId[] = ['trae', 'trae_solo', 'trae_cn', 'trae_solo_cn'];
 const CODEX_SUITE_PLATFORM_IDS: PlatformId[] = ['codex', 'codex_api_service'];
 
 const PLATFORM_ENTRY_PREFIX = 'platform:';
@@ -260,22 +257,7 @@ export function resolveEntryPlatformIds(
   return group ? [...group.platformIds] : [];
 }
 
-function createDefaultTraeSuiteGroup(): PlatformLayoutGroup {
-  return {
-    id: DEFAULT_TRAE_GROUP_ID,
-    name: 'Trae',
-    platformIds: TRAE_SUITE_PLATFORM_IDS,
-    defaultPlatformId: 'trae',
-    iconKind: 'platform',
-    iconPlatformId: 'trae',
-    childConfigs: [
-      { platformId: 'trae', name: 'Trae' },
-      { platformId: 'trae_solo', name: 'TRAE SOLO' },
-      { platformId: 'trae_cn', name: 'Trae CN' },
-      { platformId: 'trae_solo_cn', name: 'TRAE SOLO CN' },
-    ],
-  };
-}
+
 
 function createDefaultCodexSuiteGroup(): PlatformLayoutGroup {
   return {
@@ -303,15 +285,6 @@ function legacyDefaultPlatformGroups(): PlatformLayoutGroup[] {
       ],
     },
     createDefaultCodexSuiteGroup(),
-    {
-      id: DEFAULT_CODEBUDDY_GROUP_ID,
-      name: 'CodeBuddy',
-      platformIds: ['codebuddy', 'codebuddy_cn', 'workbuddy'],
-      defaultPlatformId: 'codebuddy',
-      iconKind: 'platform',
-      iconPlatformId: 'codebuddy',
-    },
-    createDefaultTraeSuiteGroup(),
   ];
 }
 
@@ -516,44 +489,8 @@ function normalizeGroupName(raw: unknown, fallbackPlatform: PlatformId): string 
   if (fallbackPlatform === 'antigravity_ide') {
     return 'Antigravity IDE';
   }
-  if (fallbackPlatform === 'codebuddy_cn') {
-    return 'CodeBuddy CN';
-  }
-  if (fallbackPlatform === 'github-copilot') {
-    return 'GitHub Copilot';
-  }
-  if (fallbackPlatform === 'zed') {
-    return 'Zed';
-  }
-  if (fallbackPlatform === 'claude_manager') {
-    return 'Claude';
-  }
   if (fallbackPlatform === 'codex_api_service') {
     return 'Codex API';
-  }
-  if (fallbackPlatform === 'workbuddy') {
-    return 'WorkBuddy';
-  }
-  if (fallbackPlatform === 'qoder') {
-    return 'Qoder';
-  }
-  if (fallbackPlatform === 'zcode') {
-    return 'ZCode';
-  }
-  if (fallbackPlatform === 'trae') {
-    return 'Trae';
-  }
-  if (fallbackPlatform === 'trae_solo') {
-    return 'TRAE SOLO';
-  }
-  if (fallbackPlatform === 'trae_cn') {
-    return 'Trae CN';
-  }
-  if (fallbackPlatform === 'trae_solo_cn') {
-    return 'TRAE SOLO CN';
-  }
-  if (fallbackPlatform === 'grok') {
-    return 'Grok CLI';
   }
   return fallbackPlatform.charAt(0).toUpperCase() + fallbackPlatform.slice(1);
 }
@@ -568,9 +505,6 @@ function normalizeGroupChildName(raw: unknown, platformId: PlatformId): string |
   }
   if (platformId === 'antigravity_ide' && value === 'Antigravity') {
     return 'Antigravity IDE';
-  }
-  if (platformId === 'claude_manager' && (value === 'Claude' || value === 'Claude CLI')) {
-    return 'Claude';
   }
   return value;
 }

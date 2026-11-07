@@ -146,7 +146,6 @@ export function CodexAccountsOverviewPanel(props: CodexAccountsViewProps) {
     handlePendingOAuthEmailInputChange,
     handleQuickAddAccountsToGroup,
     handleRecoverLocalAccessAccounts,
-    handleCreateGrokUpstreamAccount,
     handleRefreshAccountNoteMailPreview,
     handleRefreshAll,
     handleRemoveFromGroup,
@@ -2927,7 +2926,6 @@ export function CodexAccountsOverviewPanel(props: CodexAccountsViewProps) {
             accounts={accounts}
             accountsLoaded={store.accountsLoaded}
             accountGroups={codexGroups}
-            onAddGrokMember={handleCreateGrokUpstreamAccount}
             memberView={
               localAccessModalMode === "members"
                 ? {

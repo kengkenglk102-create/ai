@@ -624,52 +624,7 @@ async fn native_account_credentials(
         runtime.block_on(async move {
             let mut account = account;
             let mut headers = axum::http::HeaderMap::new();
-            let base_url = if codex_account::is_grok_upstream_provider(&account) {
-                let id = account.upstream_grok_account_id.as_deref().unwrap_or("");
-                let current = crate::modules::grok_account::load_account(id)
-                    .ok_or_else(|| "Grok account is unavailable".to_string())?;
-                if current.is_api_key_auth() {
-                    return Err("Grok source must be an OAuth account".to_string());
-                }
-                let current = if force {
-                    crate::modules::grok_account::force_refresh_account(id).await?;
-                    crate::modules::grok_account::load_account(id)
-                        .ok_or_else(|| "Grok account is unavailable".to_string())?
-                } else if current.access_token.is_empty()
-                    || current
-                        .expires_at
-                        .is_some_and(|expiry| expiry <= chrono::Utc::now().timestamp() + 30)
-                {
-                    crate::modules::grok_account::prepare_account_for_injection(id).await?
-                } else {
-                    current
-                };
-                headers = native_grok::credential_headers(
-                    &current.access_token,
-                    &native_grok::cached_client_version(),
-                )?;
-                native_grok::bind_owner(&mut account, &current);
-                codex_account::GROK_CLI_CHAT_PROXY_BASE_URL.to_string()
-            } else if account.is_agent_identity_auth() {
-                let expected = if force {
-                    account
-                        .agent_identity
-                        .as_ref()
-                        .and_then(|identity| identity.task_id.as_deref())
-                } else {
-                    None
-                };
-                let (updated, auth, _) =
-                    codex_agent_identity::build_authentication_headers_with_base_url(
-                        &account,
-                        expected,
-                        codex_agent_identity::AGENT_IDENTITY_AUTH_API_BASE_URL,
-                    )
-                    .await?;
-                account = updated;
-                headers = auth;
-                "https://chatgpt.com/backend-api/codex".to_string()
-            } else if account.is_api_key_auth() {
+            let base_url = if account.is_api_key_auth() {
                 if account.api_wire_api.as_deref() == Some("anthropic") && account.api_auth_scheme.as_deref() != Some("bearer") {
                     headers.insert("x-api-key", HeaderValue::from_str(account.openai_api_key.as_deref().unwrap_or("")).map_err(|_| "Invalid API key")?);
                 } else { native_insert_bearer(
@@ -1918,7 +1873,7 @@ async fn native_route_for_reserved_account(
     let (client, proxy, proxy_route, transport_identity) =
         native_http_client(host, collection, &account, &transport_context).await?;
     if headers.contains_key("x-xai-token-auth") {
-        crate::modules::grok_client_version::refresh_in_background(client.clone());
+        
     }
     Ok(native_contract::Route {
         official_fallback_registration_id: None,

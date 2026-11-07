@@ -47,7 +47,6 @@ import {
 import type { CodexAccount, CodexApiModelMapping } from "../types/codex";
 import { isCodexApiKeyAccount } from "../types/codex";
 import {
-  addCodexAccountFromGrok,
   updateCodexAccountApiModelMappings,
 } from "../services/codexService";
 import { parseContextWindowDrafts } from "../utils/codexModelContextWindows";
@@ -2044,20 +2043,6 @@ export function useCodexApiServicePageController() {
     );
   };
 
-  /**
-   * 把 Grok 平台（已登录）账号加入 API 服务集合。
-   *
-   * 创建/复用绑定的供应商账号（模型目录走后端默认值）并刷新账号列表；
-   * 成员弹框拿到返回的账号 ID 后即可在这一步勾选保存。
-   */
-  const handleAddGrokMemberToApiService = useCallback(
-    async (grokAccountId: string) => {
-      const account = await addCodexAccountFromGrok(grokAccountId);
-      await fetchAccounts();
-      return account;
-    },
-    [fetchAccounts],
-  );
 
   const handleSaveMembersFromModal = async (
     accountIds: string[],
@@ -3694,7 +3679,6 @@ export function useCodexApiServicePageController() {
     handleSaveApiKeyLabel,
     handleSaveApiKeyPolicy,
     handleSaveMembersFromModal,
-    handleAddGrokMemberToApiService,
     handleSaveModelPricings,
     handleSaveModelRules,
     handleSavePort,

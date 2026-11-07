@@ -26,28 +26,9 @@ export type ActivePlatformFocusPayload = {
 
 const PROVIDER_PAGE_PLATFORM_MAP: Record<string, PlatformId> = {
   antigravity: 'antigravity',
+  antigravity_ide: 'antigravity_ide',
   codex: 'codex',
-  claude: 'claude_manager',
-  zed: 'zed',
-  githubcopilot: 'github-copilot',
-  github_copilot: 'github-copilot',
-  windsurf: 'windsurf',
-  kiro: 'kiro',
-  cursor: 'cursor',
-  grok: 'grok',
-  codebuddy: 'codebuddy',
-  codebuddycn: 'codebuddy_cn',
-  codebuddy_cn: 'codebuddy_cn',
-  qoder: 'qoder',
-  zcode: 'zcode',
-  trae: 'trae',
-  trae_solo: 'trae_solo',
-  traesolo: 'trae_solo',
-  trae_cn: 'trae_cn',
-  traecn: 'trae_cn',
-  trae_solo_cn: 'trae_solo_cn',
-  traesolocn: 'trae_solo_cn',
-  workbuddy: 'workbuddy',
+  codex_api_service: 'codex_api_service',
 };
 
 function normalizePlatformKey(value: string): string {
@@ -98,9 +79,6 @@ export function resolvePlatformIdFromPage(page: Page | string): PlatformId | nul
   // 特殊页
   if (normalized === 'overview' || normalized === 'accounts') {
     return 'antigravity';
-  }
-  if (normalized === 'claude-cli') {
-    return 'claude_manager';
   }
   if (normalized === 'codex-api-service') {
     return 'codex_api_service';

@@ -1266,7 +1266,7 @@ fn spawn_windows_process_with_user(
         if !user_data_dir.trim().is_empty() {
             cmd_str.push_str(&format!(" --user-data-dir \"{}\"", user_data_dir.trim()));
         }
-        cmd_str.push_str(" --reuse-window");
+        cmd_str.push_str(" --new-window");
         for arg in extra_args {
             if !arg.trim().is_empty() {
                 cmd_str.push_str(&format!(" \"{}\"", arg.trim()));
@@ -1323,7 +1323,7 @@ fn spawn_windows_process_with_user(
     if !user_data_dir.trim().is_empty() {
         args_part.push_str(&format!(" --user-data-dir \\\"{}\\\"", user_data_dir.trim()));
     }
-    args_part.push_str(" --reuse-window");
+    args_part.push_str(" --new-window");
     for arg in extra_args {
         if !arg.trim().is_empty() {
             args_part.push_str(&format!(" \\\"{}\\\"", arg.trim()));
@@ -1431,12 +1431,7 @@ pub fn start_antigravity_with_options(
         }
         apply_managed_proxy_env_to_command(&mut cmd);
         if should_detach_child() {
-            cmd.creation_flags(0x08000000 | CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS); // CREATE_NO_WINDOW | detached
-            cmd.stdin(Stdio::null())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null());
-        } else {
-            cmd.creation_flags(0x08000000);
+            cmd.creation_flags(CREATE_NEW_PROCESS_GROUP);
         }
         let effective_dir = if !user_data_dir.trim().is_empty() {
             Some(std::path::PathBuf::from(user_data_dir.trim()))
@@ -1447,15 +1442,21 @@ pub fn start_antigravity_with_options(
             if let Ok(user_home) =
                 crate::modules::antigravity_credential::prepare_isolated_antigravity_user_home(dir, None)
             {
+                let local_appdata = user_home.join("AppData").join("Local");
+                let roaming_appdata = user_home.join("AppData").join("Roaming");
+                let _ = std::fs::create_dir_all(&local_appdata);
+                let _ = std::fs::create_dir_all(&roaming_appdata);
                 cmd.env("USERPROFILE", &user_home);
                 cmd.env("HOME", &user_home);
+                cmd.env("LOCALAPPDATA", &local_appdata);
+                cmd.env("APPDATA", &roaming_appdata);
             }
         }
         if !user_data_dir.trim().is_empty() {
             cmd.arg("--user-data-dir");
             cmd.arg(user_data_dir.trim());
         }
-        cmd.arg("--reuse-window");
+        cmd.arg("--new-window");
         for arg in extra_args {
             if !arg.trim().is_empty() {
                 cmd.arg(arg);
@@ -1483,7 +1484,7 @@ pub fn start_antigravity_with_options(
             cmd.arg("--user-data-dir");
             cmd.arg(user_data_dir.trim());
         }
-        cmd.arg("--reuse-window");
+        cmd.arg("--new-window");
         for arg in extra_args {
             if !arg.trim().is_empty() {
                 cmd.arg(arg);
@@ -1579,31 +1580,31 @@ pub fn start_antigravity_legacy_with_options(
         }
         apply_managed_proxy_env_to_command(&mut cmd);
         if should_detach_child() {
-            cmd.creation_flags(CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS);
-            cmd.stdin(Stdio::null())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null());
-        } else {
-            cmd.creation_flags(CREATE_NO_WINDOW);
+            cmd.creation_flags(CREATE_NEW_PROCESS_GROUP);
         }
         let effective_dir = if !user_data_dir.trim().is_empty() {
             Some(std::path::PathBuf::from(user_data_dir.trim()))
         } else {
-            crate::modules::antigravity_paths::legacy_default_user_data_dir().ok()
+            None
         };
         if let Some(ref dir) = effective_dir {
             if let Ok(user_home) =
                 crate::modules::antigravity_credential::prepare_isolated_antigravity_user_home(dir, None)
             {
+                let local_appdata = user_home.join("AppData").join("Local");
+                let roaming_appdata = user_home.join("AppData").join("Roaming");
+                let _ = std::fs::create_dir_all(&local_appdata);
+                let _ = std::fs::create_dir_all(&roaming_appdata);
                 cmd.env("USERPROFILE", &user_home);
                 cmd.env("HOME", &user_home);
+                cmd.env("LOCALAPPDATA", &local_appdata);
+                cmd.env("APPDATA", &roaming_appdata);
             }
         }
         if !user_data_dir.trim().is_empty() {
             cmd.arg("--user-data-dir");
             cmd.arg(user_data_dir.trim());
         }
-        cmd.arg("--reuse-window");
         for arg in extra_args {
             if !arg.trim().is_empty() {
                 cmd.arg(arg);
@@ -1631,7 +1632,7 @@ pub fn start_antigravity_legacy_with_options(
             cmd.arg("--user-data-dir");
             cmd.arg(user_data_dir.trim());
         }
-        cmd.arg("--reuse-window");
+        cmd.arg("--new-window");
         for arg in extra_args {
             if !arg.trim().is_empty() {
                 cmd.arg(arg);

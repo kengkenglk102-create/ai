@@ -31,9 +31,6 @@ import {
   resolveUpdaterDownloadUrl,
 } from '../utils/updaterReleaseNotes';
 import { applyReducedMotion } from '../utils/reducedMotion';
-import {
-  setClaudeQuotaDisplayRemainingEnabled,
-} from '../utils/claudeQuotaDisplayPreference';
 import { getSubscriptionTier } from '../utils/account';
 import type { Account } from '../types/account';
 import type { CodexAccount } from '../types/codex';
@@ -55,34 +52,6 @@ import {
   removeAccountRefreshOverride,
   type AccountRefreshOverrides,
 } from '../utils/currentAccountRefresh';
-import { useGitHubCopilotAccountStore } from '../stores/useGitHubCopilotAccountStore';
-import { useWindsurfAccountStore } from '../stores/useWindsurfAccountStore';
-import { useKiroAccountStore } from '../stores/useKiroAccountStore';
-import { useCursorAccountStore } from '../stores/useCursorAccountStore';
-import { useGrokAccountStore } from '../stores/useGrokAccountStore';
-import { useClaudeAccountStore } from '../stores/useClaudeAccountStore';
-import { useCodebuddyAccountStore } from '../stores/useCodebuddyAccountStore';
-import { useCodebuddyCnAccountStore } from '../stores/useCodebuddyCnAccountStore';
-import { useWorkbuddyAccountStore } from '../stores/useWorkbuddyAccountStore';
-import { useQoderAccountStore } from '../stores/useQoderAccountStore';
-import { useZcodeAccountStore } from '../stores/useZcodeAccountStore';
-import { useTraeAccountStore } from '../stores/useTraeAccountStore';
-import { useZedAccountStore } from '../stores/useZedAccountStore';
-import { getGitHubCopilotAccountDisplayEmail } from '../types/githubCopilot';
-import { getWindsurfAccountDisplayEmail } from '../types/windsurf';
-import { getKiroAccountDisplayEmail } from '../types/kiro';
-import { getCursorAccountDisplayEmail } from '../types/cursor';
-import { getGrokAccountDisplayEmail } from '../types/grok';
-import { getClaudeAccountDisplayEmail } from '../types/claude';
-import { getCodebuddyAccountDisplayEmail } from '../types/codebuddy';
-import { getWorkbuddyAccountDisplayEmail } from '../types/workbuddy';
-import { getQoderAccountDisplayEmail } from '../types/qoder';
-import { getZcodeAccountDisplayEmail } from '../types/zcode';
-import {
-  getTraeAccountDisplayEmail,
-  getTraeAccountPlatformId,
-} from '../types/trae';
-import { getZedAccountDisplayEmail } from '../types/zed';
 import { ALL_PLATFORM_IDS, PlatformId } from '../types/platform';
 import { useEscClose } from '../hooks/useEscClose';
 import './settings/Settings.css';
@@ -310,22 +279,6 @@ const FALLBACK_PLATFORM_SETTINGS_ORDER: Record<PlatformId, number> = {
   antigravity_ide: 1,
   codex: 2,
   codex_api_service: 3,
-  claude_manager: 4,
-  'github-copilot': 5,
-  windsurf: 6,
-  kiro: 7,
-  cursor: 8,
-  grok: 9,
-  codebuddy: 10,
-  codebuddy_cn: 11,
-  qoder: 12,
-  zcode: 13,
-  trae: 14,
-  trae_solo: 15,
-  trae_cn: 16,
-  trae_solo_cn: 17,
-  workbuddy: 18,
-  zed: 19,
 };
 type ConfigUpdatedEventDetail = {
   source?: string;
@@ -1166,10 +1119,7 @@ export function useSettingsPageController() {
       claude_quota_alert_threshold: Number.isNaN(parsedClaudeQuotaAlertThreshold)
         ? 20
         : parsedClaudeQuotaAlertThreshold,
-      claude_quota_display_remaining: (() => {
-        setClaudeQuotaDisplayRemainingEnabled(claudeQuotaDisplayRemaining);
-        return claudeQuotaDisplayRemaining;
-      })(),
+      claude_quota_display_remaining: claudeQuotaDisplayRemaining,
       ghcp_quota_alert_enabled: ghcpQuotaAlertEnabled,
       ghcp_quota_alert_threshold: Number.isNaN(parsedGhcpQuotaAlertThreshold)
         ? 20
@@ -1787,7 +1737,6 @@ export function useSettingsPageController() {
       setClaudeQuotaAlertThreshold(String(config.claude_quota_alert_threshold ?? 20));
       const claudeRemainingDisplay = config.claude_quota_display_remaining ?? false;
       setClaudeQuotaDisplayRemaining(claudeRemainingDisplay);
-      setClaudeQuotaDisplayRemainingEnabled(claudeRemainingDisplay);
       setGhcpQuotaAlertEnabled(config.ghcp_quota_alert_enabled ?? false);
       setGhcpQuotaAlertThreshold(String(config.ghcp_quota_alert_threshold ?? 20));
       setWindsurfQuotaAlertEnabled(config.windsurf_quota_alert_enabled ?? false);
@@ -2369,38 +2318,6 @@ export function useSettingsPageController() {
         return parseRefresh(autoRefresh) > 0;
       case 'codex':
         return parseRefresh(codexAutoRefresh) > 0;
-      case 'claude':
-        return parseRefresh(claudeAutoRefresh) > 0;
-      case 'ghcp':
-        return parseRefresh(ghcpAutoRefresh) > 0;
-      case 'windsurf':
-        return parseRefresh(windsurfAutoRefresh) > 0;
-      case 'kiro':
-        return parseRefresh(kiroAutoRefresh) > 0;
-      case 'cursor':
-        return parseRefresh(cursorAutoRefresh) > 0;
-      case 'grok':
-        return parseRefresh(grokAutoRefresh) > 0;
-      case 'codebuddy':
-        return parseRefresh(codebuddyAutoRefresh) > 0;
-      case 'codebuddy_cn':
-        return parseRefresh(codebuddyCnAutoRefresh) > 0;
-      case 'workbuddy':
-        return parseRefresh(workbuddyAutoRefresh) > 0;
-      case 'qoder':
-        return parseRefresh(qoderAutoRefresh) > 0;
-      case 'zcode':
-        return parseRefresh(zcodeAutoRefresh) > 0;
-      case 'trae':
-        return parseRefresh(traeAutoRefresh) > 0;
-      case 'trae_solo':
-        return parseRefresh(traeSoloAutoRefresh) > 0;
-      case 'trae_cn':
-        return parseRefresh(traeCnAutoRefresh) > 0;
-      case 'trae_solo_cn':
-        return parseRefresh(traeSoloCnAutoRefresh) > 0;
-      case 'zed':
-        return parseRefresh(zedAutoRefresh) > 0;
     }
   };
 
@@ -2505,60 +2422,11 @@ export function useSettingsPageController() {
   const getAccountsForPlatform = (
     platform: CurrentAccountRefreshPlatform,
   ): Array<{ id: string; email: string; displayLabel?: string }> => {
-    const getProviderAccounts = <T extends { id: string; email?: string | null }>(
-      store: { getState: () => { accounts: T[] } },
-      getDisplayEmail: (account: T) => string,
-    ): Array<{ id: string; email: string }> =>
-      store.getState().accounts.map((a) => ({
-        id: a.id,
-        email: getDisplayEmail(a),
-      }));
-    const getTraeAccounts = (target: TraeAppPathTarget) =>
-      useTraeAccountStore
-        .getState()
-        .accounts.filter((account) => getTraeAccountPlatformId(account) === target)
-        .map((account) => ({
-          id: account.id,
-          email: account.email || getTraeAccountDisplayEmail(account),
-        }));
-
     switch (platform) {
       case 'antigravity':
         return antigravityAccounts.map((a) => ({ id: a.id, email: a.email }));
       case 'codex':
         return codexAccounts.map((a) => ({ id: a.id, email: a.email, displayLabel: resolveCodexAccountDisplayName(a, t("common.apiKeyAccount")) }));
-      case 'claude':
-        return getProviderAccounts(useClaudeAccountStore, getClaudeAccountDisplayEmail);
-      case 'ghcp':
-        return getProviderAccounts(useGitHubCopilotAccountStore, getGitHubCopilotAccountDisplayEmail);
-      case 'windsurf':
-        return getProviderAccounts(useWindsurfAccountStore, getWindsurfAccountDisplayEmail);
-      case 'kiro':
-        return getProviderAccounts(useKiroAccountStore, getKiroAccountDisplayEmail);
-      case 'cursor':
-        return getProviderAccounts(useCursorAccountStore, getCursorAccountDisplayEmail);
-      case 'grok':
-        return getProviderAccounts(useGrokAccountStore, getGrokAccountDisplayEmail);
-      case 'codebuddy':
-        return getProviderAccounts(useCodebuddyAccountStore, getCodebuddyAccountDisplayEmail);
-      case 'codebuddy_cn':
-        return getProviderAccounts(useCodebuddyCnAccountStore, getCodebuddyAccountDisplayEmail);
-      case 'workbuddy':
-        return getProviderAccounts(useWorkbuddyAccountStore, getWorkbuddyAccountDisplayEmail);
-      case 'qoder':
-        return getProviderAccounts(useQoderAccountStore, getQoderAccountDisplayEmail);
-      case 'zcode':
-        return getProviderAccounts(useZcodeAccountStore, getZcodeAccountDisplayEmail);
-      case 'trae':
-        return getTraeAccounts('trae');
-      case 'trae_solo':
-        return getTraeAccounts('trae_solo');
-      case 'trae_cn':
-        return getTraeAccounts('trae_cn');
-      case 'trae_solo_cn':
-        return getTraeAccounts('trae_solo_cn');
-      case 'zed':
-        return getProviderAccounts(useZedAccountStore, getZedAccountDisplayEmail);
       default:
         return [];
     }
@@ -3014,8 +2882,6 @@ export function useSettingsPageController() {
             setCustomMode: setAutoRefreshCustomMode,
             isPreset: autoRefreshIsPreset,
           })}
-          {renderCurrentAccountRefreshRow(target)}
-          {renderAccountLevelRefreshConfig(target)}
           {renderTraeAppPathRow(target, appPathTitleKey, appPathTitleDefault)}
           {renderPlatformQuotaAlertRows({
             enabled: quotaAlertEnabled,

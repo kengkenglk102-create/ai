@@ -5,17 +5,8 @@ fn native_global_identity_path() -> Result<PathBuf, String> {
         .join("identity.sqlite"))
 }
 
-fn continuity_account_owner(mut account: CodexAccount) -> Result<String, String> {
-    let base = if codex_account::is_grok_upstream_provider(&account) {
-        let id = account
-            .upstream_grok_account_id
-            .as_deref()
-            .unwrap_or_default();
-        let current = crate::modules::grok_account::load_account(id)
-            .ok_or_else(|| "Continuity owner requires the linked Grok account".to_string())?;
-        native_grok::bind_owner(&mut account, &current);
-        codex_account::GROK_CLI_CHAT_PROXY_BASE_URL.to_string()
-    } else if account.is_api_key_auth() {
+fn continuity_account_owner(account: CodexAccount) -> Result<String, String> {
+    let base = if account.is_api_key_auth() {
         account
             .api_base_url
             .clone()

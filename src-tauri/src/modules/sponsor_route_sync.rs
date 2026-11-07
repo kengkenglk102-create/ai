@@ -4,7 +4,7 @@
 // 当本地已保存的供应商/账号地址命中历史线路时，自动改写为当前线路。
 
 use crate::modules::announcement::Sponsor;
-use crate::modules::{account, atomic_write, claude_account, codex_account, logger};
+use crate::modules::{account, atomic_write, codex_account, logger};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -204,7 +204,7 @@ pub fn sync_sponsor_routes(sponsors: &[Sponsor]) -> Result<SponsorRouteSyncSumma
     if !rules.is_empty() {
         codex_providers = sync_codex_model_provider_routes(&rules)?;
         codex_accounts = codex_account::sync_sponsor_base_urls(&rules)?;
-        claude_accounts = claude_account::sync_sponsor_base_urls(&rules)?;
+        // claude removed
     }
 
     let content = serde_json::to_string_pretty(&state)

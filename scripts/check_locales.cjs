@@ -12,7 +12,7 @@ const { collectRequiredTranslationReferences, collectBackendTranslationReference
 
 // 配置
 const LOCALES_DIR = path.join(__dirname, '../src/locales');
-const BASELINE_FILE = 'en-US.json'; // 基准文件
+const BASELINE_FILE = 'en.json'; // 基准文件
 const ENGLISH_REFERENCE_FILES = new Set(['en-US.json', 'en.json']);
 const MIN_REUSED_ENGLISH_LOCALES = 2;
 const VALUE_REUSE_PREVIEW_LIMIT = 10;

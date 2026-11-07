@@ -259,117 +259,31 @@ fn spawn_refresh(platform: PlatformId, account_id: Option<String>) {
                     .map(|_| 0)
             }
             (PlatformId::Codex, None) => refresh_all_codex_usage_for_menu(app.clone()).await,
-            (PlatformId::Claude, Some(account_id)) => {
-                commands::claude::refresh_claude_quota(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Claude, None) => {
-                commands::claude::refresh_all_claude_quotas(app.clone()).await
-            }
-            (PlatformId::GitHubCopilot, Some(account_id)) => {
-                commands::github_copilot::refresh_github_copilot_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::GitHubCopilot, None) => {
-                commands::github_copilot::refresh_all_github_copilot_tokens(app.clone()).await
-            }
-            (PlatformId::Windsurf, Some(account_id)) => {
-                commands::windsurf::refresh_windsurf_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Windsurf, None) => {
-                commands::windsurf::refresh_all_windsurf_tokens(app.clone()).await
-            }
-            (PlatformId::Kiro, Some(account_id)) => {
-                commands::kiro::refresh_kiro_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Kiro, None) => commands::kiro::refresh_all_kiro_tokens(app.clone()).await,
-            (PlatformId::Cursor, Some(account_id)) => {
-                commands::cursor::refresh_cursor_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Cursor, None) => {
-                commands::cursor::refresh_all_cursor_tokens(app.clone()).await
-            }
-            (PlatformId::Grok, Some(account_id)) => {
-                commands::grok::refresh_grok_account(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Grok, None) => {
-                commands::grok::refresh_all_grok_accounts(app.clone()).await
-            }
-            (PlatformId::Codebuddy, Some(account_id)) => {
-                commands::codebuddy::refresh_codebuddy_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Codebuddy, None) => {
-                commands::codebuddy::refresh_all_codebuddy_tokens(app.clone()).await
-            }
-            (PlatformId::CodebuddyCn, Some(account_id)) => {
-                commands::codebuddy_cn::refresh_codebuddy_cn_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::CodebuddyCn, None) => {
-                commands::codebuddy_cn::refresh_all_codebuddy_cn_tokens(app.clone()).await
-            }
-            (PlatformId::Qoder, Some(account_id)) => {
-                commands::qoder::refresh_qoder_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Qoder, None) => {
-                commands::qoder::refresh_all_qoder_tokens(app.clone()).await
-            }
-            (PlatformId::Zcode, Some(account_id)) => {
-                commands::zcode::refresh_zcode_account(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Zcode, None) => {
-                commands::zcode::refresh_all_zcode_accounts(app.clone()).await
-            }
-            (
-                PlatformId::Trae
-                | PlatformId::TraeSolo
-                | PlatformId::TraeCn
-                | PlatformId::TraeSoloCn,
-                Some(account_id),
-            ) => commands::trae::refresh_trae_token(app.clone(), account_id)
-                .await
-                .map(|_| 0),
-            (
-                PlatformId::Trae
-                | PlatformId::TraeSolo
-                | PlatformId::TraeCn
-                | PlatformId::TraeSoloCn,
-                None,
-            ) => commands::trae::refresh_all_trae_tokens(app.clone()).await,
-            (PlatformId::Workbuddy, Some(account_id)) => {
-                commands::workbuddy::refresh_workbuddy_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Workbuddy, None) => {
-                commands::workbuddy::refresh_all_workbuddy_tokens(app.clone()).await
-            }
-            (PlatformId::Zed, Some(account_id)) => {
-                commands::zed::refresh_zed_token(app.clone(), account_id)
-                    .await
-                    .map(|_| 0)
-            }
-            (PlatformId::Zed, None) => commands::zed::refresh_all_zed_tokens(app.clone()).await,
         };
-        let _ = refresh_result;
-        refresh_native_menu_snapshot();
+        let (success, message) = match refresh_result {
+            Ok(count) => (
+                true,
+                format!(
+                    "{} {}",
+                    count,
+                    translate(
+                        &get_current_language(),
+                        "macosMenu.actions.accountsRefreshed",
+                        &[]
+                    )
+                ),
+            ),
+            Err(err) => (false, err),
+        };
+        let snapshot = {
+            let guard = MENU_STATE.lock();
+            let mut state = guard.borrow_mut();
+            state.refresh_in_flight = false;
+            state.refresh_message = Some(message);
+            state.refresh_success = Some(success);
+            state.snapshot.clone()
+        };
+        apply_menu_snapshot(snapshot);
     });
 }
 
@@ -412,57 +326,8 @@ fn spawn_switch_account(platform: PlatformId, account_id: String) {
                     .await
                     .map(|_| ())
             }
-            PlatformId::Claude => {
-                commands::claude::switch_claude_account(app, account_id).await.map(|_| ())
-            }
-            PlatformId::GitHubCopilot => {
-                commands::github_copilot::inject_github_copilot_to_vscode(app, account_id)
-                    .await
-                    .map(|_| ())
-            }
-            PlatformId::Windsurf => commands::windsurf::inject_windsurf_to_vscode(app, account_id)
-                .await
-                .map(|_| ()),
-            PlatformId::Kiro => commands::kiro::inject_kiro_to_vscode(app, account_id)
-                .await
-                .map(|_| ()),
-            PlatformId::Cursor => commands::cursor::inject_cursor_account(app, account_id)
-                .await
-                .map(|_| ()),
-            PlatformId::Grok => commands::grok::switch_grok_account(app, account_id).map(|_| ()),
-            PlatformId::Codebuddy => {
-                commands::codebuddy::inject_codebuddy_to_vscode(app, account_id)
-                    .await
-                    .map(|_| ())
-            }
-            PlatformId::CodebuddyCn => {
-                commands::codebuddy_cn::inject_codebuddy_cn_to_vscode(app, account_id)
-                    .await
-                    .map(|_| ())
-            }
-            PlatformId::Qoder => commands::qoder::inject_qoder_account(app, account_id)
-                .await
-                .map(|_| ()),
-            PlatformId::Zcode => commands::zcode::inject_zcode_account(app, account_id).map(|_| ()),
-            PlatformId::Trae
-            | PlatformId::TraeSolo
-            | PlatformId::TraeCn
-            | PlatformId::TraeSoloCn => commands::trae::inject_trae_account(
-                app,
-                account_id,
-                Some(platform.as_str().to_string()),
-            )
-            .await
-            .map(|_| ()),
-            PlatformId::Workbuddy => {
-                commands::workbuddy::inject_workbuddy_to_vscode(app, account_id)
-                    .await
-                    .map(|_| ())
-            }
-            PlatformId::Zed => commands::zed::inject_zed_account(app, account_id)
-                .await
-                .map(|_| ()),
         };
+        refresh_menu_snapshot();
         let _ = update_status_item(&status_app);
     });
 }

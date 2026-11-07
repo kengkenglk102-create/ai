@@ -40,7 +40,7 @@ mod tests {
     include!("codex_account_tests_model_vision.rs");
     include!("codex_account_tests_recycle_bin.rs");
     include!("codex_account_tests_revoked_access.rs");
-    include!("../../../crates/cockpit-core/src/modules/codex_account_quota_window_tests.rs");
+    include!("codex_account_quota_window_tests.rs");
 }
 
 include!("codex_account_mutations_quota.rs");

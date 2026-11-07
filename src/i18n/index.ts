@@ -2,58 +2,17 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import viResources from '../locales/vi.json';
 import enResources from '../locales/en.json';
-import zhCnResources from '../locales/zh-CN.json';
-
-type LocaleModule = { default: Record<string, unknown> };
 
 const languageAliases: Record<string, string> = {
-  'zh-CN': 'zh-cn',
-  'zh-TW': 'zh-tw',
   'en-US': 'en',
-  'pt-BR': 'pt-br',
+  'en-GB': 'en',
   'vi-VN': 'vi',
   'vi-vn': 'vi',
-  'id-ID': 'id',
-  'id-id': 'id',
+  'zh-CN': 'vi',
+  'zh-TW': 'vi',
 };
 
-export const supportedLanguages = [
-  'vi',
-  'en',
-  'zh-cn',
-  'zh-tw',
-  'ja',
-  'es',
-  'de',
-  'fr',
-  'pt-br',
-  'ru',
-  'ko',
-  'it',
-  'tr',
-  'pl',
-  'cs',
-  'ar',
-  'id',
-];
-
-const localeLoaders: Record<string, () => Promise<LocaleModule>> = {
-  'zh-tw': () => import('../locales/zh-tw.json'),
-  ja: () => import('../locales/ja.json'),
-  es: () => import('../locales/es.json'),
-  de: () => import('../locales/de.json'),
-  fr: () => import('../locales/fr.json'),
-  'pt-br': () => import('../locales/pt-br.json'),
-  ru: () => import('../locales/ru.json'),
-  ko: () => import('../locales/ko.json'),
-  it: () => import('../locales/it.json'),
-  tr: () => import('../locales/tr.json'),
-  pl: () => import('../locales/pl.json'),
-  cs: () => import('../locales/cs.json'),
-  vi: () => import('../locales/vi.json'),
-  ar: () => import('../locales/ar.json'),
-  id: () => import('../locales/id.json'),
-};
+export const supportedLanguages = ['vi', 'en'];
 
 const loadedLanguages = new Set<string>();
 let initPromise: Promise<void> | null = null;
@@ -74,29 +33,12 @@ export function normalizeLanguage(lang: string): string {
     return languageAliases[lower];
   }
 
-  return lower;
+  return supportedLanguages.includes(lower) ? lower : 'vi';
 }
 
 function resolveSupportedLanguage(lang: string): string {
   const normalized = normalizeLanguage(lang);
   return supportedLanguages.includes(normalized) ? normalized : 'vi';
-}
-
-async function ensureLanguageResources(lang: string): Promise<string> {
-  const resolved = resolveSupportedLanguage(lang);
-  if (loadedLanguages.has(resolved)) {
-    return resolved;
-  }
-
-  const loader = localeLoaders[resolved];
-  if (!loader) {
-    loadedLanguages.add(resolved);
-    return resolved;
-  }
-  const module = await loader();
-  i18n.addResourceBundle(resolved, 'translation', module.default, true, true);
-  loadedLanguages.add(resolved);
-  return resolved;
 }
 
 function getSavedLanguage(): string {
@@ -107,46 +49,33 @@ function getSavedLanguage(): string {
   }
 }
 
-function getBootstrapLanguage(savedLanguage: string): string {
-  if (savedLanguage === 'zh-cn') {
-    return 'zh-cn';
-  }
-  if (savedLanguage === 'en') {
-    return 'en';
-  }
-  return 'vi';
-}
-
 function bootstrapI18n(savedLanguage: string): string {
   if (i18nBootstrapped) {
-    return getBootstrapLanguage(savedLanguage);
+    return savedLanguage;
   }
 
-  const bootstrapLanguage = getBootstrapLanguage(savedLanguage);
   i18n
     .use(initReactI18next)
     .init({
       resources: {
         vi: { translation: viResources },
         en: { translation: enResources },
-        'zh-cn': { translation: zhCnResources },
       },
-      lng: bootstrapLanguage,
+      lng: savedLanguage,
       fallbackLng: 'vi',
       supportedLngs: supportedLanguages,
       lowerCaseLng: true,
       load: 'currentOnly',
       initImmediate: false,
       interpolation: {
-        escapeValue: false, // React 已经处理了 XSS
+        escapeValue: false,
       },
     });
 
   loadedLanguages.add('vi');
   loadedLanguages.add('en');
-  loadedLanguages.add('zh-cn');
   i18nBootstrapped = true;
-  return bootstrapLanguage;
+  return savedLanguage;
 }
 
 export async function initI18n(): Promise<void> {
@@ -155,23 +84,15 @@ export async function initI18n(): Promise<void> {
   }
 
   const savedLanguage = getSavedLanguage();
-  const bootstrapLanguage = bootstrapI18n(savedLanguage);
+  bootstrapI18n(savedLanguage);
 
-  initPromise = (async () => {
-    if (savedLanguage !== bootstrapLanguage) {
-      await ensureLanguageResources(savedLanguage);
-    }
-    if (i18n.language !== savedLanguage) {
-      await i18n.changeLanguage(savedLanguage);
-    }
-  })();
-
+  initPromise = Promise.resolve();
   return initPromise;
 }
 
 export async function syncLanguage(lang: string): Promise<string> {
   await initI18n();
-  const resolved = await ensureLanguageResources(lang);
+  const resolved = resolveSupportedLanguage(lang);
   if (i18n.language !== resolved) {
     await i18n.changeLanguage(resolved);
   }
@@ -183,16 +104,10 @@ export async function syncLanguage(lang: string): Promise<string> {
   return resolved;
 }
 
-/**
- * 切换语言
- */
 export async function changeLanguage(lang: string): Promise<void> {
   await syncLanguage(lang);
 }
 
-/**
- * 获取当前语言
- */
 export function getCurrentLanguage(): string {
   return normalizeLanguage(i18n.language || 'vi');
 }

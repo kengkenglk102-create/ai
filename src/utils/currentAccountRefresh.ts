@@ -5,43 +5,11 @@ export const MAX_CURRENT_ACCOUNT_REFRESH_MINUTES = 999;
 
 export type CurrentAccountRefreshPlatform =
   | 'antigravity'
-  | 'codex'
-  | 'claude'
-  | 'ghcp'
-  | 'windsurf'
-  | 'kiro'
-  | 'cursor'
-  | 'grok'
-  | 'codebuddy'
-  | 'codebuddy_cn'
-  | 'workbuddy'
-  | 'qoder'
-  | 'zcode'
-  | 'trae'
-  | 'trae_solo'
-  | 'trae_cn'
-  | 'trae_solo_cn'
-  | 'zed';
+  | 'codex';
 
 export const CURRENT_ACCOUNT_REFRESH_PLATFORMS: CurrentAccountRefreshPlatform[] = [
   'antigravity',
   'codex',
-  'claude',
-  'ghcp',
-  'windsurf',
-  'kiro',
-  'cursor',
-  'grok',
-  'codebuddy',
-  'codebuddy_cn',
-  'workbuddy',
-  'qoder',
-  'zcode',
-  'trae',
-  'trae_solo',
-  'trae_cn',
-  'trae_solo_cn',
-  'zed',
 ];
 
 export type CurrentAccountRefreshMinutesMap = Record<CurrentAccountRefreshPlatform, number>;
@@ -65,22 +33,6 @@ export function buildDefaultCurrentAccountRefreshMinutesMap(): CurrentAccountRef
   return {
     antigravity: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
     codex: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    claude: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    ghcp: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    windsurf: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    kiro: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    cursor: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    grok: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    codebuddy: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    codebuddy_cn: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    workbuddy: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    qoder: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    zcode: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    trae: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    trae_solo: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    trae_cn: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    trae_solo_cn: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
-    zed: DEFAULT_CURRENT_ACCOUNT_REFRESH_MINUTES,
   };
 }
 

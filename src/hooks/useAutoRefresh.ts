@@ -5,34 +5,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { type UnlistenFn } from "@tauri-apps/api/event";
 import { useAccountStore } from '../stores/useAccountStore';
 import { useCodexAccountStore } from '../stores/useCodexAccountStore';
-import { useClaudeAccountStore } from '../stores/useClaudeAccountStore';
-import { useGitHubCopilotAccountStore } from '../stores/useGitHubCopilotAccountStore';
-import { useWindsurfAccountStore } from '../stores/useWindsurfAccountStore';
-import { useKiroAccountStore } from '../stores/useKiroAccountStore';
-import { useCursorAccountStore } from '../stores/useCursorAccountStore';
-import { useGrokAccountStore } from '../stores/useGrokAccountStore';
-import { useCodebuddyAccountStore } from '../stores/useCodebuddyAccountStore';
-import { useCodebuddyCnAccountStore } from '../stores/useCodebuddyCnAccountStore';
-import { useWorkbuddyAccountStore } from '../stores/useWorkbuddyAccountStore';
-import { useQoderAccountStore } from '../stores/useQoderAccountStore';
-import { useZcodeAccountStore } from '../stores/useZcodeAccountStore';
-import { useTraeAccountStore } from '../stores/useTraeAccountStore';
-import { useZedAccountStore } from '../stores/useZedAccountStore';
-import { getGitHubCopilotAccountDisplayEmail } from '../types/githubCopilot';
-import { getWindsurfAccountDisplayEmail } from '../types/windsurf';
-import { getKiroAccountDisplayEmail } from '../types/kiro';
-import { getCursorAccountDisplayEmail } from '../types/cursor';
-import { getGrokAccountDisplayEmail } from '../types/grok';
-import { getClaudeAccountDisplayEmail } from '../types/claude';
-import { getCodebuddyAccountDisplayEmail } from '../types/codebuddy';
-import { getWorkbuddyAccountDisplayEmail } from '../types/workbuddy';
-import { getQoderAccountDisplayEmail } from '../types/qoder';
-import { getZcodeAccountDisplayEmail } from '../types/zcode';
-import {
-  getTraeAccountDisplayEmail,
-  getTraeAccountPlatformId,
-} from '../types/trae';
-import { getZedAccountDisplayEmail } from '../types/zed';
 import {
   loadCurrentAccountRefreshMinutesMap,
   getAccountRefreshMinutes,
@@ -118,12 +90,6 @@ interface PlatformRefreshDescriptor {
 const STARTUP_AUTO_REFRESH_SETUP_DELAY_MS = 2500;
 const AUTO_REFRESH_TICK_MS = 5_000;
 const AUTO_REFRESH_MAX_CONCURRENT = 1;
-const TRAE_CURRENT_ACCOUNT_ID_KEYS = {
-  trae: 'agtools.trae.current_account_id',
-  trae_solo: 'agtools.trae_solo.current_account_id',
-  trae_cn: 'agtools.trae_cn.current_account_id',
-  trae_solo_cn: 'agtools.trae_solo_cn.current_account_id',
-} as const;
 
 function minutesToMs(minutes: number): number {
   return minutes * 60 * 1000;
@@ -157,56 +123,9 @@ function resolveCurrentMinutes(
 }
 
 function getCurrentAccountEmails(): Record<CurrentAccountRefreshPlatform, string | null> {
-  const getProviderEmail = <T extends { id: string; email?: string | null }>(
-    store: { getState: () => { currentAccountId: string | null; accounts: T[] } },
-    getDisplayEmail: (account: T) => string,
-  ): string | null => {
-    const state = store.getState();
-    const account = state.accounts.find((a) => a.id === state.currentAccountId);
-    if (!account) return null;
-    return getDisplayEmail(account);
-  };
-  const getTraeProviderEmail = (
-    platform: keyof typeof TRAE_CURRENT_ACCOUNT_ID_KEYS,
-  ): string | null => {
-    let currentAccountId: string | null = null;
-    try {
-      currentAccountId = localStorage.getItem(TRAE_CURRENT_ACCOUNT_ID_KEYS[platform]);
-    } catch {
-      currentAccountId = null;
-    }
-    const normalizedCurrentAccountId = currentAccountId?.trim();
-    if (!normalizedCurrentAccountId) return null;
-    const account = useTraeAccountStore
-      .getState()
-      .accounts.find(
-        (item) =>
-          item.id === normalizedCurrentAccountId &&
-          getTraeAccountPlatformId(item) === platform,
-      );
-    if (!account) return null;
-    return account.email ?? getTraeAccountDisplayEmail(account);
-  };
-
   return {
     antigravity: useAccountStore.getState().currentAccount?.email ?? null,
     codex: useCodexAccountStore.getState().currentAccount?.email ?? null,
-    claude: getProviderEmail(useClaudeAccountStore, getClaudeAccountDisplayEmail),
-    ghcp: getProviderEmail(useGitHubCopilotAccountStore, getGitHubCopilotAccountDisplayEmail),
-    windsurf: getProviderEmail(useWindsurfAccountStore, getWindsurfAccountDisplayEmail),
-    kiro: getProviderEmail(useKiroAccountStore, getKiroAccountDisplayEmail),
-    cursor: getProviderEmail(useCursorAccountStore, getCursorAccountDisplayEmail),
-    grok: getProviderEmail(useGrokAccountStore, getGrokAccountDisplayEmail),
-    codebuddy: getProviderEmail(useCodebuddyAccountStore, getCodebuddyAccountDisplayEmail),
-    codebuddy_cn: getProviderEmail(useCodebuddyCnAccountStore, getCodebuddyAccountDisplayEmail),
-    workbuddy: getProviderEmail(useWorkbuddyAccountStore, getWorkbuddyAccountDisplayEmail),
-    qoder: getProviderEmail(useQoderAccountStore, getQoderAccountDisplayEmail),
-    zcode: getProviderEmail(useZcodeAccountStore, getZcodeAccountDisplayEmail),
-    trae: getTraeProviderEmail('trae'),
-    trae_solo: getTraeProviderEmail('trae_solo'),
-    trae_cn: getTraeProviderEmail('trae_cn'),
-    trae_solo_cn: getTraeProviderEmail('trae_solo_cn'),
-    zed: getProviderEmail(useZedAccountStore, getZedAccountDisplayEmail),
   };
 }
 

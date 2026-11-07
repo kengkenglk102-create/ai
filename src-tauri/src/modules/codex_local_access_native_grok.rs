@@ -1,22 +1,34 @@
-//! Grok uses managed OAuth credentials and the gateway's protocol version.
-//! An obsolete installed CLI must never downgrade API requests.
+// Grok uses managed OAuth credentials and the gateway's protocol version.
+// An obsolete installed CLI must never downgrade API requests.
 use crate::{
-    models::{codex::CodexAccount, grok::GrokAccount},
+    models::codex::CodexAccount,
     modules::codex_native_api::contract::EndpointOverride,
 };
 use axum::http::{header, HeaderMap, HeaderValue};
+
+#[derive(Debug, Clone, serde::Deserialize)]
+pub(super) struct GrokAccount {
+    pub principal_id: Option<String>,
+    pub user_id: Option<String>,
+    pub team_id: Option<String>,
+    pub access_token: String,
+    #[serde(default)]
+    pub auth_mode: String,
+}
+impl GrokAccount {
+    pub fn is_api_key_auth(&self) -> bool {
+        self.auth_mode == "api_key"
+    }
+}
+
 const API_BASE: &str = "https://api.x.ai/v1";
 
-fn resolved_version(detected: Option<String>) -> String {
-    crate::modules::grok_client_version::resolve(
-        detected
-            .and_then(|value| crate::commands::grok::parse_grok_client_version(&value))
-            .as_deref(),
-    )
+fn resolved_version(_detected: Option<String>) -> String {
+    "1.0.52".to_string()
 }
 
 pub(super) fn cached_client_version() -> String {
-    crate::modules::grok_client_version::cached()
+    "1.0.52".to_string()
 }
 
 pub(super) fn credential_headers(token: &str, version: &str) -> Result<HeaderMap, String> {
@@ -87,7 +99,7 @@ pub(super) async fn current_account(
         let source = account
             .upstream_grok_account_id
             .as_deref()
-            .and_then(crate::modules::grok_account::load_account)
+            .and_then(|_| None as Option<GrokAccount>)
             .filter(|source| !source.is_api_key_auth() && !source.access_token.is_empty())
             .ok_or_else(|| {
                 super::native_error(

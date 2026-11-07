@@ -9,7 +9,6 @@ import {
   importAllAccountsFromTransferJson,
 } from './accountTransferService';
 import { ALL_PLATFORM_IDS, PlatformId } from '../types/platform';
-import * as claudeService from './claudeService';
 import { getGroupSettings, GroupSettings, saveGroupSettings } from './groupService';
 import {
   AccountGroup,
@@ -52,20 +51,7 @@ import {
 } from '../utils/wakeupOfficialLsVersion';
 import * as accountService from './accountService';
 import * as codexService from './codexService';
-import * as zedService from './zedService';
-import * as githubCopilotService from './githubCopilotService';
-import * as windsurfService from './windsurfService';
-import * as kiroService from './kiroService';
-import * as cursorService from './cursorService';
-import * as grokService from './grokService';
-import * as codebuddyService from './codebuddyService';
-import * as codebuddyCnService from './codebuddyCnService';
-import * as qoderService from './qoderService';
-import * as zcodeService from './zcodeService';
-import * as traeService from './traeService';
-import * as workbuddyService from './workbuddyService';
 import type { InstanceLaunchMode } from '../types/instance';
-import type { ClaudeAccount } from '../types/claude';
 
 const DATA_TRANSFER_SCHEMA = 'cockpit-tools.data-transfer';
 const DATA_TRANSFER_VERSION = 1;
@@ -75,17 +61,6 @@ const WAKEUP_TASKS_KEY = 'agtools.wakeup.tasks';
 const INSTANCE_PLATFORMS = [
   'antigravity',
   'codex',
-  'github-copilot',
-  'windsurf',
-  'kiro',
-  'cursor',
-  'grok',
-  'codebuddy',
-  'codebuddy_cn',
-  'qoder',
-  'zcode',
-  'trae',
-  'workbuddy',
 ] as const;
 
 type InstancePlatform = (typeof INSTANCE_PLATFORMS)[number];
@@ -94,17 +69,7 @@ type AccountLoader = () => Promise<TransferAccountRecord[]>;
 type LegacyFormat = 'data_bundle' | 'account_bundle' | 'legacy_account_json';
 type DataTransferWarningCode = 'accounts_section_missing' | 'config_section_missing';
 
-async function listClaudeManagerTransferAccounts(): Promise<TransferAccountRecord[]> {
-  const accounts = await claudeService.listClaudeAccounts();
-  const seen = new Set<string>();
-  return accounts.filter((account: ClaudeAccount) => {
-    if (!account.id || seen.has(account.id)) {
-      return false;
-    }
-    seen.add(account.id);
-    return true;
-  }) as unknown as TransferAccountRecord[];
-}
+
 
 interface RawUserConfig extends Record<string, unknown> {
   auto_switch_selected_account_ids?: string[];
@@ -291,24 +256,6 @@ const ACCOUNT_LOADERS: Record<PlatformId, AccountLoader> = {
     (await accountService.listAccounts()) as unknown as TransferAccountRecord[],
   codex: async () => (await codexService.listCodexAccounts()) as unknown as TransferAccountRecord[],
   codex_api_service: async () => [],
-  claude_manager: listClaudeManagerTransferAccounts,
-  zed: async () => (await zedService.listZedAccounts()) as unknown as TransferAccountRecord[],
-  'github-copilot': async () =>
-    (await githubCopilotService.listGitHubCopilotAccounts()) as unknown as TransferAccountRecord[],
-  windsurf: async () => (await windsurfService.listWindsurfAccounts()) as unknown as TransferAccountRecord[],
-  kiro: async () => (await kiroService.listKiroAccounts()) as unknown as TransferAccountRecord[],
-  cursor: async () => (await cursorService.listCursorAccounts()) as unknown as TransferAccountRecord[],
-  grok: async () => (await grokService.listGrokAccounts()) as unknown as TransferAccountRecord[],
-  codebuddy: async () => (await codebuddyService.listCodebuddyAccounts()) as unknown as TransferAccountRecord[],
-  codebuddy_cn: async () =>
-    (await codebuddyCnService.listCodebuddyCnAccounts()) as unknown as TransferAccountRecord[],
-  qoder: async () => (await qoderService.listQoderAccounts()) as unknown as TransferAccountRecord[],
-  zcode: async () => (await zcodeService.listZcodeAccounts()) as unknown as TransferAccountRecord[],
-  trae: async () => (await traeService.listTraeAccounts()) as unknown as TransferAccountRecord[],
-  trae_solo: async () => (await traeService.listTraeAccounts()) as unknown as TransferAccountRecord[],
-  trae_cn: async () => (await traeService.listTraeAccounts()) as unknown as TransferAccountRecord[],
-  trae_solo_cn: async () => (await traeService.listTraeAccounts()) as unknown as TransferAccountRecord[],
-  workbuddy: async () => (await workbuddyService.listWorkbuddyAccounts()) as unknown as TransferAccountRecord[],
 };
 
 const LEGACY_IMPORTERS: Record<PlatformId, ((jsonContent: string) => Promise<unknown[]>) | undefined> = {
@@ -316,22 +263,6 @@ const LEGACY_IMPORTERS: Record<PlatformId, ((jsonContent: string) => Promise<unk
   antigravity_ide: accountService.importFromJson,
   codex: codexService.importCodexFromJson,
   codex_api_service: undefined,
-  claude_manager: claudeService.importClaudeFromJson,
-  zed: zedService.importZedFromJson,
-  'github-copilot': githubCopilotService.importGitHubCopilotFromJson,
-  windsurf: windsurfService.importWindsurfFromJson,
-  kiro: kiroService.importKiroFromJson,
-  cursor: cursorService.importCursorFromJson,
-  grok: undefined,
-  codebuddy: codebuddyService.importCodebuddyFromJson,
-  codebuddy_cn: codebuddyCnService.importCodebuddyCnFromJson,
-  qoder: qoderService.importQoderFromJson,
-  zcode: zcodeService.importZcodeFromJson,
-  trae: traeService.importTraeFromJson,
-  trae_solo: traeService.importTraeFromJson,
-  trae_cn: traeService.importTraeFromJson,
-  trae_solo_cn: traeService.importTraeFromJson,
-  workbuddy: workbuddyService.importWorkbuddyFromJson,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -344,16 +275,6 @@ function normalizeString(value: unknown): string | null {
   return trimmed ? trimmed : null;
 }
 
-function normalizeNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === 'string') {
-    const parsed = Number(value.trim());
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-}
 
 function normalizeBoolean(value: unknown): boolean | null {
   if (typeof value === 'boolean') return value;
@@ -366,10 +287,6 @@ function stringEquals(left: unknown, right: unknown): boolean {
   return Boolean(normalizedLeft && normalizedRight && normalizedLeft === normalizedRight);
 }
 
-function stringContains(value: unknown, keyword: string): boolean {
-  const normalized = normalizeString(value)?.toLowerCase();
-  return Boolean(normalized && normalized.includes(keyword.toLowerCase()));
-}
 
 function parseJsonOrThrow(jsonContent: string, errorCode: string): unknown {
   try {
@@ -457,9 +374,11 @@ function buildAccountRef(platform: PlatformId, account: TransferAccountRecord): 
 
   switch (platform) {
     case 'antigravity':
+    case 'antigravity_ide':
       ref.email = normalizeString(account.email) ?? undefined;
       break;
     case 'codex':
+    case 'codex_api_service':
       ref.email = normalizeString(account.email) ?? undefined;
       ref.userId = normalizeString(account.user_id) ?? undefined;
       ref.accountId = normalizeString(account.account_id) ?? undefined;
@@ -467,51 +386,6 @@ function buildAccountRef(platform: PlatformId, account: TransferAccountRecord): 
       ref.apiBaseUrl = normalizeString(account.api_base_url) ?? undefined;
       ref.apiProviderId = normalizeString(account.api_provider_id) ?? undefined;
       ref.apiProviderName = normalizeString(account.api_provider_name) ?? undefined;
-      break;
-    case 'zed':
-      ref.email = normalizeString(account.email) ?? undefined;
-      ref.userId = normalizeString(account.user_id) ?? undefined;
-      ref.githubLogin = normalizeString(account.github_login) ?? undefined;
-      break;
-    case 'github-copilot':
-    case 'windsurf':
-      ref.email = normalizeString(account.github_email) ?? normalizeString(account.email) ?? undefined;
-      ref.githubLogin = normalizeString(account.github_login) ?? undefined;
-      ref.githubId = normalizeNumber(account.github_id) ?? undefined;
-      break;
-    case 'kiro':
-      ref.email = normalizeString(account.email) ?? undefined;
-      ref.userId = normalizeString(account.user_id) ?? undefined;
-      ref.loginProvider = normalizeString(account.login_provider) ?? undefined;
-      break;
-    case 'cursor':
-      ref.email = normalizeString(account.email) ?? undefined;
-      ref.authId = normalizeString(account.auth_id) ?? undefined;
-      break;
-    case 'grok':
-      ref.email = normalizeString(account.email) ?? undefined;
-      ref.userId =
-        normalizeString(account.user_id) ?? normalizeString(account.principal_id) ?? undefined;
-      break;
-    case 'qoder':
-    case 'trae':
-    case 'trae_solo':
-    case 'trae_cn':
-    case 'trae_solo_cn':
-      ref.email = normalizeString(account.email) ?? undefined;
-      ref.userId = normalizeString(account.user_id) ?? undefined;
-      break;
-    case 'zcode':
-      ref.email = normalizeString(account.email) ?? undefined;
-      ref.userId = normalizeString(account.user_id) ?? undefined;
-      ref.loginProvider = normalizeString(account.provider) ?? undefined;
-      break;
-    case 'codebuddy':
-    case 'codebuddy_cn':
-    case 'workbuddy':
-      ref.email = normalizeString(account.email) ?? undefined;
-      ref.uid = normalizeString(account.uid) ?? undefined;
-      ref.domain = normalizeString(account.domain) ?? undefined;
       break;
   }
 
@@ -528,74 +402,19 @@ function scoreAccountRef(ref: DataTransferAccountRef, account: TransferAccountRe
       score += weight;
     }
   };
-
-  const addNumberScore = (expected: number | undefined, actual: unknown, weight: number) => {
-    if (expected == null) return;
-    const normalized = normalizeNumber(actual);
-    if (normalized != null && normalized === expected) {
-      score += weight;
-    }
-  };
-
   switch (ref.platform) {
     case 'antigravity':
+    case 'antigravity_ide':
       addStringScore(ref.email, account.email, 10);
       break;
     case 'codex':
+    case 'codex_api_service':
       addStringScore(ref.accountId, account.account_id, 24);
       addStringScore(ref.userId, account.user_id, 20);
       addStringScore(ref.organizationId, account.organization_id, 12);
       addStringScore(ref.email, account.email, 10);
       addStringScore(ref.apiProviderId, account.api_provider_id, 8);
       addStringScore(ref.apiBaseUrl, account.api_base_url, 6);
-      break;
-    case 'zed':
-      addStringScore(ref.userId, account.user_id, 24);
-      addStringScore(ref.githubLogin, account.github_login, 14);
-      addStringScore(ref.email, account.email, 8);
-      break;
-    case 'github-copilot':
-    case 'windsurf':
-      addNumberScore(ref.githubId, account.github_id, 24);
-      addStringScore(ref.githubLogin, account.github_login, 14);
-      addStringScore(ref.email, account.github_email ?? account.email, 8);
-      break;
-    case 'kiro':
-      addStringScore(ref.userId, account.user_id, 24);
-      addStringScore(ref.email, account.email, 10);
-      addStringScore(ref.loginProvider, account.login_provider, 4);
-      break;
-    case 'cursor':
-      addStringScore(ref.authId, account.auth_id, 24);
-      addStringScore(ref.email, account.email, 10);
-      break;
-    case 'grok':
-      addStringScore(ref.userId, account.user_id ?? account.principal_id, 24);
-      addStringScore(ref.email, account.email, 10);
-      break;
-    case 'qoder':
-    case 'trae':
-    case 'trae_solo':
-    case 'trae_cn':
-    case 'trae_solo_cn':
-      addStringScore(ref.userId, account.user_id, 24);
-      addStringScore(ref.email, account.email, 10);
-      break;
-    case 'zcode':
-      if (ref.loginProvider && !stringEquals(ref.loginProvider, account.provider)) return 0;
-      if (ref.userId && !stringEquals(ref.userId, account.user_id)) return 0;
-      if (ref.email && !stringEquals(ref.email, account.email)) return 0;
-      if (!ref.userId && !ref.email) return 0;
-      addStringScore(ref.userId, account.user_id, 24);
-      addStringScore(ref.email, account.email, 10);
-      addStringScore(ref.loginProvider, account.provider, 4);
-      break;
-    case 'codebuddy':
-    case 'codebuddy_cn':
-    case 'workbuddy':
-      addStringScore(ref.uid, account.uid, 24);
-      addStringScore(ref.email, account.email, 10);
-      addStringScore(ref.domain, account.domain, 4);
       break;
   }
 
@@ -1286,63 +1105,8 @@ function detectLegacyPlatform(value: unknown): PlatformId | null {
   const sample = firstLegacySample(value);
   if (!sample) return null;
 
-  const id = normalizeString(sample.id);
-  if (id?.startsWith('codebuddy_cn_')) return 'codebuddy_cn';
-  if (id?.startsWith('workbuddy_')) return 'workbuddy';
-  if (id?.startsWith('codebuddy_')) return 'codebuddy';
-  if (
-    id?.startsWith('zcode_') ||
-    'zcode_jwt_token' in sample ||
-    (sample.auth_mode === 'api_key' && 'api_key' in sample && 'provider' in sample)
-  ) {
-    return 'zcode';
-  }
-
   if ('tokens' in sample || 'OPENAI_API_KEY' in sample || 'auth_mode' in sample || 'authMode' in sample) {
     return 'codex';
-  }
-  if ('windsurf_api_key' in sample || 'windsurf_auth_token' in sample || 'windsurf_plan_status' in sample) {
-    return 'windsurf';
-  }
-  if ('copilot_token' in sample) {
-    return 'github-copilot';
-  }
-  if ('zed' in sample) {
-    return 'zed';
-  }
-  if ('user_raw' in sample || 'subscription_raw' in sample || 'plan_raw' in sample) {
-    return 'zed';
-  }
-  if ('kiro_auth_token_raw' in sample || 'kiro_usage_raw' in sample || 'login_provider' in sample) {
-    return 'kiro';
-  }
-  if ('cursor_auth_raw' in sample || 'cursor_usage_raw' in sample || 'membership_type' in sample) {
-    return 'cursor';
-  }
-  if ('trae_auth_raw' in sample || 'trae_profile_raw' in sample || 'trae_server_raw' in sample) {
-    return 'trae';
-  }
-  if ('auth_user_info_raw' in sample || 'auth_credit_usage_raw' in sample || 'credits_usage_percent' in sample) {
-    return 'qoder';
-  }
-  if ('zcode_jwt_token' in sample || ('quota_raw' in sample && 'provider' in sample)) {
-    return 'zcode';
-  }
-  if ('uid' in sample || 'enterprise_id' in sample || 'dosage_notify_code' in sample) {
-    if (stringContains(sample.domain, 'workbuddy')) return 'workbuddy';
-    if (stringContains(sample.domain, 'codebuddy.cn')) return 'codebuddy_cn';
-    if (stringContains(sample.domain, 'codebuddy')) return 'codebuddy';
-    return id?.startsWith('workbuddy_')
-      ? 'workbuddy'
-      : id?.startsWith('codebuddy_cn_')
-        ? 'codebuddy_cn'
-        : 'codebuddy';
-  }
-  if ('github_login' in sample && 'user_id' in sample && ('plan_raw' in sample || 'usage_raw' in sample)) {
-    return 'zed';
-  }
-  if ('github_login' in sample || 'github_id' in sample) {
-    return 'github-copilot';
   }
   if ('token' in sample || ('refresh_token' in sample && 'email' in sample)) {
     return 'antigravity';

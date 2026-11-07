@@ -132,10 +132,6 @@ function normalizeModelCatalog(values: readonly string[]): string[] {
   return models;
 }
 
-function isClaudeModelId(value: string): boolean {
-  const model = value.trim().toLowerCase();
-  return model.startsWith('claude-') || model.startsWith('anthropic/claude-');
-}
 
 export function ApiKeyFunPage() {
   const { t } = useTranslation();
@@ -196,8 +192,7 @@ export function ApiKeyFunPage() {
     [apiKeyFunModelCatalog],
   );
   const canAddCurrentKeyToCodex = modelCatalogText.includes('gpt');
-  const canAddCurrentKeyToClaude = apiKeyFunModelCatalog.some(isClaudeModelId);
-  const canShowTargetActions = canAddCurrentKeyToCodex || canAddCurrentKeyToClaude;
+  const canShowTargetActions = canAddCurrentKeyToCodex;
   const canPrefillCurrentKey =
     Boolean(currentSavedKey) && !queryingModels && apiKeyFunModelCatalog.length > 0;
 
@@ -598,30 +593,7 @@ export function ApiKeyFunPage() {
                       <span>{t('apiKeyFun.keyManager.addToCodex', '添加到 Codex')}</span>
                     </button>
                   )}
-                  {canAddCurrentKeyToClaude && (
-                    <button
-                      type="button"
-                      className="btn apikey-fun-target-btn"
-                      disabled={!canPrefillCurrentKey}
-                      onClick={() => {
-                        if (currentSavedKey) handlePrefillTarget('claude_desktop', currentSavedKey);
-                      }}
-                    >
-                      <span>{t('apiKeyFun.keyManager.addToClaudeDesktop', '添加到 Claude')}</span>
-                    </button>
-                  )}
-                  {canAddCurrentKeyToClaude && (
-                    <button
-                      type="button"
-                      className="btn apikey-fun-target-btn"
-                      disabled={!canPrefillCurrentKey}
-                      onClick={() => {
-                        if (currentSavedKey) handlePrefillTarget('claude_cli', currentSavedKey);
-                      }}
-                    >
-                      <span>{t('apiKeyFun.keyManager.addToClaudeCli', '添加到 Claude CLI')}</span>
-                    </button>
-                  )}
+
                 </div>
               )}
             </div>

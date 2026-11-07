@@ -2314,32 +2314,7 @@ async fn prepare_sidecar_launch_config_in_dir(
 ///
 /// 令牌快过期（或已过期）时先刷新再写 xai auth 文件，避免 sidecar 拿着失效令牌
 /// 启动；刷新失败只记日志，仍写入当前令牌，由后续保活与写穿补齐。
-async fn refresh_grok_upstream_accounts_for_collection(collection: &CodexLocalAccessCollection) {
-    for account_id in effective_sidecar_account_ids(collection) {
-        let Some(account) = codex_account::load_account(&account_id) else {
-            continue;
-        };
-        if !codex_account::is_grok_upstream_provider(&account) {
-            continue;
-        }
-        let Some(grok_account_id) = account
-            .upstream_grok_account_id
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-        else {
-            continue;
-        };
-        if let Err(error) =
-            crate::modules::grok_account::prepare_account_for_injection(grok_account_id).await
-        {
-            logger::log_codex_api_warn(&format!(
-                "[CodexLocalAccess][provider-gateway] Grok 账号令牌刷新失败（继续使用当前令牌）: account_id={}, grok_account_id={}, error={}",
-                account.id, grok_account_id, error
-            ));
-        }
-    }
-}
+async fn refresh_grok_upstream_accounts_for_collection(_collection: &CodexLocalAccessCollection) {}
 
 fn prepare_sidecar_launch_config_in_dir_sync(
     collection: &CodexLocalAccessCollection,

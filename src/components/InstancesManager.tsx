@@ -190,22 +190,7 @@ interface InstancesManagerProps<TAccount extends AccountLike> {
   appType?:
     | "antigravity"
     | "antigravity_ide"
-    | "codex"
-    | "claude"
-    | "vscode"
-    | "windsurf"
-    | "kiro"
-    | "cursor"
-    | "grok"
-    | "codebuddy"
-    | "codebuddy_cn"
-    | "qoder"
-    | "trae"
-    | "trae_solo"
-    | "trae_cn"
-    | "trae_solo_cn"
-    | "workbuddy"
-    | "zcode";
+    | "codex";
   onInstanceStarted?: (instance: InstanceProfile) => void | Promise<void>;
   onBeforeStart?: (instance: InstanceProfile) => boolean | Promise<boolean>;
   onInstanceStartError?: (
@@ -599,14 +584,7 @@ const joinPath = (root: string, name: string) => {
 const resolveFloatingCardPlatformId = (
   appType: NonNullable<InstancesManagerProps<AccountLike>["appType"]>,
 ): PlatformId => {
-  switch (appType) {
-    case "vscode":
-      return "github-copilot";
-    case "claude":
-      return "claude_manager";
-    default:
-      return appType;
-  }
+  return appType;
 };
 
 export function InstancesManager<TAccount extends AccountLike>({
@@ -735,10 +713,10 @@ export function InstancesManager<TAccount extends AccountLike>({
     () => new Set(stoppingInstanceIds),
     [stoppingInstanceIds],
   );
-  const isGrokApp = appType === "grok";
+  const isGrokApp = false;
   const supportsInstanceInitialization = !isGrokApp;
   const isCodexApp = appType === "codex";
-  const isClaudeApp = appType === "claude";
+  const isClaudeApp = false;
   const isCliOnlyApp = isGrokApp;
   const supportsLaunchModeSelect = isCodexApp || isClaudeApp;
   const modelRoutingProviderAccounts = useMemo(
@@ -1749,17 +1727,8 @@ export function InstancesManager<TAccount extends AccountLike>({
       : message.slice(missingPathPrefix.length);
     const app =
       rawApp === "codex" ||
-      rawApp === "claude" ||
       rawApp === "antigravity" ||
-      rawApp === "vscode" ||
-      rawApp === "windsurf" ||
-      rawApp === "kiro" ||
-      rawApp === "cursor" ||
-      rawApp === "grok" ||
-      rawApp === "codebuddy" ||
-      rawApp === "codebuddy_cn" ||
-      rawApp === "qoder" ||
-      rawApp === "zcode"
+      rawApp === "antigravity_ide"
         ? rawApp
         : appType;
     const runtimeTarget =

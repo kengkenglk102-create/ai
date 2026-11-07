@@ -31,9 +31,6 @@ interface SideNavProps {
   page: Page;
   setPage: (page: Page) => void;
   onOpenPlatformLayout: () => void;
-  easterEggClickCount: number;
-  onEasterEggTriggerClick: () => void;
-  hasBreakoutSession: boolean;
   updateActionState: 'hidden' | 'available' | 'downloading' | 'installing' | 'ready';
   updateProgress: number;
   onUpdateActionClick: () => void;
@@ -63,23 +60,6 @@ const PAGE_PLATFORM_MAP: Partial<Record<Page, PlatformId>> = {
   overview: 'antigravity',
   codex: 'codex',
   'codex-api-service': 'codex_api_service',
-  claude: 'claude_manager',
-  'claude-cli': 'claude_manager',
-  zed: 'zed',
-  'github-copilot': 'github-copilot',
-  windsurf: 'windsurf',
-  kiro: 'kiro',
-  cursor: 'cursor',
-  grok: 'grok',
-  codebuddy: 'codebuddy',
-  'codebuddy-cn': 'codebuddy_cn',
-  qoder: 'qoder',
-  zcode: 'zcode',
-  trae: 'trae',
-  'trae-solo': 'trae_solo',
-  'trae-cn': 'trae_cn',
-  'trae-solo-cn': 'trae_solo_cn',
-  workbuddy: 'workbuddy',
 };
 
 const APP_DISPLAY_NAME =
@@ -135,9 +115,6 @@ export function SideNav({
   page,
   setPage,
   onOpenPlatformLayout,
-  easterEggClickCount,
-  onEasterEggTriggerClick,
-  hasBreakoutSession,
   updateActionState,
   updateProgress,
   onUpdateActionClick,
@@ -661,11 +638,6 @@ export function SideNav({
   }, [isClassicLayout, isClassicCollapsed, shouldShowUpdateActionEntry]);
 
   const handleLogoClick = useCallback(() => {
-    if (hasBreakoutSession) {
-      onEasterEggTriggerClick();
-      return;
-    }
-
     const newRocket: FlyingRocket = {
       id: rocketIdRef.current++,
       x: (Math.random() - 0.5) * 40,
@@ -676,9 +648,7 @@ export function SideNav({
     setTimeout(() => {
       setFlyingRockets((prev) => prev.filter((rocket) => rocket.id !== newRocket.id));
     }, 1500);
-
-    onEasterEggTriggerClick();
-  }, [hasBreakoutSession, onEasterEggTriggerClick]);
+  }, []);
 
   useEffect(() => {
     if (!showMore) return;
@@ -901,15 +871,10 @@ export function SideNav({
         <div className="side-nav-brand-main">
           <div
             ref={logoRef}
-            className={`brand-logo rocket-easter-egg${hasBreakoutSession ? ' rocket-easter-egg-active' : ''}`}
+            className="brand-logo"
             onClick={handleLogoClick}
-            title={hasBreakoutSession ? t('breakout.resumeGameNav', '继续游戏') : undefined}
           >
             <Rocket size={isClassicLayout ? classicBrandLogoIconSize : 20} />
-            {hasBreakoutSession && <span className="rocket-session-indicator" aria-hidden="true" />}
-            {!hasBreakoutSession && easterEggClickCount > 0 && (
-              <span className="rocket-click-count">{easterEggClickCount}</span>
-            )}
           </div>
 
           {isClassicLayout && !isClassicCollapsed && (

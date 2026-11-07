@@ -124,11 +124,11 @@ fn multi_platform_group_keeps_nested_platform_ids() {
     let entry = TrayMenuEntry::Group {
         id: "cli".to_string(),
         name: "CLI".to_string(),
-        platforms: vec![PlatformId::Codex, PlatformId::Claude],
+        platforms: vec![PlatformId::Codex, PlatformId::Antigravity],
     };
     let snapshot = map_tray_entry_to_snapshot(&entry, |platform| match platform {
         PlatformId::Codex => sample_info("codex@example.com"),
-        PlatformId::Claude => sample_info("claude@example.com"),
+        PlatformId::Antigravity => sample_info("antigravity@example.com"),
         _ => sample_info("other@example.com"),
     });
     match snapshot {
@@ -141,8 +141,8 @@ fn multi_platform_group_keeps_nested_platform_ids() {
             assert_eq!(name, "CLI");
             assert_eq!(platforms.len(), 2);
             assert_eq!(platforms[0].submenu_id, "platform:codex:submenu");
-            assert_eq!(platforms[1].submenu_id, "platform:claude_manager:submenu");
-            assert_eq!(platforms[1].account, "email claude@example.com");
+            assert_eq!(platforms[1].submenu_id, "platform:antigravity:submenu");
+            assert_eq!(platforms[1].account, "email antigravity@example.com");
         }
         other => panic!("expected group snapshot, got {other:?}"),
     }

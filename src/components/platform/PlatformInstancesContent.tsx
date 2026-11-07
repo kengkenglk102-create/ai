@@ -13,22 +13,7 @@ type AccountLike = {
 type InstancesAppType =
   | 'antigravity'
   | 'antigravity_ide'
-  | 'codex'
-  | 'claude'
-  | 'vscode'
-  | 'windsurf'
-  | 'kiro'
-  | 'cursor'
-  | 'grok'
-  | 'codebuddy'
-  | 'codebuddy_cn'
-  | 'qoder'
-  | 'trae'
-  | 'trae_solo'
-  | 'trae_cn'
-  | 'trae_solo_cn'
-  | 'workbuddy'
-  | 'zcode';
+  | 'codex';
 
 interface PlatformInstancesContentProps<TAccount extends AccountLike> {
   instanceStore: InstanceStoreState;

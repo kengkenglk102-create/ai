@@ -37,23 +37,10 @@ import { isMainWindowNavigablePage, type Page } from './types/navigation';
 import type { TopRightAd } from './types/topRightAd';
 import { useAutoRefresh } from './hooks/useAutoRefresh';
 import { useCodexQuotaSync } from './hooks/useCodexQuotaSync';
-import { useEasterEggTrigger } from './hooks/useEasterEggTrigger';
 import { useGlobalModal } from './hooks/useGlobalModal';
 import { changeLanguage, getCurrentLanguage, normalizeLanguage, syncLanguage } from './i18n';
 import { useAccountStore } from './stores/useAccountStore';
 import { useCodexAccountStore } from './stores/useCodexAccountStore';
-import { useClaudeAccountStore } from './stores/useClaudeAccountStore';
-import { useGitHubCopilotAccountStore } from './stores/useGitHubCopilotAccountStore';
-import { useWindsurfAccountStore } from './stores/useWindsurfAccountStore';
-import { useKiroAccountStore } from './stores/useKiroAccountStore';
-import { useCursorAccountStore } from './stores/useCursorAccountStore';
-import { useGrokAccountStore } from './stores/useGrokAccountStore';
-import { useCodebuddyAccountStore } from './stores/useCodebuddyAccountStore';
-import { useCodebuddyCnAccountStore } from './stores/useCodebuddyCnAccountStore';
-import { useQoderAccountStore } from './stores/useQoderAccountStore';
-import { useTraeAccountStore } from './stores/useTraeAccountStore';
-import { useWorkbuddyAccountStore } from './stores/useWorkbuddyAccountStore';
-import { useZedAccountStore } from './stores/useZedAccountStore';
 import { useSideNavLayoutStore } from './stores/useSideNavLayoutStore';
 import { usePlatformLayoutStore } from './stores/usePlatformLayoutStore';
 import { initializeClassicSidebar } from './utils/classicSidebarStartup';
@@ -163,9 +150,6 @@ const VersionJumpNotification = lazy(() =>
 const CloseConfirmDialog = lazy(() =>
   import('./components/CloseConfirmDialog').then((module) => ({ default: module.CloseConfirmDialog })),
 );
-const BreakoutModal = lazy(() =>
-  import('./components/easter-egg/BreakoutModal').then((module) => ({ default: module.BreakoutModal })),
-);
 const LogViewerModal = lazy(() =>
   import('./components/LogViewerModal').then((module) => ({ default: module.LogViewerModal })),
 );
@@ -195,23 +179,6 @@ const TOP_PROMO_PAGE_PLATFORM_TARGETS: Partial<Record<Page, readonly string[]>> 
   codex: ['codex'],
   'codex-api-service': ['codex_api_service', 'codex'],
   'codex-instances': ['codex'],
-  claude: ['claude', 'claude-manager'],
-  'claude-cli': ['claude', 'claude-manager'],
-  zed: ['zed'],
-  'github-copilot': ['github-copilot'],
-  windsurf: ['windsurf'],
-  kiro: ['kiro'],
-  cursor: ['cursor'],
-  grok: ['grok'],
-  codebuddy: ['codebuddy'],
-  'codebuddy-cn': ['codebuddy-cn'],
-  qoder: ['qoder'],
-  zcode: ['zcode'],
-  trae: ['trae', 'trae-suite'],
-  'trae-solo': ['trae-solo', 'trae-suite'],
-  'trae-cn': ['trae-cn', 'trae-suite'],
-  'trae-solo-cn': ['trae-solo-cn', 'trae-suite'],
-  workbuddy: ['workbuddy'],
 };
 
 function normalizePromoTarget(value: string): string {
@@ -438,21 +405,7 @@ type QuotaAlertPayload = {
   triggered_at: number;
 };
 
-type QuotaAlertPlatform =
-  | 'antigravity'
-  | 'codex'
-  | 'claude'
-  | 'github_copilot'
-  | 'windsurf'
-  | 'kiro'
-  | 'cursor'
-  | 'grok'
-  | 'codebuddy'
-  | 'codebuddy_cn'
-  | 'qoder'
-  | 'trae'
-  | 'workbuddy'
-  | 'zed';
+type QuotaAlertPlatform = 'antigravity' | 'codex';
 function buildExternalImportDedupeKey(payload: {
   providerId: string;
   page: string;
@@ -504,35 +457,6 @@ function normalizeQuotaAlertPlatform(platform: string | undefined): QuotaAlertPl
   switch (platform) {
     case 'codex':
       return 'codex';
-    case 'claude':
-    case 'claude-cli':
-      return 'claude';
-    case 'github_copilot':
-      return 'github_copilot';
-    case 'windsurf':
-      return 'windsurf';
-    case 'kiro':
-      return 'kiro';
-    case 'cursor':
-      return 'cursor';
-    case 'grok':
-      return 'grok';
-    case 'codebuddy':
-      return 'codebuddy';
-    case 'codebuddy_cn':
-      return 'codebuddy_cn';
-    case 'qoder':
-      return 'qoder';
-    case 'trae':
-    case 'trae-solo':
-    case 'trae_solo':
-    case 'trae-cn':
-    case 'trae_cn':
-    case 'trae-solo-cn':
-    case 'trae_solo_cn':
-      return 'trae';
-    case 'zed':
-      return 'zed';
     default:
       return 'antigravity';
   }
@@ -545,28 +469,6 @@ function getQuotaAlertPlatformLabel(
   switch (platform) {
     case 'codex':
       return t('nav.codex', 'Codex');
-    case 'claude':
-      return t('nav.claude', 'Claude');
-    case 'github_copilot':
-      return t('nav.githubCopilot', 'GitHub Copilot');
-    case 'windsurf':
-      return 'Devin';
-    case 'kiro':
-      return 'Kiro';
-    case 'cursor':
-      return 'Cursor';
-    case 'grok':
-      return 'Grok CLI';
-    case 'codebuddy':
-      return 'CodeBuddy';
-    case 'codebuddy_cn':
-      return t('nav.codebuddyCn', 'CodeBuddy CN');
-    case 'qoder':
-      return t('nav.qoder', 'Qoder');
-    case 'trae':
-      return t('nav.trae', 'Trae');
-    case 'zed':
-      return t('nav.zed', 'Zed');
     default:
       return t('nav.overview', 'Antigravity IDE');
   }
@@ -576,30 +478,6 @@ function getQuotaAlertTargetPage(platform: QuotaAlertPlatform): Page {
   switch (platform) {
     case 'codex':
       return 'codex';
-    case 'claude':
-      return 'claude';
-    case 'github_copilot':
-      return 'github-copilot';
-    case 'windsurf':
-      return 'windsurf';
-    case 'kiro':
-      return 'kiro';
-    case 'cursor':
-      return 'cursor';
-    case 'grok':
-      return 'grok';
-    case 'codebuddy':
-      return 'codebuddy';
-    case 'codebuddy_cn':
-      return 'codebuddy-cn';
-    case 'qoder':
-      return 'qoder';
-    case 'trae':
-      return 'trae';
-    case 'workbuddy':
-      return 'workbuddy';
-    case 'zed':
-      return 'zed';
     default:
       return 'overview';
   }
@@ -609,30 +487,6 @@ function getQuotaAlertQuickSettingsType(platform: QuotaAlertPlatform): QuickSett
   switch (platform) {
     case 'codex':
       return 'codex';
-    case 'claude':
-      return 'claude';
-    case 'github_copilot':
-      return 'github_copilot';
-    case 'windsurf':
-      return 'windsurf';
-    case 'kiro':
-      return 'kiro';
-    case 'cursor':
-      return 'cursor';
-    case 'grok':
-      return 'grok';
-    case 'codebuddy':
-      return 'codebuddy';
-    case 'codebuddy_cn':
-      return 'codebuddy_cn';
-    case 'qoder':
-      return 'qoder';
-    case 'trae':
-      return 'trae';
-    case 'workbuddy':
-      return 'workbuddy';
-    case 'zed':
-      return 'zed';
     default:
       return 'antigravity';
   }
@@ -777,8 +631,7 @@ function MainApp() {
   const [showLogViewer, setShowLogViewer] = useState(false);
   const [showPlatformLayoutModal, setShowPlatformLayoutModal] = useState(false);
   const [platformLayoutRequestedGroupId, setPlatformLayoutRequestedGroupId] = useState<string | null>(null);
-  const [showBreakout, setShowBreakout] = useState(false);
-  const [hasBreakoutSession, setHasBreakoutSession] = useState(false);
+
   const [appPathMissing, setAppPathMissing] = useState<AppPathMissingDetail | null>(null);
   const [appPathSetting, setAppPathSetting] = useState(false);
   const [appPathDetecting, setAppPathDetecting] = useState(false);
@@ -833,10 +686,7 @@ function MainApp() {
     setPlatformLayoutRequestedGroupId(null);
     setShowPlatformLayoutModal(true);
   }, []);
-  const openBreakout = useCallback(() => {
-    setHasBreakoutSession(true);
-    setShowBreakout(true);
-  }, []);
+
   const ensureExternalImportVersionCompatible = useCallback(
     async (payload: ExternalProviderImportPayload): Promise<boolean> => {
       const requiredVersion = payload.minAppVersion?.trim().replace(/^v/i, '');
@@ -928,35 +778,6 @@ function MainApp() {
       dispatchExternalProviderImportEvent(normalized);
     }, 0);
   }, [ensureExternalImportVersionCompatible]);
-  const handleBreakoutMinimize = useCallback(() => {
-    setShowBreakout(false);
-  }, []);
-  const handleBreakoutTerminate = useCallback(() => {
-    setShowBreakout(false);
-    setHasBreakoutSession(false);
-  }, []);
-  const handleResumeBreakout = useCallback(() => {
-    if (!hasBreakoutSession) return;
-    setShowBreakout(true);
-  }, [hasBreakoutSession]);
-
-  const {
-    count: easterEggClickCount,
-    registerClick: handleEasterEggTriggerClick,
-    reset: resetEasterEggTrigger,
-  } = useEasterEggTrigger({
-    threshold: 20,
-    windowMs: 8000,
-    onTrigger: openBreakout,
-  });
-  const handleBreakoutEntryTriggerClick = useCallback(() => {
-    if (hasBreakoutSession) {
-      resetEasterEggTrigger();
-      handleResumeBreakout();
-      return;
-    }
-    handleEasterEggTriggerClick();
-  }, [handleEasterEggTriggerClick, handleResumeBreakout, hasBreakoutSession, resetEasterEggTrigger]);
   
   // 启用自动刷新 hook
   useAutoRefresh();
@@ -2617,9 +2438,7 @@ function MainApp() {
       const hasRecommendation = Boolean(payload.recommended_account_id && payload.recommended_email);
       const lowQuotaItemsText = payload.low_models.length > 0
         ? payload.low_models.join(', ')
-        : platform === 'grok'
-          ? t('grok.quotaAlert.unknownItem', '未知配额项')
-          : t('quotaAlert.modal.unknownModel', '未知模型');
+        : t('quotaAlert.modal.unknownModel', '未知模型');
 
       showModal({
         title: t('quotaAlert.modal.title', '配额预警'),
@@ -2648,9 +2467,7 @@ function MainApp() {
             </div>
             <div className="quota-alert-modal-row quota-alert-modal-row--stack">
               <span>
-                {platform === 'grok'
-                  ? t('grok.quotaAlert.items', '触发配额项')
-                  : t('quotaAlert.modal.models', '触发模型')}
+                {t('quotaAlert.modal.models', '触发模型')}
               </span>
               <strong>{lowQuotaItemsText}</strong>
             </div>
@@ -2691,42 +2508,6 @@ function MainApp() {
                     if (platform === 'codex') {
                       await useCodexAccountStore.getState().switchAccount(targetAccountId);
                       setPage('codex');
-                    } else if (platform === 'claude') {
-                      await useClaudeAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('claude');
-                    } else if (platform === 'github_copilot') {
-                      await useGitHubCopilotAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('github-copilot');
-                    } else if (platform === 'windsurf') {
-                      await useWindsurfAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('windsurf');
-                    } else if (platform === 'kiro') {
-                      await useKiroAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('kiro');
-                    } else if (platform === 'cursor') {
-                      await useCursorAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('cursor');
-                    } else if (platform === 'grok') {
-                      await useGrokAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('grok');
-                    } else if (platform === 'codebuddy') {
-                      await useCodebuddyAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('codebuddy');
-                    } else if (platform === 'codebuddy_cn') {
-                      await useCodebuddyCnAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('codebuddy-cn');
-                    } else if (platform === 'qoder') {
-                      await useQoderAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('qoder');
-                    } else if (platform === 'trae') {
-                      await useTraeAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('trae');
-                    } else if (platform === 'workbuddy') {
-                      await useWorkbuddyAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('workbuddy');
-                    } else if (platform === 'zed') {
-                      await useZedAccountStore.getState().switchAccount(targetAccountId);
-                      setPage('zed');
                     } else {
                       await useAccountStore.getState().switchAccount(targetAccountId);
                       setPage('overview');
@@ -2907,54 +2688,6 @@ function MainApp() {
       {
         command: 'refresh_current_codex_quota',
         errorMessage: 'Failed to refresh Codex quotas:',
-      },
-      {
-        command: 'refresh_all_claude_quotas',
-        errorMessage: 'Failed to refresh Claude quotas:',
-      },
-      {
-        command: 'refresh_all_github_copilot_tokens',
-        errorMessage: 'Failed to refresh GitHub Copilot quotas:',
-      },
-      {
-        command: 'refresh_all_windsurf_tokens',
-        errorMessage: 'Failed to refresh Devin quotas:',
-      },
-      {
-        command: 'refresh_all_kiro_tokens',
-        errorMessage: 'Failed to refresh Kiro quotas:',
-      },
-      {
-        command: 'refresh_all_cursor_tokens',
-        errorMessage: 'Failed to refresh Cursor:',
-      },
-      {
-        command: 'refresh_all_grok_accounts',
-        errorMessage: 'Failed to refresh Grok:',
-      },
-      {
-        command: 'refresh_all_codebuddy_tokens',
-        errorMessage: 'Failed to refresh CodeBuddy:',
-      },
-      {
-        command: 'refresh_all_codebuddy_cn_tokens',
-        errorMessage: 'Failed to refresh CodeBuddy CN:',
-      },
-      {
-        command: 'refresh_all_qoder_tokens',
-        errorMessage: 'Failed to refresh Qoder:',
-      },
-      {
-        command: 'refresh_all_zcode_accounts',
-        errorMessage: 'Failed to refresh ZCode:',
-      },
-      {
-        command: 'refresh_all_trae_tokens',
-        errorMessage: 'Failed to refresh Trae:',
-      },
-      {
-        command: 'refresh_all_zed_tokens',
-        errorMessage: 'Failed to refresh Zed:',
       },
     ] as const;
 
@@ -3146,14 +2879,7 @@ function MainApp() {
           ? 'antigravity_legacy_start_instance'
           : 'start_instance';
       await invoke('set_app_path', { app, path });
-      if (retry?.kind === 'switchAccount' && retry.accountId && app === 'zed') {
-        await useZedAccountStore.getState().switchAccount(retry.accountId);
-        setPage('zed');
-      } else if (retry?.kind === 'switchAccount' && retry.accountId && app === 'claude') {
-        await useClaudeAccountStore.getState().switchAccount(retry.accountId);
-        await useClaudeAccountStore.getState().fetchCurrentAccountId();
-        setPage('claude');
-      } else if (retry?.kind === 'switchAccount' && retry.accountId) {
+      if (retry?.kind === 'switchAccount' && retry.accountId) {
         await invoke('switch_account', {
           accountId: retry.accountId,
           runtimeTarget: retry.runtimeTarget,
@@ -3559,15 +3285,7 @@ function MainApp() {
         </Suspense>
       )}
 
-      {hasBreakoutSession && (
-        <Suspense fallback={null}>
-          <BreakoutModal
-            open={showBreakout}
-            onMinimize={handleBreakoutMinimize}
-            onTerminate={handleBreakoutTerminate}
-          />
-        </Suspense>
-      )}
+
 
       {appPathMissing && (
         <div className="qs-overlay" style={{ zIndex: 10100 }}>
@@ -3755,9 +3473,7 @@ function MainApp() {
         page={page}
         setPage={setPage}
         onOpenPlatformLayout={openPlatformLayoutModal}
-        easterEggClickCount={easterEggClickCount}
-        onEasterEggTriggerClick={handleBreakoutEntryTriggerClick}
-        hasBreakoutSession={hasBreakoutSession}
+
         updateActionState={updateAction.state}
         updateProgress={updateAction.progress}
         onUpdateActionClick={handleQuickUpdateActionClick}
@@ -3806,7 +3522,6 @@ function MainApp() {
             <DashboardPage
               onNavigate={setPage}
               onOpenPlatformLayout={openPlatformLayoutModal}
-              onEasterEggTriggerClick={handleBreakoutEntryTriggerClick}
             />
           </VisibleBootPage>
           <VisibleBootPage when={page === 'api-relay'}>

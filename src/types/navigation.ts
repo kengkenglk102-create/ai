@@ -4,24 +4,7 @@ export type Page =
   | 'api-relay'
   | 'overview'
   | 'codex'
-  | 'claude'
-  | 'claude-cli'
   | 'codex-api-service'
-  | 'zed'
-  | 'github-copilot'
-  | 'windsurf'
-  | 'kiro'
-  | 'cursor'
-  | 'grok'
-  | 'codebuddy'
-  | 'codebuddy-cn'
-  | 'qoder'
-  | 'zcode'
-  | 'trae'
-  | 'trae-solo'
-  | 'trae-cn'
-  | 'trae-solo-cn'
-  | 'workbuddy'
   | 'codex-instances'
   | 'instances'
   | 'accounts'
@@ -37,24 +20,7 @@ export const MAIN_WINDOW_NAVIGABLE_PAGES: readonly Page[] = [
   'api-relay',
   'overview',
   'codex',
-  'claude',
-  'claude-cli',
   'codex-api-service',
-  'zed',
-  'github-copilot',
-  'windsurf',
-  'kiro',
-  'cursor',
-  'grok',
-  'codebuddy',
-  'codebuddy-cn',
-  'qoder',
-  'zcode',
-  'trae',
-  'trae-solo',
-  'trae-cn',
-  'trae-solo-cn',
-  'workbuddy',
   'settings',
 ] as const;
 

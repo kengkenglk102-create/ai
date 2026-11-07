@@ -1,31 +1,9 @@
 import { useAccountStore } from '../stores/useAccountStore';
 import { useCodexAccountStore } from '../stores/useCodexAccountStore';
-import { useZedAccountStore } from '../stores/useZedAccountStore';
-import { useGitHubCopilotAccountStore } from '../stores/useGitHubCopilotAccountStore';
-import { useWindsurfAccountStore } from '../stores/useWindsurfAccountStore';
-import { useKiroAccountStore } from '../stores/useKiroAccountStore';
-import { useCursorAccountStore } from '../stores/useCursorAccountStore';
-import { useCodebuddyAccountStore } from '../stores/useCodebuddyAccountStore';
-import { useCodebuddyCnAccountStore } from '../stores/useCodebuddyCnAccountStore';
-import { useQoderAccountStore } from '../stores/useQoderAccountStore';
-import { useZcodeAccountStore } from '../stores/useZcodeAccountStore';
-import { useTraeAccountStore } from '../stores/useTraeAccountStore';
-import { useWorkbuddyAccountStore } from '../stores/useWorkbuddyAccountStore';
 
 const ALL_STORES = [
   useAccountStore,
   useCodexAccountStore,
-  useZedAccountStore,
-  useGitHubCopilotAccountStore,
-  useWindsurfAccountStore,
-  useKiroAccountStore,
-  useCursorAccountStore,
-  useCodebuddyAccountStore,
-  useCodebuddyCnAccountStore,
-  useQoderAccountStore,
-  useZcodeAccountStore,
-  useTraeAccountStore,
-  useWorkbuddyAccountStore,
 ];
 
 export const globalRenameTag = async (oldTag: string, newTag: string) => {

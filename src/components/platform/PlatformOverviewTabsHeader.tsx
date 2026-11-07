@@ -1,18 +1,7 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock3, FolderOpen, Github, Globe2, Layers, MoreHorizontal, PanelTop, Server } from 'lucide-react';
+import { Clock3, FolderOpen, Globe2, Layers, MoreHorizontal, PanelTop, Server } from 'lucide-react';
 import { CodexIcon } from '../icons/CodexIcon';
-import { ClaudeIcon } from '../icons/ClaudeIcon';
-import { WindsurfIcon } from '../icons/WindsurfIcon';
-import { KiroIcon } from '../icons/KiroIcon';
-import { CursorIcon } from '../icons/CursorIcon';
-import { GrokIcon } from '../icons/GrokIcon';
-import { CodebuddyIcon } from '../icons/CodebuddyIcon';
-import { QoderIcon } from '../icons/QoderIcon';
-import { TraeCnIcon, TraeIcon, TraeSoloCnIcon, TraeSoloIcon } from '../icons/TraeIcon';
-import { WorkbuddyIcon } from '../icons/WorkbuddyIcon';
-import { ZedIcon } from '../icons/ZedIcon';
-import { ZcodeIcon } from '../icons/ZcodeIcon';
 import { ManualHelpIconButton } from '../ManualHelpIconButton';
 import { PlatformId } from '../../types/platform';
 import {
@@ -32,24 +21,8 @@ export type PlatformOverviewTab =
   | 'providers'
   | 'proxy'
   | 'top-layout';
-export type PlatformOverviewHeaderId =
-  | 'codex'
-  | 'claude'
-  | 'zed'
-  | 'github-copilot'
-  | 'windsurf'
-  | 'kiro'
-  | 'cursor'
-  | 'grok'
-  | 'codebuddy'
-  | 'codebuddy_cn'
-  | 'qoder'
-  | 'zcode'
-  | 'trae'
-  | 'trae_solo'
-  | 'trae_cn'
-  | 'trae_solo_cn'
-  | 'workbuddy';
+
+export type PlatformOverviewHeaderId = 'codex';
 
 interface PlatformOverviewTabsHeaderProps<T extends string> {
   platform: PlatformOverviewHeaderId;
@@ -76,70 +49,6 @@ const CONFIGS: Record<PlatformOverviewHeaderId, PlatformOverviewConfig> = {
     platformLabel: 'Codex',
     overviewIcon: <CodexIcon className="tab-icon" />,
   },
-  claude: {
-    platformLabel: 'Claude',
-    overviewIcon: <ClaudeIcon className="tab-icon" />,
-  },
-  zed: {
-    platformLabel: 'Zed',
-    overviewIcon: <ZedIcon className="tab-icon" />,
-  },
-  'github-copilot': {
-    platformLabel: 'GitHub Copilot',
-    overviewIcon: <Github className="tab-icon" />,
-  },
-  windsurf: {
-    platformLabel: 'Devin',
-    overviewIcon: <WindsurfIcon className="tab-icon" />,
-  },
-  kiro: {
-    platformLabel: 'Kiro',
-    overviewIcon: <KiroIcon className="tab-icon" />,
-  },
-  cursor: {
-    platformLabel: 'Cursor',
-    overviewIcon: <CursorIcon className="tab-icon" />,
-  },
-  grok: {
-    platformLabel: 'Grok CLI',
-    overviewIcon: <GrokIcon className="tab-icon" />,
-  },
-  codebuddy: {
-    platformLabel: 'CodeBuddy',
-    overviewIcon: <CodebuddyIcon className="tab-icon" />,
-  },
-  codebuddy_cn: {
-    platformLabel: 'CodeBuddy CN',
-    overviewIcon: <CodebuddyIcon className="tab-icon" />,
-  },
-  qoder: {
-    platformLabel: 'Qoder',
-    overviewIcon: <QoderIcon className="tab-icon" />,
-  },
-  zcode: {
-    platformLabel: 'ZCode',
-    overviewIcon: <ZcodeIcon className="tab-icon" />,
-  },
-  trae: {
-    platformLabel: 'Trae',
-    overviewIcon: <TraeIcon className="tab-icon" />,
-  },
-  trae_solo: {
-    platformLabel: 'TRAE SOLO',
-    overviewIcon: <TraeSoloIcon className="tab-icon" />,
-  },
-  trae_cn: {
-    platformLabel: 'Trae CN',
-    overviewIcon: <TraeCnIcon className="tab-icon" />,
-  },
-  trae_solo_cn: {
-    platformLabel: 'TRAE SOLO CN',
-    overviewIcon: <TraeSoloCnIcon className="tab-icon" />,
-  },
-  workbuddy: {
-    platformLabel: 'WorkBuddy',
-    overviewIcon: <WorkbuddyIcon className="tab-icon" />,
-  },
 };
 
 export function PlatformOverviewTabsHeader<T extends string = PlatformOverviewTab>({
@@ -165,56 +74,40 @@ export function PlatformOverviewTabsHeader<T extends string = PlatformOverviewTa
     () => findGroupByPlatform(platformGroups, currentPlatformId),
     [platformGroups, currentPlatformId],
   );
-  const switchablePlatforms = useMemo(
-    () => {
-      const source = currentGroup ? currentGroup.platformIds : [currentPlatformId];
-      const visible = source.filter((platformId) =>
-        platformId === currentPlatformId || !remoteHiddenPlatformSet.has(platformId),
-      );
-      return visible.length > 0 ? visible : [currentPlatformId];
-    },
-    [currentGroup, currentPlatformId, remoteHiddenPlatformSet],
-  );
-  const currentPlatformLabel = getPlatformLabel(currentPlatformId, t);
-  const currentDisplayName = useMemo(
-    () =>
-      currentGroup
-        ? resolveGroupChildName(currentGroup, currentPlatformId, currentPlatformLabel || config.platformLabel)
-        : currentPlatformLabel || config.platformLabel,
-    [currentGroup, currentPlatformId, currentPlatformLabel, config.platformLabel],
-  );
-  const switchOptions = useMemo(
-    () =>
-      switchablePlatforms.map((platformId) => {
-        const platformName = currentGroup
-          ? resolveGroupChildName(currentGroup, platformId, getPlatformLabel(platformId, t))
-          : getPlatformLabel(platformId, t);
-        return {
-          platformId,
-          label: platformName,
-        };
-      }),
-    [switchablePlatforms, currentGroup, t],
-  );
-  const tabOrder: string[] =
-    tabs && tabs.length > 0 ? tabs : ['overview', 'instances'];
+  const currentDisplayName = useMemo(() => {
+    if (!currentGroup) return config?.platformLabel ?? getPlatformLabel(currentPlatformId, t);
+    return (
+      resolveGroupChildName(currentGroup, currentPlatformId, getPlatformLabel(currentPlatformId, t)) ||
+      getPlatformLabel(currentPlatformId, t)
+    );
+  }, [currentGroup, currentPlatformId, config?.platformLabel, t]);
+
+  const switchOptions = useMemo(() => {
+    if (!currentGroup) return [];
+    return currentGroup.platformIds
+      .filter((id) => !remoteHiddenPlatformSet.has(id))
+      .map((id) => ({
+        platformId: id,
+        label: resolveGroupChildName(currentGroup, id, getPlatformLabel(id, t)),
+      }));
+  }, [currentGroup, remoteHiddenPlatformSet, t]);
+
+  const defaultTabs: T[] = ['overview', 'instances'] as T[];
+  const tabOrder = tabs || defaultTabs;
   const tabLabels: Record<string, TabSpec> = {
     overview: {
       key: 'overview',
-      label: t('overview.title', '账号总览'),
-      icon: config.overviewIcon,
+      label: t('navigation.overview', '总览'),
+      icon: config?.overviewIcon ?? <CodexIcon className="tab-icon" />,
     },
     wakeup: {
       key: 'wakeup',
-      label:
-        platform === 'codex'
-          ? t('codex.wakeup.tab', '唤醒任务')
-          : t('wakeup.title', '唤醒任务'),
+      label: t('codex.wakeup.tab', '唤醒任务'),
       icon: <Clock3 className="tab-icon" />,
     },
     instances: {
       key: 'instances',
-      label: t('instances.title', '应用多开'),
+      label: t('navigation.instances', '多开实例'),
       icon: <Layers className="tab-icon" />,
     },
     sessions: {
@@ -280,7 +173,7 @@ export function PlatformOverviewTabsHeader<T extends string = PlatformOverviewTa
         </div>
         <div className="page-top-strip-right-placeholder" aria-hidden="true" />
       </div>
-      <div className={`page-tabs-row page-tabs-center page-tabs-row-with-leading${platform === 'codex' ? ' codex-page-navigation' : ''}`}>
+      <div className={`page-tabs-row page-tabs-center page-tabs-row-with-leading codex-page-navigation`}>
         <div className="page-tabs-leading">
           <PlatformGroupSwitcher
             currentPlatformId={currentPlatformId}

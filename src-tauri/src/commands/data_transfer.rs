@@ -26,38 +26,16 @@ fn apply_app_auto_launch_enabled(app: &tauri::AppHandle, enabled: bool) -> Resul
 
 fn load_instance_store_by_platform(platform: &str) -> Result<InstanceStore, String> {
     match platform {
-        "antigravity" => modules::instance::load_instance_store(),
+        "antigravity" | "antigravity_legacy" => modules::instance::load_instance_store(),
         "codex" => modules::codex_instance::load_instance_store(),
-        "github-copilot" => modules::github_copilot_instance::load_instance_store(),
-        "windsurf" => modules::windsurf_instance::load_instance_store(),
-        "kiro" => modules::kiro_instance::load_instance_store(),
-        "cursor" => modules::cursor_instance::load_instance_store(),
-        "grok" => modules::grok_instance::load_instance_store(),
-        "codebuddy" => modules::codebuddy_instance::load_instance_store(),
-        "codebuddy_cn" => modules::codebuddy_cn_instance::load_instance_store(),
-        "qoder" => modules::qoder_instance::load_instance_store(),
-        "zcode" => modules::zcode_instance::load_instance_store(),
-        "trae" => modules::trae_instance::load_instance_store(),
-        "workbuddy" => modules::workbuddy_instance::load_instance_store(),
         _ => Err("不支持的实例平台".to_string()),
     }
 }
 
 fn save_instance_store_by_platform(platform: &str, store: &InstanceStore) -> Result<(), String> {
     match platform {
-        "antigravity" => modules::instance::save_instance_store(store),
+        "antigravity" | "antigravity_legacy" => modules::instance::save_instance_store(store),
         "codex" => modules::codex_instance::save_instance_store(store),
-        "github-copilot" => modules::github_copilot_instance::save_instance_store(store),
-        "windsurf" => modules::windsurf_instance::save_instance_store(store),
-        "kiro" => modules::kiro_instance::save_instance_store(store),
-        "cursor" => modules::cursor_instance::save_instance_store(store),
-        "grok" => modules::grok_instance::save_instance_store(store),
-        "codebuddy" => modules::codebuddy_instance::save_instance_store(store),
-        "codebuddy_cn" => modules::codebuddy_cn_instance::save_instance_store(store),
-        "qoder" => modules::qoder_instance::save_instance_store(store),
-        "zcode" => modules::zcode_instance::save_instance_store(store),
-        "trae" => modules::trae_instance::save_instance_store(store),
-        "workbuddy" => modules::workbuddy_instance::save_instance_store(store),
         _ => Err("不支持的实例平台".to_string()),
     }
 }

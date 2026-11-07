@@ -1,9 +1,5 @@
 [workspace]
-members = [
-    "src-tauri",
-    "crates/cockpit-core",
-    "crates/cockpit-cli",
-]
+members = ["src-tauri"]
 resolver = "2"
 exclude = ["vendor/tao"]
 
@@ -53,3 +49,15 @@ junction = "2.0"
 # Backport only the upstream Windows input-lock fix; see vendor/tao/COCKPIT-PATCH.md.
 [patch.crates-io]
 tao = { path = "vendor/tao" }
+
+[profile.dev]
+incremental = true
+opt-level = 0
+debug = 1
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 16
+panic = "abort"
+strip = true

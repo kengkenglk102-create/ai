@@ -81,22 +81,6 @@ pub async fn set_app_path(app: String, path: String) -> Result<(), String> {
                     current.antigravity_app_path = normalized_path
                 }
                 "codex" => current.codex_app_path = normalized_path,
-                "claude" => current.claude_app_path = normalized_path,
-                "zed" => current.zed_app_path = normalized_path,
-                "vscode" => current.vscode_app_path = normalized_path,
-                "windsurf" => current.windsurf_app_path = normalized_path,
-                "kiro" => current.kiro_app_path = normalized_path,
-                "cursor" => current.cursor_app_path = normalized_path,
-                "codebuddy" => current.codebuddy_app_path = normalized_path,
-                "codebuddy_cn" => current.codebuddy_cn_app_path = normalized_path,
-                "qoder" => current.qoder_app_path = normalized_path,
-                "zcode" => current.zcode_app_path = normalized_path,
-                "trae" => current.trae_app_path = normalized_path,
-                "trae_solo" => current.trae_solo_app_path = normalized_path,
-                "trae_cn" => current.trae_cn_app_path = normalized_path,
-                "trae_solo_cn" => current.trae_solo_cn_app_path = normalized_path,
-                "workbuddy" => current.workbuddy_app_path = normalized_path,
-                "opencode" => current.opencode_app_path = normalized_path,
                 _ => return Err("未知应用类型".to_string()),
             }
             Ok(())
@@ -107,37 +91,7 @@ pub async fn set_app_path(app: String, path: String) -> Result<(), String> {
     .map_err(|error| error.to_string())?
 }
 
-#[tauri::command]
-pub fn set_claude_app_scan_roots(scan_roots: String) -> Result<(), String> {
-    let normalized = scan_roots.trim().to_string();
-    config::patch_user_config(move |current| {
-        current.claude_app_scan_roots = normalized;
-        Ok(())
-    })?;
-    Ok(())
-}
 
-#[tauri::command]
-pub fn set_trae_app_scan_roots(app: Option<String>, scan_roots: String) -> Result<(), String> {
-    let normalized = scan_roots.trim().to_string();
-    let target = app
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .unwrap_or("trae")
-        .to_string();
-    config::patch_user_config(move |current| {
-        match target.as_str() {
-            "trae" => current.trae_app_scan_roots = normalized,
-            "trae_solo" => current.trae_solo_app_scan_roots = normalized,
-            "trae_cn" => current.trae_cn_app_scan_roots = normalized,
-            "trae_solo_cn" => current.trae_solo_cn_app_scan_roots = normalized,
-            _ => return Err("鏈煡搴旂敤绫诲瀷".to_string()),
-        }
-        Ok(())
-    })?;
-    Ok(())
-}
 
 #[tauri::command]
 pub fn set_codex_launch_on_switch(enabled: bool) -> Result<(), String> {
@@ -161,59 +115,13 @@ pub fn set_codex_local_access_entry_visible(enabled: bool) -> Result<(), String>
 pub fn detect_app_path(app: String, force: Option<bool>) -> Result<Option<String>, String> {
     let force = force.unwrap_or(false);
     match app.as_str() {
-        "windsurf" => Ok(modules::windsurf_instance::detect_and_save_windsurf_launch_path(force)),
-        "kiro" => Ok(modules::kiro_instance::detect_and_save_kiro_launch_path(
-            force,
-        )),
-        "cursor" => Ok(modules::cursor_instance::detect_and_save_cursor_launch_path(force)),
-        "claude" => Ok(modules::claude_instance::detect_and_save_claude_launch_path(force)),
-        "antigravity" | "antigravity_ide" | "antigravity_legacy" | "codex" | "zed" | "vscode"
-        | "codebuddy" | "codebuddy_cn" | "qoder" | "zcode" | "trae" | "trae_solo" | "trae_cn"
-        | "trae_solo_cn" | "opencode" | "workbuddy" => Ok(
+        "antigravity" | "antigravity_ide" | "antigravity_legacy" | "codex" => Ok(
             modules::process::detect_and_save_app_path(app.as_str(), force),
         ),
         _ => Err("未知应用类型".to_string()),
     }
 }
 
-#[tauri::command]
-pub async fn scan_claude_desktop_launch_targets(
-    scan_roots: Option<String>,
-) -> Result<Vec<modules::claude_instance::ClaudeDesktopLaunchCandidate>, String> {
-    #[cfg(target_os = "windows")]
-    {
-        let _ = scan_roots;
-        let task = tauri::async_runtime::spawn_blocking(|| {
-            modules::process::scan_app_launch_targets("claude", None)
-        });
-        let candidates = match tokio::time::timeout(Duration::from_secs(2), task).await {
-            Ok(Ok(result)) => result?,
-            Ok(Err(error)) => return Err(format!("检测运行中的 Claude 任务失败: {error}")),
-            Err(_) => return Err("检测运行中的 Claude 超时，请重试".to_string()),
-        };
-        return Ok(candidates
-            .into_iter()
-            .map(
-                |candidate| modules::claude_instance::ClaudeDesktopLaunchCandidate {
-                    target_type: candidate.target_type,
-                    label: candidate.label,
-                    target: candidate.target,
-                    source: candidate.source,
-                    supports_multi_instance: candidate.supports_multi_instance,
-                },
-            )
-            .collect());
-    }
-
-    #[cfg(not(target_os = "windows"))]
-    {
-        let roots = scan_roots
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty());
-        Ok(modules::claude_instance::scan_claude_desktop_launch_targets(roots))
-    }
-}
 
 #[tauri::command]
 pub async fn scan_app_launch_targets(
@@ -221,10 +129,7 @@ pub async fn scan_app_launch_targets(
     scan_roots: Option<String>,
 ) -> Result<Vec<modules::process::AppLaunchCandidate>, String> {
     match app.as_str() {
-        "antigravity" | "antigravity_ide" | "antigravity_legacy" | "codex" | "claude"
-        | "vscode" | "windsurf" | "kiro" | "cursor" | "codebuddy" | "codebuddy_cn" | "qoder"
-        | "zcode" | "trae" | "trae_solo" | "trae_cn" | "trae_solo_cn" | "workbuddy" | "zed"
-        | "opencode" => {}
+        "antigravity" | "antigravity_ide" | "antigravity_legacy" | "codex" => {}
         _ => return Err("未知应用类型".to_string()),
     }
     let _ = scan_roots;

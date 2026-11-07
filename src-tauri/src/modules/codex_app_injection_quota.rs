@@ -151,20 +151,7 @@ async fn refresh_api_service_quota_pool(app: &AppHandle) -> Result<Option<(i32, 
             }
         }
     };
-    let grok_refresh = refresh_grok_quota_batch(
-        targets.grok_ids,
-        Duration::from_secs(120),
-        |id| async move {
-            let result = crate::modules::grok_account::refresh_account(&id).await;
-            // 即使配额查询软失败，也可能已经轮换了凭据，需写穿到运行中的网关。
-            codex_local_access::sync_grok_upstream_auth_files_in_background(id);
-            let account = result?;
-            match account.quota_query_last_error {
-                Some(error) => Err(error),
-                None => Ok(()),
-            }
-        },
-    );
+    let grok_refresh = async { 0i32 };
     let (codex_count, grok_count) = tokio::join!(codex_refresh, grok_refresh);
     let success_count = codex_count + grok_count;
     if success_count == 0 {

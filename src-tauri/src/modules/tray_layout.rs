@@ -10,22 +10,6 @@ const TRAY_LAYOUT_FILE: &str = "tray_layout.json";
 
 pub const PLATFORM_ANTIGRAVITY: &str = "antigravity";
 pub const PLATFORM_CODEX: &str = "codex";
-pub const PLATFORM_CLAUDE_MANAGER: &str = "claude_manager";
-pub const PLATFORM_ZED: &str = "zed";
-pub const PLATFORM_GITHUB_COPILOT: &str = "github-copilot";
-pub const PLATFORM_WINDSURF: &str = "windsurf";
-pub const PLATFORM_KIRO: &str = "kiro";
-pub const PLATFORM_CURSOR: &str = "cursor";
-pub const PLATFORM_GROK: &str = "grok";
-pub const PLATFORM_CODEBUDDY: &str = "codebuddy";
-pub const PLATFORM_CODEBUDDY_CN: &str = "codebuddy_cn";
-pub const PLATFORM_QODER: &str = "qoder";
-pub const PLATFORM_ZCODE: &str = "zcode";
-pub const PLATFORM_TRAE: &str = "trae";
-pub const PLATFORM_TRAE_SOLO: &str = "trae_solo";
-pub const PLATFORM_TRAE_CN: &str = "trae_cn";
-pub const PLATFORM_TRAE_SOLO_CN: &str = "trae_solo_cn";
-pub const PLATFORM_WORKBUDDY: &str = "workbuddy";
 
 pub const SUPPORTED_PLATFORM_IDS: [&str; 2] = [
     PLATFORM_CODEX,
@@ -326,22 +310,7 @@ fn normalize_config(
 ) -> TrayLayoutConfig {
     let ordered_platform_ids = normalize_order(&config.ordered_platform_ids);
 
-    let raw_order_new_platforms: Vec<&str> = [
-        PLATFORM_KIRO,
-        PLATFORM_CURSOR,
-        PLATFORM_CODEBUDDY,
-        PLATFORM_CODEBUDDY_CN,
-        PLATFORM_QODER,
-        PLATFORM_TRAE,
-        PLATFORM_TRAE_SOLO,
-        PLATFORM_TRAE_CN,
-        PLATFORM_TRAE_SOLO_CN,
-        PLATFORM_WORKBUDDY,
-    ]
-    .iter()
-    .filter(|&&p| config.ordered_platform_ids.iter().any(|id| id.trim() == p))
-    .copied()
-    .collect();
+    let raw_order_new_platforms: Vec<&str> = Vec::new();
 
     let platform_groups = normalize_platform_groups(&config.platform_groups);
     let ordered_entry_ids = normalize_ordered_entries(
@@ -438,28 +407,29 @@ mod tests {
     fn assert_independent_platform_entries(config: &TrayLayoutConfig) {
         assert!(config.platform_groups.is_empty());
         assert_eq!(config.ordered_platform_ids, default_order());
+        assert_eq!(config.tray_platform_ids, default_tray_platforms());
         assert_eq!(
             config.ordered_entry_ids,
-            default_order()
-                .iter()
-                .map(|platform| format!("platform:{}", platform))
-                .collect::<Vec<_>>()
+            vec![
+                format!("platform:{}", PLATFORM_CODEX),
+                format!("platform:{}", PLATFORM_ANTIGRAVITY),
+            ]
         );
     }
 
     #[test]
-    fn defaults_show_all_platforms_independently() {
+    fn default_config_places_platforms_independently() {
         assert_independent_platform_entries(&TrayLayoutConfig::default());
     }
 
     #[test]
-    fn missing_groups_deserialize_without_creating_builtin_groups() {
+    fn empty_saved_config_leaves_all_supported_platforms_independently() {
         let config: TrayLayoutConfig = serde_json::from_str("{}").unwrap();
         assert_independent_platform_entries(&normalize_config(config, true));
     }
 
     #[test]
-    fn normalizing_empty_groups_does_not_create_a_trae_group() {
+    fn normalizing_empty_groups_keeps_independent_entries() {
         for legacy_migration in [false, true] {
             let config = normalize_config(TrayLayoutConfig::default(), legacy_migration);
             assert_independent_platform_entries(&config);
@@ -473,8 +443,8 @@ mod tests {
                 platform_groups: vec![TrayLayoutGroup {
                     id: "my-tools".to_string(),
                     name: "My tools".to_string(),
-                    platform_ids: vec![PLATFORM_CODEX.to_string(), PLATFORM_TRAE.to_string()],
-                    default_platform_id: PLATFORM_TRAE.to_string(),
+                    platform_ids: vec![PLATFORM_CODEX.to_string(), PLATFORM_ANTIGRAVITY.to_string()],
+                    default_platform_id: PLATFORM_ANTIGRAVITY.to_string(),
                 }],
                 ..TrayLayoutConfig::default()
             },
@@ -485,41 +455,10 @@ mod tests {
         let group = &config.platform_groups[0];
         assert_eq!(group.id, "my-tools");
         assert_eq!(group.name, "My tools");
-        assert_eq!(group.platform_ids, [PLATFORM_CODEX, PLATFORM_TRAE]);
-        assert_eq!(group.default_platform_id, PLATFORM_TRAE);
+        assert_eq!(group.platform_ids, [PLATFORM_CODEX, PLATFORM_ANTIGRAVITY]);
+        assert_eq!(group.default_platform_id, PLATFORM_ANTIGRAVITY);
         assert!(config
             .ordered_entry_ids
             .contains(&"group:my-tools".to_string()));
-        assert!(!config
-            .ordered_entry_ids
-            .contains(&"platform:trae".to_string()));
-        for platform in [PLATFORM_TRAE_SOLO, PLATFORM_TRAE_CN, PLATFORM_TRAE_SOLO_CN] {
-            assert!(config
-                .ordered_entry_ids
-                .contains(&format!("platform:{}", platform)));
-        }
-    }
-
-    #[test]
-    fn saved_builtin_named_groups_are_preserved_without_adding_members() {
-        let config: TrayLayoutConfig = serde_json::from_str(
-            r#"{
-                "platformGroups": [{
-                    "id": "trae-suite",
-                    "name": "My Trae",
-                    "platformIds": ["trae", "trae_solo"],
-                    "defaultPlatformId": "trae_solo"
-                }]
-            }"#,
-        )
-        .unwrap();
-        let normalized = normalize_config(config, true);
-
-        assert_eq!(normalized.platform_groups.len(), 1);
-        let group = &normalized.platform_groups[0];
-        assert_eq!(group.id, "trae-suite");
-        assert_eq!(group.name, "My Trae");
-        assert_eq!(group.platform_ids, [PLATFORM_TRAE, PLATFORM_TRAE_SOLO]);
-        assert_eq!(group.default_platform_id, PLATFORM_TRAE_SOLO);
     }
 }

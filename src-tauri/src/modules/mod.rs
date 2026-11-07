@@ -1,6 +1,5 @@
 pub mod account;
 pub mod account_index_repair;
-pub(crate) mod account_query_identity;
 pub(crate) mod background_maintenance;
 pub(crate) mod usage_rollup;
 pub mod announcement;
@@ -14,19 +13,7 @@ pub mod atomic_write;
 pub mod auto_local_import;
 pub mod backup_directory_recovery;
 pub mod backup_storage;
-pub mod claude_account;
-pub mod claude_desktop_gateway;
-pub(crate) mod claude_desktop_gateway_config;
-pub mod claude_instance;
 pub mod client_version;
-pub mod codebuddy_account;
-pub mod codebuddy_cn_account;
-pub mod codebuddy_cn_instance;
-pub mod codebuddy_cn_oauth;
-pub mod codebuddy_instance;
-pub mod codebuddy_oauth;
-pub mod codebuddy_session;
-pub mod codebuddy_session_transfer;
 pub mod codex_account;
 pub mod codex_device_restrictions;
 pub mod chatgpt_plan;
@@ -83,23 +70,12 @@ pub mod codex_wakeup;
 pub mod codex_wakeup_scheduler;
 pub mod codex_wakeup_confirmation;
 pub mod config;
-pub mod cursor_account;
-pub mod cursor_instance;
-pub mod cursor_oauth;
-#[path = "../../../crates/cockpit-core/src/modules/data_paths.rs"]
 pub mod data_paths;
 pub mod db;
 pub mod deferred_account_rewrite;
 pub mod diagnostics;
 pub mod external_import;
 pub mod floating_card_window;
-pub mod github_copilot_account;
-pub mod github_copilot_instance;
-pub mod github_copilot_oauth;
-pub mod grok_account;
-pub(crate) mod grok_client_version;
-pub mod grok_instance;
-pub mod grok_oauth;
 pub mod group_settings;
 pub mod hermes_auth;
 pub mod i18n;
@@ -108,9 +84,6 @@ pub mod instance;
 pub mod instance_storage_cleanup;
 pub mod instance_directory_ownership;
 pub mod instance_store;
-pub mod kiro_account;
-pub mod kiro_instance;
-pub mod kiro_oauth;
 pub mod linux_updater;
 pub mod logger;
 pub mod macos_native_menu;
@@ -126,9 +99,6 @@ pub mod process_memory;
 pub mod process_timeout;
 pub mod provider_current_state;
 pub mod provider_token_keeper;
-pub mod qoder_account;
-pub mod qoder_instance;
-pub mod qoder_oauth;
 pub mod quota;
 pub mod quota_cache;
 pub mod remote_config;
@@ -138,10 +108,6 @@ pub mod ssh_server;
 pub mod sync_settings;
 #[cfg(test)]
 pub mod test_support;
-pub mod trae_account;
-pub mod trae_instance;
-pub mod trae_oauth;
-pub mod trae_session_transfer;
 pub mod tray;
 pub mod tray_layout;
 pub mod ui_preferences;
@@ -160,23 +126,6 @@ pub mod webdav_sync;
 pub mod webkit_cache_maintenance;
 pub mod websocket;
 pub mod windows_operation;
-pub mod windsurf_account;
-pub mod windsurf_devin_oauth;
-pub mod windsurf_instance;
-pub mod windsurf_oauth;
-pub mod workbuddy_account;
-pub(crate) mod workbuddy_auth_crypto;
-pub mod workbuddy_auto_checkin;
-pub mod workbuddy_instance;
-pub mod workbuddy_oauth;
-pub mod workbuddy_session_transfer;
-pub mod workbuddy_webview;
-pub mod zcode_account;
-pub mod zcode_instance;
-pub mod zcode_oauth;
-pub mod zed_account;
-pub mod zed_instance;
-pub mod zed_oauth;
 
 // 重新导出常用函数
 pub use account::*;
@@ -192,6 +141,54 @@ pub mod codex_proxy_subscription_parser;
 pub mod codex_client_proxy;
 pub mod codex_proxy_targets;
 
-pub mod buddy_resource_api;
+pub(crate) mod workbuddy_instance {
+    use std::path::PathBuf;
+    pub fn resolve_workbuddy_runtime_dirs(user_data_dir: &str) -> Result<(PathBuf, PathBuf), String> {
+        let p = PathBuf::from(user_data_dir);
+        Ok((p.clone(), p))
+    }
+    pub fn get_default_workbuddy_user_data_dir() -> Result<PathBuf, String> {
+        Err("Workbuddy is disabled".to_string())
+    }
+}
 
-pub mod qoder_usage;
+pub(crate) mod qoder_instance {
+    use std::path::PathBuf;
+    pub fn get_default_qoder_user_data_dir() -> Result<PathBuf, String> {
+        Err("Qoder is disabled".to_string())
+    }
+}
+
+pub(crate) mod trae_account {
+    use std::path::PathBuf;
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+    pub enum TraePlatformKind {
+        Trae,
+        TraeSolo,
+        TraeCn,
+        TraeSoloCn,
+    }
+
+    impl TraePlatformKind {
+        pub fn parse(s: Option<&str>) -> Result<Self, String> {
+            match s.unwrap_or("trae") {
+                "trae_solo" | "trae-solo" => Ok(Self::TraeSolo),
+                "trae_cn" | "trae-cn" => Ok(Self::TraeCn),
+                "trae_solo_cn" | "trae-solo-cn" => Ok(Self::TraeSoloCn),
+                _ => Ok(Self::Trae),
+            }
+        }
+        pub fn display_name(&self) -> &'static str { "Trae" }
+        pub fn provider_key(&self) -> &'static str { "trae" }
+        pub fn app_support_dir_name(&self) -> &'static str { "Trae" }
+    }
+
+    pub fn get_default_trae_data_dir_for_platform(_platform: TraePlatformKind) -> Result<PathBuf, String> {
+        Err("Trae is disabled".to_string())
+    }
+
+    pub fn windows_trae_install_base_paths(_kind: TraePlatformKind) -> Vec<PathBuf> {
+        Vec::new()
+    }
+}
