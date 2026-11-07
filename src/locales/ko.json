@@ -816,7 +816,8 @@
       "pendingInit": "초기화 대기 중(먼저 한 번 실행하세요)",
       "quota": "쿼터",
       "lastLaunched": "마지막 실행",
-      "argsPresent": "인자 있음"
+      "argsPresent": "인자 있음",
+      "windowsUserTooltip": "독립된 Windows 사용자로 실행: {{user}}"
     },
     "columns": {
       "instance": "인스턴스",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "저장했습니다. 다음에 Cockpit에서 Codex를 시작할 때 적용되며 현재 세션은 변경되지 않습니다.",
         "restartRollbackFailed": "새 경로를 시작하지 못했고 원래 구성을 다시 시작할 수 없습니다: ",
         "restartRolledBack": "새 경로를 시작하지 못했습니다. 원래 구성이 복원되고 Codex가 다시 시작되었습니다: {{error}}"
-      }
+      },
+      "windowsUser": "Windows 사용자 (완전 격리)",
+      "windowsUserPlaceholder": "예: AntigravityUser (현재 사용자는 비워 둠)",
+      "windowsUserDesc": "독립된 Windows 사용자 아래에서 실행하여 Windows 자격 증명 관리자 및 로그인 세션을 완전히 격리합니다.",
+      "windowsPassword": "Windows 사용자 비밀번호",
+      "windowsPasswordPlaceholder": "Windows 사용자 비밀번호 입력 (설정된 경우)",
+      "windowsPasswordDesc": "CreateProcessWithLogonW에 사용됩니다. 비워 두거나 runas /savecred를 사용하는 경우 Windows에서 자격 증명을 캐시합니다."
     },
     "quota": {
       "unbound": "연결된 계정 없음",

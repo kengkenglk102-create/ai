@@ -816,7 +816,8 @@
       "pendingInit": "Chờ khởi tạo (hãy chạy một lần trước)",
       "quota": "Hạn ngạch",
       "lastLaunched": "Lần chạy cuối",
-      "argsPresent": "Có args"
+      "argsPresent": "Có args",
+      "windowsUserTooltip": "Khởi chạy dưới Windows User riêng: {{user}}"
     },
     "columns": {
       "instance": "Phiên bản",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Đã lưu. Thay đổi sẽ có hiệu lực vào lần tới khi bạn khởi động Codex qua Cockpit; phiên hiện tại vẫn giữ nguyên.",
         "restartRollbackFailed": "Không thể khởi động tuyến mới và không thể khởi động lại cấu hình gốc: ",
         "restartRolledBack": "Không thể khởi động tuyến mới. Cấu hình gốc đã được khôi phục và Codex đã khởi động lại: {{error}}"
-      }
+      },
+      "windowsUser": "Tài khoản Windows (Cách ly tuyệt đối)",
+      "windowsUserPlaceholder": "Ví dụ: AntigravityUser (Để trống nếu dùng user hiện tại)",
+      "windowsUserDesc": "Khởi chạy dưới một Windows User riêng biệt để cách ly hoàn toàn Windows Credential Manager và phiên đăng nhập.",
+      "windowsPassword": "Mật khẩu Windows User",
+      "windowsPasswordPlaceholder": "Nhập mật khẩu của Windows User (nếu có đặt)",
+      "windowsPasswordDesc": "Dùng cho CreateProcessWithLogonW. Nếu để trống hoặc dùng runas /savecred, Windows sẽ lưu xác thực."
     },
     "quota": {
       "unbound": "Tài khoản chưa liên kết",

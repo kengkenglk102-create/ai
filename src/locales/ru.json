@@ -816,7 +816,8 @@
       "pendingInit": "Ожидает инициализации (сначала запустите один раз)",
       "quota": "Квота",
       "lastLaunched": "Последний запуск",
-      "argsPresent": "Есть параметры"
+      "argsPresent": "Есть параметры",
+      "windowsUserTooltip": "Запуск под пользователем Windows: {{user}}"
     },
     "columns": {
       "instance": "Инстанс",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Сохранено. Изменение вступит в силу при следующем запуске Codex через Cockpit; текущий сеанс останется без изменений.",
         "restartRollbackFailed": "Не удалось запустить новый маршрут, и исходную конфигурацию не удалось перезапустить: ",
         "restartRolledBack": "Не удалось запустить новый маршрут. Исходная конфигурация восстановлена, Codex перезапущен: {{error}}"
-      }
+      },
+      "windowsUser": "Пользователь Windows (Полная изоляция)",
+      "windowsUserPlaceholder": "напр. AntigravityUser (Оставьте пустым для текущего пользователя)",
+      "windowsUserDesc": "Запуск под независимым пользователем Windows для полной изоляции Диспетчера учетных данных Windows и сеансов входа.",
+      "windowsPassword": "Пароль пользователя Windows",
+      "windowsPasswordPlaceholder": "Введите пароль пользователя Windows (если установлен)",
+      "windowsPasswordDesc": "Используется для CreateProcessWithLogonW. Если оставить пустым или использовать runas /savecred, Windows сохранит учетные данные в кэше."
     },
     "quota": {
       "unbound": "Аккаунт не привязан",

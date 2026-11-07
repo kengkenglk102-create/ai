@@ -186,6 +186,8 @@ pub fn create_instance(params: CreateInstanceParams) -> Result<InstanceProfile, 
         created_at: Utc::now().timestamp_millis(),
         last_launched_at: None,
         last_pid: None,
+    windows_user: None,
+    windows_password: None,
     };
 
     crate::modules::instance_directory_ownership::record_creation(

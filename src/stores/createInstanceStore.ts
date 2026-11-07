@@ -21,6 +21,8 @@ export type InstanceStoreState = {
     userDataDir: string;
     workingDir?: string | null;
     extraArgs?: string;
+    windowsUser?: string | null;
+    windowsPassword?: string | null;
     bindAccountId?: string | null;
     modelRouting?: CodexInstanceModelRouting | null;
     launchMode?: InstanceLaunchMode;
@@ -33,6 +35,8 @@ export type InstanceStoreState = {
     name?: string;
     workingDir?: string | null;
     extraArgs?: string;
+    windowsUser?: string | null;
+    windowsPassword?: string | null;
     bindAccountId?: string | null;
     modelRouting?: CodexInstanceModelRouting | null;
     followLocalAccount?: boolean;
@@ -56,6 +60,8 @@ type InstanceService = {
     userDataDir: string;
     workingDir?: string | null;
     extraArgs?: string;
+    windowsUser?: string | null;
+    windowsPassword?: string | null;
     bindAccountId?: string | null;
     modelRouting?: CodexInstanceModelRouting | null;
     launchMode?: InstanceLaunchMode;
@@ -68,6 +74,8 @@ type InstanceService = {
     name?: string;
     workingDir?: string | null;
     extraArgs?: string;
+    windowsUser?: string | null;
+    windowsPassword?: string | null;
     bindAccountId?: string | null;
     modelRouting?: CodexInstanceModelRouting | null;
     followLocalAccount?: boolean;

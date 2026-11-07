@@ -816,7 +816,8 @@
       "pendingInit": "In attesa di inizializzazione (avvia prima una volta)",
       "quota": "Quota​",
       "lastLaunched": "Ultimo avvio",
-      "argsPresent": "Arg presenti"
+      "argsPresent": "Arg presenti",
+      "windowsUserTooltip": "In esecuzione sotto l'utente Windows: {{user}}"
     },
     "columns": {
       "instance": "Istanza",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Salvato. La modifica verrà applicata al prossimo avvio di Codex tramite Cockpit; la sessione corrente resterà invariata.",
         "restartRollbackFailed": "Impossibile avviare la nuova route e impossibile riavviare la configurazione originale: ",
         "restartRolledBack": "Impossibile avviare la nuova route. La configurazione originale è stata ripristinata e Codex è stato riavviato: {{error}}"
-      }
+      },
+      "windowsUser": "Utente Windows (Isolamento assoluto)",
+      "windowsUserPlaceholder": "es. AntigravityUser (Lascia vuoto per l'utente corrente)",
+      "windowsUserDesc": "Avvia sotto un utente Windows indipendente per isolare completamente Gestione credenziali di Windows e le sessioni di accesso.",
+      "windowsPassword": "Password dell'utente Windows",
+      "windowsPasswordPlaceholder": "Inserisci la password dell'utente Windows (se impostata)",
+      "windowsPasswordDesc": "Utilizzato per CreateProcessWithLogonW. Se lasciato vuoto o usando runas /savecred, Windows memorizzerà le credenziali nella cache."
     },
     "quota": {
       "unbound": "Account non collegato",

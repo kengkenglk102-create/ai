@@ -11,7 +11,29 @@ use crate::models::{DefaultInstanceSettings, InstanceProfile, InstanceStore};
 use crate::modules;
 use crate::modules::instance_store;
 
-pub use crate::modules::instance_store::{CreateInstanceParams, UpdateInstanceParams};
+#[derive(Debug, Clone)]
+pub struct CreateInstanceParams {
+    pub name: String,
+    pub user_data_dir: String,
+    pub working_dir: Option<String>,
+    pub extra_args: String,
+    pub bind_account_id: Option<String>,
+    pub copy_source_instance_id: Option<String>,
+    pub init_mode: Option<String>,
+    pub windows_user: Option<String>,
+    pub windows_password: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct UpdateInstanceParams {
+    pub instance_id: String,
+    pub name: Option<String>,
+    pub working_dir: Option<String>,
+    pub extra_args: Option<String>,
+    pub bind_account_id: Option<Option<String>>,
+    pub windows_user: Option<Option<String>>,
+    pub windows_password: Option<Option<String>>,
+}
 
 static INSTANCE_STORE_LOCK: std::sync::LazyLock<Mutex<()>> =
     std::sync::LazyLock::new(|| Mutex::new(()));
@@ -55,6 +77,8 @@ pub fn update_default_settings(
     bind_account_id: Option<Option<String>>,
     extra_args: Option<String>,
     follow_local_account: Option<bool>,
+    windows_user: Option<Option<String>>,
+    windows_password: Option<Option<String>>,
 ) -> Result<DefaultInstanceSettings, String> {
     let _lock = INSTANCE_STORE_LOCK.lock().map_err(|_| "无法获取实例锁")?;
     let mut store = load_instance_store()?;
@@ -76,6 +100,14 @@ pub fn update_default_settings(
 
     if let Some(args) = extra_args {
         settings.extra_args = args.trim().to_string();
+    }
+
+    if let Some(user) = windows_user {
+        settings.windows_user = user;
+    }
+
+    if let Some(pwd) = windows_password {
+        settings.windows_password = pwd;
     }
 
     let updated = settings.clone();
@@ -192,7 +224,21 @@ pub fn inject_account_to_profile(profile_dir: &Path, account_id: &str) -> Result
     let account = modules::load_account(account_id)?;
     match resolve_auth_mode() {
         AntigravityDesktopAuthMode::SystemCredential => {
-            modules::antigravity_credential::write_antigravity_system_credential(&account)
+            let default_dir = get_default_user_data_dir().ok();
+            let is_default = default_dir.as_deref() == Some(profile_dir);
+            if is_default {
+                let _ = modules::antigravity_credential::write_antigravity_system_credential(&account);
+            }
+            // 始终为该实例配置隔离的 UserHome（含未来 mtime 的 keyring bypass marker 与独立 jetski token）
+            let _ = modules::antigravity_credential::prepare_isolated_antigravity_user_home(
+                profile_dir,
+                Some(&account),
+            );
+            // 尽力同步 state.vscdb，确保新旧版本/VS Code 基础均能正常读取凭据
+            if let Ok(db_path) = ensure_state_db_for_injection(profile_dir) {
+                let _ = modules::db::inject_account_token_to_path(&db_path, &account);
+            }
+            Ok(())
         }
         AntigravityDesktopAuthMode::LegacyStateDb => {
             let db_path = ensure_state_db_for_injection(profile_dir)?;
@@ -315,6 +361,8 @@ pub fn create_instance(params: CreateInstanceParams) -> Result<InstanceProfile, 
         created_at: Utc::now().timestamp_millis(),
         last_launched_at: None,
         last_pid: None,
+        windows_user: params.windows_user,
+        windows_password: params.windows_password,
     };
 
     crate::modules::instance_directory_ownership::record_creation(
@@ -362,6 +410,12 @@ pub fn update_instance(params: UpdateInstanceParams) -> Result<InstanceProfile, 
     }
     if let Some(bind) = params.bind_account_id.clone() {
         instance.bind_account_id = bind;
+    }
+    if let Some(user) = params.windows_user {
+        instance.windows_user = user;
+    }
+    if let Some(pwd) = params.windows_password {
+        instance.windows_password = pwd;
     }
 
     let updated = instance.clone();

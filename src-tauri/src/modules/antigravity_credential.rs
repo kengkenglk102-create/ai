@@ -78,7 +78,7 @@ fn parse_antigravity_system_credential(
     })
 }
 
-fn build_antigravity_credential_payload(account: &Account) -> Result<String, String> {
+pub fn build_antigravity_credential_payload(account: &Account) -> Result<String, String> {
     let expiry = chrono::DateTime::from_timestamp(account.token.expiry_timestamp, 0)
         .unwrap_or_else(chrono::Utc::now)
         .to_rfc3339_opts(chrono::SecondsFormat::Micros, true);
@@ -94,6 +94,96 @@ fn build_antigravity_credential_payload(account: &Account) -> Result<String, Str
         id_token: account.token.id_token.clone(),
     })
     .map_err(|e| format!("序列化 Antigravity 系统凭据失败: {}", e))
+}
+
+/// 为 Antigravity / Antigravity IDE 实例配置独立的用户环境（UserHome 隔离机制）
+/// 1. 创建 `<profile_dir>/UserHome/.gemini/cache`
+/// 2. 写入 `antigravity-keyring-unavailable` 与 `gemini-keyring-unavailable` 标记文件，
+///    并将文件修改时间（mtime）设置到未来（10 年后）。
+///    在 language_server.exe 与 agy.exe 的 Go 代码 `keyringRecentlyUnavailable` 中，
+///    `time.Since(modTime) < 1h` 会永远成立（负数 < 1h），彻底绕过全局 Windows Credential Manager，
+///    强制各自使用独立的 `.gemini/jetski-standalone-oauth-token`，永不串号！
+/// 3. 在 Windows 上通过目录联接（mklink /J）软连接真实目录的 `.gemini/bin` 与 `.gemini/config`，
+///    确保 Antigravity IDE 能直接找到 agy.exe 并保留插件/技能，无需重新下载 222MB。
+/// 4. 复制 onboarding 文件 `antigravity_state.pbtxt` 以跳过初次引导。
+/// 5. 若传入 account，将凭据写入 `<profile_dir>/UserHome/.gemini/jetski-standalone-oauth-token`。
+pub fn prepare_isolated_antigravity_user_home(
+    profile_dir: &std::path::Path,
+    account: Option<&Account>,
+) -> Result<std::path::PathBuf, String> {
+    let user_home = profile_dir.join("UserHome");
+    let gemini_dir = user_home.join(".gemini");
+    let cache_dir = gemini_dir.join("cache");
+
+    std::fs::create_dir_all(&cache_dir)
+        .map_err(|e| format!("创建隔离缓存目录失败: {}", e))?;
+
+    let future_time =
+        std::time::SystemTime::now() + std::time::Duration::from_secs(10 * 365 * 86400);
+    for marker_name in &["antigravity-keyring-unavailable", "gemini-keyring-unavailable"] {
+        let marker_path = cache_dir.join(marker_name);
+        if let Ok(file) = std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&marker_path)
+        {
+            let _ = file.set_modified(future_time);
+        }
+    }
+
+    if let Some(real_home) = dirs::home_dir() {
+        let real_gemini = real_home.join(".gemini");
+        let real_bin = real_gemini.join("bin");
+        let target_bin = gemini_dir.join("bin");
+        let real_config = real_gemini.join("config");
+        let target_config = gemini_dir.join("config");
+
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            for (src, dst) in [(&real_bin, &target_bin), (&real_config, &target_config)] {
+                if src.exists() && !dst.exists() {
+                    let _ = std::process::Command::new("cmd")
+                        .args([
+                            "/C",
+                            "mklink",
+                            "/J",
+                            &dst.to_string_lossy(),
+                            &src.to_string_lossy(),
+                        ])
+                        .creation_flags(0x08000000)
+                        .output();
+                }
+            }
+        }
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            for (src, dst) in [(&real_bin, &target_bin), (&real_config, &target_config)] {
+                if src.exists() && !dst.exists() {
+                    let _ = std::os::unix::fs::symlink(src, dst);
+                }
+            }
+        }
+
+        let real_state = real_gemini.join("antigravity").join("antigravity_state.pbtxt");
+        let target_ag_dir = gemini_dir.join("antigravity");
+        let target_state = target_ag_dir.join("antigravity_state.pbtxt");
+        if real_state.exists() && !target_state.exists() {
+            let _ = std::fs::create_dir_all(&target_ag_dir);
+            let _ = std::fs::copy(&real_state, &target_state);
+        }
+    }
+
+    if let Some(acc) = account {
+        let payload_json = build_antigravity_credential_payload(acc)?;
+        let fallback_path = gemini_dir.join("jetski-standalone-oauth-token");
+        crate::modules::atomic_write::write_secret_string_atomic(&fallback_path, &payload_json)
+            .map_err(|e| format!("写入独立 jetski 凭据失败: {}", e))?;
+    }
+
+    Ok(user_home)
 }
 
 pub fn write_antigravity_system_credential(account: &Account) -> Result<(), String> {

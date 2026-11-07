@@ -211,22 +211,6 @@ fn has_enabled_periodic_account_refresh(config: &modules::config::UserConfig) ->
     [
         config.auto_refresh_minutes,
         config.codex_auto_refresh_minutes,
-        config.zed_auto_refresh_minutes,
-        config.ghcp_auto_refresh_minutes,
-        config.windsurf_auto_refresh_minutes,
-        config.kiro_auto_refresh_minutes,
-        config.cursor_auto_refresh_minutes,
-        config.grok_auto_refresh_minutes,
-        config.claude_auto_refresh_minutes,
-        config.codebuddy_auto_refresh_minutes,
-        config.codebuddy_cn_auto_refresh_minutes,
-        config.workbuddy_auto_refresh_minutes,
-        config.qoder_auto_refresh_minutes,
-        config.zcode_auto_refresh_minutes,
-        config.trae_auto_refresh_minutes,
-        config.trae_solo_auto_refresh_minutes,
-        config.trae_cn_auto_refresh_minutes,
-        config.trae_solo_cn_auto_refresh_minutes,
     ]
     .into_iter()
     .any(|minutes| minutes > 0)
@@ -699,7 +683,6 @@ pub fn run() {
             }
 
             apply_startup_minimized(&app.handle());
-            modules::workbuddy_auto_checkin::start_auto_checkin_scheduler(app.handle().clone());
 
             Ok(())
         })

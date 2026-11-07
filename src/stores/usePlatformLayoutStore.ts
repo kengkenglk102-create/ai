@@ -5,24 +5,8 @@ import { persistPlatformLayout } from '../utils/uiPreferences';
 import { CLASSIC_SIDEBAR_ENTRY_LIMIT } from './useSideNavLayoutStore';
 
 const PLATFORM_LAYOUT_STORAGE_KEY = 'agtools.platform_layout.v1';
-const LEGACY_TRAY_CORE_IDS: PlatformId[] = ['antigravity', 'codex', 'github-copilot', 'windsurf'];
-const TRAY_MIGRATED_PLATFORM_IDS: PlatformId[] = [
-  'antigravity_ide',
-  'claude_manager',
-  'zed',
-  'kiro',
-  'cursor',
-  'grok',
-  'codebuddy',
-  'codebuddy_cn',
-  'qoder',
-  'zcode',
-  'trae',
-  'trae_solo',
-  'trae_cn',
-  'trae_solo_cn',
-  'workbuddy',
-];
+const LEGACY_TRAY_CORE_IDS: PlatformId[] = ['antigravity', 'codex'];
+const TRAY_MIGRATED_PLATFORM_IDS: PlatformId[] = ['antigravity_ide'];
 const DEFAULT_CODEBUDDY_GROUP_ID = 'codebuddy-suite';
 const DEFAULT_ANTIGRAVITY_GROUP_ID = 'antigravity-suite';
 const DEFAULT_TRAE_GROUP_ID = 'trae-suite';
@@ -462,7 +446,7 @@ function defaultSidebarEntryIds(
 }
 
 function defaultSidebarPlatformIds(): PlatformId[] {
-  return ['claude_manager', 'codex', 'antigravity', 'zed', 'github-copilot'];
+  return ['codex', 'antigravity', 'antigravity_ide'];
 }
 
 function normalizeHidden(hidden: PlatformId[]): PlatformId[] {

@@ -1059,7 +1059,8 @@
       "unbound": "Unbound",
       "pendingInit": "Pending initialization (start once)",
       "quota": "Quota",
-      "lastLaunched": "Last Launched"
+      "lastLaunched": "Last Launched",
+      "windowsUserTooltip": "Running under Windows User: {{user}}"
     },
     "columns": {
       "instance": "Instance",
@@ -1168,7 +1169,13 @@
       "appSpeed": "Speed",
       "appSpeedDesc": "Writes the selected speed before starting official Codex",
       "autoSyncThreads": "Auto-sync sessions",
-      "autoSyncThreadsDesc": "Off keeps multi-instance sessions isolated. When enabled, starting or closing an instance automatically merges local session records only after all Codex instances are stopped."
+      "autoSyncThreadsDesc": "Off keeps multi-instance sessions isolated. When enabled, starting or closing an instance automatically merges local session records only after all Codex instances are stopped.",
+      "windowsUser": "Windows User (Absolute Isolation)",
+      "windowsUserPlaceholder": "e.g. AntigravityUser (Leave empty for current user)",
+      "windowsUserDesc": "Launch under an independent Windows user to completely isolate Windows Credential Manager and login sessions.",
+      "windowsPassword": "Windows User Password",
+      "windowsPasswordPlaceholder": "Enter Windows user password (if set)",
+      "windowsPasswordDesc": "Used for CreateProcessWithLogonW. If left empty or using runas /savecred, Windows will cache credentials."
     },
     "quota": {
       "unbound": "No bound account",

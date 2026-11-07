@@ -23,11 +23,21 @@ export type PlatformId =
   | 'workbuddy';
 
 export const ALL_PLATFORM_IDS: PlatformId[] = [
-  'claude_manager',
   'codex',
   'codex_api_service',
   'antigravity',
   'antigravity_ide',
+];
+
+/** Platforms that do not own account lists (service / feature pages). */
+export const ACCOUNTLESS_PLATFORM_IDS: readonly PlatformId[] = ['codex_api_service'];
+
+export function isAccountPlatform(platformId: PlatformId): boolean {
+  return !ACCOUNTLESS_PLATFORM_IDS.includes(platformId);
+}
+
+export const MENU_HIDDEN_PLATFORM_IDS: PlatformId[] = [
+  'claude_manager',
   'zed',
   'github-copilot',
   'windsurf',
@@ -45,21 +55,12 @@ export const ALL_PLATFORM_IDS: PlatformId[] = [
   'workbuddy',
 ];
 
-/** Platforms that do not own account lists (service / feature pages). */
-export const ACCOUNTLESS_PLATFORM_IDS: readonly PlatformId[] = ['codex_api_service'];
-
-export function isAccountPlatform(platformId: PlatformId): boolean {
-  return !ACCOUNTLESS_PLATFORM_IDS.includes(platformId);
-}
-
-export const MENU_HIDDEN_PLATFORM_IDS: PlatformId[] = [];
-
 export const MENU_VISIBLE_PLATFORM_IDS: PlatformId[] = ALL_PLATFORM_IDS.filter(
   (platformId) => !MENU_HIDDEN_PLATFORM_IDS.includes(platformId),
 );
 
 export function isMenuVisiblePlatform(platformId: PlatformId): boolean {
-  return !MENU_HIDDEN_PLATFORM_IDS.includes(platformId);
+  return ALL_PLATFORM_IDS.includes(platformId) && !MENU_HIDDEN_PLATFORM_IDS.includes(platformId);
 }
 
 export const PLATFORM_PAGE_MAP: Record<PlatformId, Page> = {

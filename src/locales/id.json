@@ -875,7 +875,8 @@
       "pendingInit": "Menunggu inisialisasi (jalankan sekali)",
       "quota": "Kuota",
       "lastLaunched": "Terakhir Diluncurkan",
-      "argsPresent": "Arg aktif"
+      "argsPresent": "Arg aktif",
+      "windowsUserTooltip": "Berjalan di bawah Pengguna Windows: {{user}}"
     },
     "columns": {
       "instance": "Instansi",
@@ -984,7 +985,13 @@
         "savedForNextLaunch": "Tersimpan. Perubahan akan berlaku saat Codex berikutnya dijalankan melalui Cockpit; sesi saat ini tetap tidak berubah.",
         "restartRollbackFailed": "Rute baru gagal dimulai dan konfigurasi asli tidak dapat dimulai ulang: ",
         "restartRolledBack": "Rute baru gagal dimulai. Konfigurasi asli telah dipulihkan dan Codex dimulai ulang: {{error}}"
-      }
+      },
+      "windowsUser": "Pengguna Windows (Isolasi Mutlak)",
+      "windowsUserPlaceholder": "mis. AntigravityUser (Biarkan kosong untuk pengguna saat ini)",
+      "windowsUserDesc": "Luncurkan di bawah pengguna Windows independen untuk sepenuhnya mengisolasi Pengelola Kredensial Windows dan sesi masuk.",
+      "windowsPassword": "Kata Sandi Pengguna Windows",
+      "windowsPasswordPlaceholder": "Masukkan kata sandi pengguna Windows (jika ada)",
+      "windowsPasswordDesc": "Digunakan untuk CreateProcessWithLogonW. Jika dikosongkan atau menggunakan runas /savecred, Windows akan menyimpan cache kredensial."
     },
     "quota": {
       "unbound": "Tidak ada akun tertaut",

@@ -27,25 +27,9 @@ pub const PLATFORM_TRAE_CN: &str = "trae_cn";
 pub const PLATFORM_TRAE_SOLO_CN: &str = "trae_solo_cn";
 pub const PLATFORM_WORKBUDDY: &str = "workbuddy";
 
-pub const SUPPORTED_PLATFORM_IDS: [&str; 18] = [
-    PLATFORM_CLAUDE_MANAGER,
+pub const SUPPORTED_PLATFORM_IDS: [&str; 2] = [
     PLATFORM_CODEX,
     PLATFORM_ANTIGRAVITY,
-    PLATFORM_ZED,
-    PLATFORM_GITHUB_COPILOT,
-    PLATFORM_WINDSURF,
-    PLATFORM_KIRO,
-    PLATFORM_CURSOR,
-    PLATFORM_GROK,
-    PLATFORM_CODEBUDDY,
-    PLATFORM_CODEBUDDY_CN,
-    PLATFORM_QODER,
-    PLATFORM_ZCODE,
-    PLATFORM_TRAE,
-    PLATFORM_TRAE_SOLO,
-    PLATFORM_TRAE_CN,
-    PLATFORM_TRAE_SOLO_CN,
-    PLATFORM_WORKBUDDY,
 ];
 
 pub const SORT_MODE_AUTO: &str = "auto";
@@ -117,24 +101,8 @@ fn get_tray_layout_path() -> Result<PathBuf, String> {
 
 fn normalize_platform_id(id: &str) -> Option<&'static str> {
     match id.trim() {
-        PLATFORM_CLAUDE_MANAGER => Some(PLATFORM_CLAUDE_MANAGER),
         PLATFORM_ANTIGRAVITY => Some(PLATFORM_ANTIGRAVITY),
         PLATFORM_CODEX => Some(PLATFORM_CODEX),
-        PLATFORM_ZED => Some(PLATFORM_ZED),
-        PLATFORM_GITHUB_COPILOT => Some(PLATFORM_GITHUB_COPILOT),
-        PLATFORM_WINDSURF => Some(PLATFORM_WINDSURF),
-        PLATFORM_KIRO => Some(PLATFORM_KIRO),
-        PLATFORM_CURSOR => Some(PLATFORM_CURSOR),
-        PLATFORM_GROK => Some(PLATFORM_GROK),
-        PLATFORM_CODEBUDDY => Some(PLATFORM_CODEBUDDY),
-        PLATFORM_CODEBUDDY_CN => Some(PLATFORM_CODEBUDDY_CN),
-        PLATFORM_QODER => Some(PLATFORM_QODER),
-        PLATFORM_ZCODE => Some(PLATFORM_ZCODE),
-        PLATFORM_TRAE => Some(PLATFORM_TRAE),
-        PLATFORM_TRAE_SOLO | "trae-solo" => Some(PLATFORM_TRAE_SOLO),
-        PLATFORM_TRAE_CN | "trae-cn" => Some(PLATFORM_TRAE_CN),
-        PLATFORM_TRAE_SOLO_CN | "trae-solo-cn" => Some(PLATFORM_TRAE_SOLO_CN),
-        PLATFORM_WORKBUDDY => Some(PLATFORM_WORKBUDDY),
         _ => None,
     }
 }
@@ -169,46 +137,10 @@ fn contains_platform(ids: &[String], target: &str) -> bool {
 
 fn normalize_tray_platforms(
     ids: &[String],
-    raw_order_has_new: &[&str],
-    allow_legacy_migration: bool,
+    _raw_order_has_new: &[&str],
+    _allow_legacy_migration: bool,
 ) -> Vec<String> {
-    let mut sanitized = sanitize_platform_ids(ids);
-
-    if !allow_legacy_migration {
-        return sanitized;
-    }
-
-    let has_legacy_all = contains_platform(&sanitized, PLATFORM_ANTIGRAVITY)
-        && contains_platform(&sanitized, PLATFORM_CODEX)
-        && contains_platform(&sanitized, PLATFORM_GITHUB_COPILOT)
-        && contains_platform(&sanitized, PLATFORM_WINDSURF);
-
-    for &new_platform in &[
-        PLATFORM_ZED,
-        PLATFORM_KIRO,
-        PLATFORM_CURSOR,
-        PLATFORM_CODEBUDDY,
-        PLATFORM_CODEBUDDY_CN,
-        PLATFORM_QODER,
-        PLATFORM_ZCODE,
-        PLATFORM_TRAE,
-        PLATFORM_TRAE_SOLO,
-        PLATFORM_TRAE_CN,
-        PLATFORM_TRAE_SOLO_CN,
-        PLATFORM_WORKBUDDY,
-    ] {
-        let already_present = contains_platform(&sanitized, new_platform);
-        let was_in_raw_order = raw_order_has_new.contains(&new_platform);
-        let looks_like_old_default = !already_present
-            && has_legacy_all
-            && sanitized.len() <= SUPPORTED_PLATFORM_IDS.len().saturating_sub(1);
-
-        if !was_in_raw_order && !already_present && looks_like_old_default {
-            sanitized.push(new_platform.to_string());
-        }
-    }
-
-    sanitized
+    sanitize_platform_ids(ids)
 }
 
 fn normalize_sort_mode(raw: &str) -> String {

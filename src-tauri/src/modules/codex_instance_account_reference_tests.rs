@@ -35,6 +35,8 @@ fn key_rotation_migrates_default_and_managed_gateway_bindings_and_routes() {
         created_at: 0,
         last_launched_at: None,
         last_pid: None,
+    windows_user: None,
+    windows_password: None,
     });
     assert!(replace_instance_store_account_references(
         &mut store, old, new

@@ -2384,6 +2384,8 @@ pub async fn switch_account_internal(account_id: &str) -> Result<Account, String
         Some(Some(account_id.to_string())),
         None,
         Some(false),
+        None,
+        None,
     ) {
         modules::logger::log_warn(&format!("[Switch] 更新默认实例绑定账号失败: {}", e));
     }
@@ -2710,6 +2712,8 @@ pub async fn switch_account_local_no_restart(account_id: &str) -> Result<Account
         Some(Some(account_id.to_string())),
         None,
         Some(false),
+        None,
+        None,
     ) {
         modules::logger::log_warn(&format!(
             "[Switch][NoRestart] 更新默认实例绑定账号失败: {}",

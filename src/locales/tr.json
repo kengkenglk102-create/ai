@@ -816,7 +816,8 @@
       "pendingInit": "Başlatma bekleniyor (önce bir kez çalıştırın)",
       "quota": "Kota",
       "lastLaunched": "Son başlatma",
-      "argsPresent": "Arg var"
+      "argsPresent": "Arg var",
+      "windowsUserTooltip": "Windows kullanıcısı altında çalışıyor: {{user}}"
     },
     "columns": {
       "instance": "Oturum",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Kaydedildi. Değişiklik, Codex'i bir sonraki kez Cockpit üzerinden başlattığınızda uygulanacak; mevcut oturum değişmeyecek.",
         "restartRollbackFailed": "Yeni rota başlatılamadı ve orijinal yapılandırma yeniden başlatılamadı: ",
         "restartRolledBack": "Yeni rota başlatılamadı. Orijinal yapılandırma geri yüklendi ve Codex yeniden başlatıldı: {{error}}"
-      }
+      },
+      "windowsUser": "Windows Kullanıcısı (Mutlak Yalıtım)",
+      "windowsUserPlaceholder": "örn. AntigravityUser (Geçerli kullanıcı için boş bırakın)",
+      "windowsUserDesc": "Windows Kimlik Bilgileri Yöneticisi'ni ve oturum açma oturumlarını tamamen yalıtmak için bağımsız bir Windows kullanıcısı altında başlatın.",
+      "windowsPassword": "Windows Kullanıcı Parolası",
+      "windowsPasswordPlaceholder": "Windows kullanıcı parolasını girin (ayarlanmışsa)",
+      "windowsPasswordDesc": "CreateProcessWithLogonW için kullanılır. Boş bırakılırsa veya runas /savecred kullanılırsa Windows kimlik bilgilerini önbelleğe alır."
     },
     "quota": {
       "unbound": "Hesap bağlı değil",

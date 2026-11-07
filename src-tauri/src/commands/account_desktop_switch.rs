@@ -75,7 +75,17 @@ pub(crate) async fn switch_account_desktop(
                         modules::logger::log_info("[Antigravity] 使用系统凭据认证模式写入账号");
                         modules::antigravity_credential::write_antigravity_system_credential(
                             &account,
-                        )
+                        )?;
+                        if let Ok(default_dir) = legacy_antigravity_user_data_dir() {
+                            let _ = modules::antigravity_credential::prepare_isolated_antigravity_user_home(
+                                &default_dir,
+                                Some(&account),
+                            );
+                            if let Ok(db_path) = legacy_antigravity_state_db_path() {
+                                let _ = modules::db::inject_account_token_to_path(&db_path, &account);
+                            }
+                        }
+                        Ok(())
                     }
                     AntigravityDesktopAuthMode::LegacyStateDb => {
                         modules::logger::log_info("[Antigravity] 使用旧版 SQLite 认证模式写入账号");
@@ -89,6 +99,8 @@ pub(crate) async fn switch_account_desktop(
                     Some(Some(account.id.clone())),
                     None,
                     Some(false),
+                    None,
+                    None,
                 ) {
                     // Preserve the UI's existing best-effort binding behavior.
                     modules::logger::log_warn(&format!(
@@ -101,7 +113,12 @@ pub(crate) async fn switch_account_desktop(
             || {
                 let settings = modules::antigravity_legacy_instance::load_default_settings()?;
                 let args = modules::process::parse_extra_args(&settings.extra_args);
-                let pid = modules::process::start_antigravity_legacy_with_args("", &args)?;
+                let pid = modules::process::start_antigravity_legacy_with_options(
+                    "",
+                    &args,
+                    settings.windows_user.as_deref(),
+                    settings.windows_password.as_deref(),
+                )?;
                 if let Err(error) =
                     modules::antigravity_legacy_instance::update_default_pid(Some(pid))
                 {

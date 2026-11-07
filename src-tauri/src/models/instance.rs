@@ -78,6 +78,10 @@ pub struct InstanceProfile {
     pub last_launched_at: Option<i64>,
     #[serde(default)]
     pub last_pid: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub windows_user: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub windows_password: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -118,6 +122,10 @@ pub struct DefaultInstanceSettings {
     pub auto_sync_threads: bool,
     #[serde(default)]
     pub last_pid: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub windows_user: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub windows_password: Option<String>,
 }
 
 fn default_follow_local_account() -> bool {
@@ -136,6 +144,8 @@ impl Default for DefaultInstanceSettings {
             follow_local_account: true,
             auto_sync_threads: false,
             last_pid: None,
+            windows_user: None,
+            windows_password: None,
         }
     }
 }
@@ -156,6 +166,8 @@ pub struct InstanceProfileView {
     pub initialized: bool,
     pub is_default: bool,
     pub follow_local_account: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub windows_user: Option<String>,
 }
 
 impl InstanceProfileView {
@@ -174,6 +186,7 @@ impl InstanceProfileView {
             initialized,
             is_default: false,
             follow_local_account: false,
+            windows_user: profile.windows_user,
         }
     }
 }

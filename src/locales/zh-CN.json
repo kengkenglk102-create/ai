@@ -1059,7 +1059,8 @@
       "unbound": "未绑定",
       "pendingInit": "待初始化（先启动一次）",
       "quota": "配额",
-      "lastLaunched": "上次启动"
+      "lastLaunched": "上次启动",
+      "windowsUserTooltip": "在独立 Windows 用户下启动：{{user}}"
     },
     "columns": {
       "instance": "实例",
@@ -1168,7 +1169,13 @@
       "appSpeed": "速度",
       "appSpeedDesc": "启动官方 Codex 前写入对应速度",
       "autoSyncThreads": "自动同步会话",
-      "autoSyncThreadsDesc": "关闭时保持多实例会话隔离；开启后仅在所有 Codex 实例已停止时，启动或关闭实例会自动合并本地会话记录。"
+      "autoSyncThreadsDesc": "关闭时保持多实例会话隔离；开启后仅在所有 Codex 实例已停止时，启动或关闭实例会自动合并本地会话记录。",
+      "windowsUser": "Windows 用户（绝对隔离）",
+      "windowsUserPlaceholder": "例如：AntigravityUser（留空使用当前用户）",
+      "windowsUserDesc": "在独立的 Windows 用户下启动，彻底隔离 Windows 凭据管理器与登录会话。",
+      "windowsPassword": "Windows 用户密码",
+      "windowsPasswordPlaceholder": "输入 Windows 用户密码（如有）",
+      "windowsPasswordDesc": "用于 CreateProcessWithLogonW。若留空或使用 runas /savecred，Windows 将缓存凭据。"
     },
     "quota": {
       "unbound": "未绑定账号",

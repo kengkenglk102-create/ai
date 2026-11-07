@@ -216,26 +216,10 @@ pub(crate) enum PlatformId {
 }
 
 impl PlatformId {
-    pub(crate) fn default_order() -> [Self; 18] {
+    pub(crate) fn default_order() -> [Self; 2] {
         [
-            Self::Claude,
             Self::Codex,
             Self::Antigravity,
-            Self::Zed,
-            Self::GitHubCopilot,
-            Self::Windsurf,
-            Self::Kiro,
-            Self::Cursor,
-            Self::Grok,
-            Self::Codebuddy,
-            Self::CodebuddyCn,
-            Self::Qoder,
-            Self::Zcode,
-            Self::Trae,
-            Self::TraeSolo,
-            Self::TraeCn,
-            Self::TraeSoloCn,
-            Self::Workbuddy,
         ]
     }
 

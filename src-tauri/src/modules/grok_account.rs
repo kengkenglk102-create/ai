@@ -3398,6 +3398,8 @@ mod tests {
                 created_at: 1,
                 last_launched_at: None,
                 last_pid: None,
+            windows_user: None,
+            windows_password: None,
             }],
             default_settings: DefaultInstanceSettings {
                 bind_account_id: Some(account.id.clone()),

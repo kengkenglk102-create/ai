@@ -816,7 +816,8 @@
       "pendingInit": "Čeká na inicializaci (nejprve jednou spusťte)",
       "quota": "Kvóta",
       "lastLaunched": "Poslední spuštění",
-      "argsPresent": "Nastaveno"
+      "argsPresent": "Nastaveno",
+      "windowsUserTooltip": "Běží pod uživatelem Windows: {{user}}"
     },
     "columns": {
       "instance": "Instance​",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Uloženo. Změna se projeví při příštím spuštění Codexu přes Cockpit; aktuální relace zůstane beze změny.",
         "restartRollbackFailed": "Nová trasa se nepodařila spustit a původní konfiguraci nebylo možné restartovat: ",
         "restartRolledBack": "Nová trasa se nepodařila spustit. Byla obnovena původní konfigurace a Codex byl restartován: {{error}}"
-      }
+      },
+      "windowsUser": "Uživatel Windows (Absolutní izolace)",
+      "windowsUserPlaceholder": "např. AntigravityUser (Pro aktuálního uživatele ponechte prázdné)",
+      "windowsUserDesc": "Spusťte pod nezávislým uživatelem Windows pro úplnou izolaci Správce pověření systému Windows a relací přihlášení.",
+      "windowsPassword": "Heslo uživatele Windows",
+      "windowsPasswordPlaceholder": "Zadejte heslo uživatele Windows (pokud je nastaveno)",
+      "windowsPasswordDesc": "Používá se pro CreateProcessWithLogonW. Pokud zůstane prázdné nebo se použije runas /savecred, systém Windows pověření uloží do mezipaměti."
     },
     "quota": {
       "unbound": "Účet není propojen",

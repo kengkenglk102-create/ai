@@ -144,6 +144,70 @@ pub fn all_antigravity_user_data_dirs() -> Vec<PathBuf> {
     results
 }
 
+/// 仅获取 Antigravity IDE 相关的用户数据目录，避免切号时干扰独立的 Antigravity Desktop
+pub fn all_antigravity_ide_user_data_dirs() -> Vec<PathBuf> {
+    let mut results = Vec::new();
+    #[cfg(target_os = "windows")]
+    if let Ok(roaming_dir) = roaming_app_data_dir() {
+        let ide_dir = roaming_dir.join("Antigravity IDE");
+        if ide_dir.exists() {
+            results.push(ide_dir);
+        }
+    }
+    #[cfg(target_os = "macos")]
+    if let Some(home) = dirs::home_dir() {
+        let ide_dir = home.join("Library/Application Support/Antigravity IDE");
+        if ide_dir.exists() {
+            results.push(ide_dir);
+        }
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(home) = dirs::home_dir() {
+        let ide_dir = home.join(".config/Antigravity IDE");
+        if ide_dir.exists() {
+            results.push(ide_dir);
+        }
+    }
+    if results.is_empty() {
+        if let Ok(default_dir) = default_user_data_dir() {
+            results.push(default_dir);
+        }
+    }
+    results
+}
+
+/// 仅获取 Antigravity (Standalone Desktop) 相关的用户数据目录
+pub fn all_antigravity_legacy_user_data_dirs() -> Vec<PathBuf> {
+    let mut results = Vec::new();
+    #[cfg(target_os = "windows")]
+    if let Ok(roaming_dir) = roaming_app_data_dir() {
+        let legacy_dir = roaming_dir.join("Antigravity");
+        if legacy_dir.exists() {
+            results.push(legacy_dir);
+        }
+    }
+    #[cfg(target_os = "macos")]
+    if let Some(home) = dirs::home_dir() {
+        let app_dir = home.join("Library/Application Support/Antigravity");
+        if app_dir.exists() {
+            results.push(app_dir);
+        }
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(home) = dirs::home_dir() {
+        let app_dir = home.join(".config/Antigravity");
+        if app_dir.exists() {
+            results.push(app_dir);
+        }
+    }
+    if results.is_empty() {
+        if let Ok(default_dir) = legacy_default_user_data_dir() {
+            results.push(default_dir);
+        }
+    }
+    results
+}
+
 pub fn managed_instances_root_dir() -> Result<PathBuf, String> {
     crate::modules::data_paths::managed_instances_root_dir("antigravity")
 }

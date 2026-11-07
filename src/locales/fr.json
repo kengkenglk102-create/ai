@@ -816,7 +816,8 @@
       "pendingInit": "En attente d'initialisation (démarrez une fois d'abord)",
       "quota": "Quota​",
       "lastLaunched": "Dernier lancement",
-      "argsPresent": "Args définis"
+      "argsPresent": "Args définis",
+      "windowsUserTooltip": "Exécution sous l'utilisateur Windows : {{user}}"
     },
     "columns": {
       "instance": "Exemple",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Enregistré. La modification s’appliquera au prochain démarrage de Codex via Cockpit ; la session actuelle reste inchangée.",
         "restartRollbackFailed": "La nouvelle route n'a pas pu démarrer et la configuration d'origine n'a pas pu être redémarrée : ",
         "restartRolledBack": "La nouvelle route n'a pas pu démarrer. La configuration d'origine a été restaurée et Codex a redémarré : {{error}}"
-      }
+      },
+      "windowsUser": "Utilisateur Windows (Isolation absolue)",
+      "windowsUserPlaceholder": "ex. AntigravityUser (Laisser vide pour l'utilisateur actuel)",
+      "windowsUserDesc": "Lancer sous un utilisateur Windows indépendant pour isoler complètement le Gestionnaire d'identification Windows et les sessions de connexion.",
+      "windowsPassword": "Mot de passe de l'utilisateur Windows",
+      "windowsPasswordPlaceholder": "Entrez le mot de passe de l'utilisateur Windows (si défini)",
+      "windowsPasswordDesc": "Utilisé pour CreateProcessWithLogonW. Si laissé vide ou en utilisant runas /savecred, Windows mettra en cache les informations d'identification."
     },
     "quota": {
       "unbound": "Compte non lié",

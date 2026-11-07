@@ -34,6 +34,8 @@ type InstancePayload = {
   appSpeed?: CodexAppSpeed;
   copySourceInstanceId: string;
   initMode?: InstanceInitMode;
+  windowsUser?: string | null;
+  windowsPassword?: string | null;
 };
 
 type UpdateInstancePayload = {
@@ -46,6 +48,8 @@ type UpdateInstancePayload = {
   launchMode?: InstanceLaunchMode;
   appSpeed?: CodexAppSpeed;
   autoSyncThreads?: boolean;
+  windowsUser?: string | null;
+  windowsPassword?: string | null;
 };
 
 export type PlatformInstanceService = {
@@ -86,6 +90,8 @@ export function createPlatformInstanceService(
         appSpeed: payload.appSpeed ?? "standard",
         copySourceInstanceId: payload.copySourceInstanceId,
         initMode: payload.initMode ?? "copy",
+        windowsUser: payload.windowsUser ?? null,
+        windowsPassword: payload.windowsPassword ?? null,
       });
     },
 
@@ -113,6 +119,12 @@ export function createPlatformInstanceService(
       }
       if (payload.autoSyncThreads !== undefined) {
         body.autoSyncThreads = payload.autoSyncThreads;
+      }
+      if (payload.windowsUser !== undefined) {
+        body.windowsUser = payload.windowsUser;
+      }
+      if (payload.windowsPassword !== undefined) {
+        body.windowsPassword = payload.windowsPassword;
       }
       return await invoke(commandFor(prefix, "update_instance"), body);
     },

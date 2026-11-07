@@ -51,6 +51,8 @@ export interface InstanceProfile {
   followLocalAccount?: boolean;
   autoSyncThreads?: boolean;
   codexLaunchCredentialChange?: CodexLaunchCredentialChange | null;
+  windowsUser?: string | null;
+  windowsPassword?: string | null;
 }
 
 export type InstanceInitMode = "copy" | "empty" | "existingDir";

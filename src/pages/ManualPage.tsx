@@ -175,9 +175,6 @@ export function ManualPage({ onNavigate, onOpenPlatformLayout }: ManualPageProps
         ],
         actions: [
           { id: 'go-codex', kind: 'navigate', page: 'codex', label: t('manual.actions.goCodex', '前往 Codex'), primary: true },
-          { id: 'go-ghcp', kind: 'navigate', page: 'github-copilot', label: t('manual.actions.goGitHubCopilot', '前往 GitHub Copilot') },
-          { id: 'go-windsurf', kind: 'navigate', page: 'windsurf', label: t('manual.actions.goWindsurf', '前往 Windsurf') },
-          { id: 'go-kiro', kind: 'navigate', page: 'kiro', label: t('manual.actions.goKiro', '前往 Kiro') },
         ],
       },
       {

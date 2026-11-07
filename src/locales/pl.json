@@ -816,7 +816,8 @@
       "pendingInit": "Oczekuje na inicjalizację (najpierw uruchom raz)",
       "quota": "Limit",
       "lastLaunched": "Ostatnie uruchomienie",
-      "argsPresent": "Ustawione"
+      "argsPresent": "Ustawione",
+      "windowsUserTooltip": "Uruchomiono jako użytkownik systemu Windows: {{user}}"
     },
     "columns": {
       "instance": "Instancja",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Zapisano. Zmiana zostanie zastosowana przy następnym uruchomieniu Codex przez Cockpit; bieżąca sesja pozostanie bez zmian.",
         "restartRollbackFailed": "Nie udało się uruchomić nowej trasy i nie można zrestartować pierwotnej konfiguracji: ",
         "restartRolledBack": "Nie udało się uruchomić nowej trasy. Przywrócono pierwotną konfigurację i zrestartowano Codex: {{error}}"
-      }
+      },
+      "windowsUser": "Użytkownik systemu Windows (Całkowita izolacja)",
+      "windowsUserPlaceholder": "np. AntigravityUser (Pozostaw puste dla bieżącego użytkownika)",
+      "windowsUserDesc": "Uruchom pod niezależnym użytkownikiem systemu Windows, aby całkowicie odizolować Menedżera poświadczeń systemu Windows i sesje logowania.",
+      "windowsPassword": "Hasło użytkownika systemu Windows",
+      "windowsPasswordPlaceholder": "Wprowadź hasło użytkownika systemu Windows (jeśli jest ustawione)",
+      "windowsPasswordDesc": "Używane do CreateProcessWithLogonW. Jeśli pozostawione puste lub przy użyciu runas /savecred, system Windows zapamięta poświadczenia w pamięci podręcznej."
     },
     "quota": {
       "unbound": "Konto niepowiązane",

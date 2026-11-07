@@ -286,7 +286,7 @@
   margin-left: 0;
 } /* 状态 - 紧挨实例 */
 .instances-list-header > div:nth-child(4) {
-  width: 320px;
+  width: 360px;
   flex-shrink: 0;
   margin-left: auto;
 } /* 账号 */
@@ -349,7 +349,7 @@
   margin-left: 0;
 } /* 状态 - 紧挨实例 */
 .instance-item > div:nth-child(4) {
-  width: 320px;
+  width: 360px;
   flex-shrink: 0;
   margin-left: auto;
 } /* 账号 */
@@ -1389,7 +1389,7 @@
 .instances-page .account-select {
   position: relative;
   width: 100%;
-  min-width: 345px;
+  min-width: 0;
   max-width: 100%;
   display: flex;
   align-items: center;

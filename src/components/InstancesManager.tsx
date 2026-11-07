@@ -669,6 +669,8 @@ export function InstancesManager<TAccount extends AccountLike>({
   const [formPath, setFormPath] = useState("");
   const [formWorkingDir, setFormWorkingDir] = useState("");
   const [formExtraArgs, setFormExtraArgs] = useState("");
+  const [formWindowsUser, setFormWindowsUser] = useState("");
+  const [formWindowsPassword, setFormWindowsPassword] = useState("");
   const [formInitMode, setFormInitMode] = useState<InstanceInitMode>("empty");
   const [formLaunchMode, setFormLaunchMode] =
     useState<InstanceLaunchMode>("app");
@@ -1088,6 +1090,8 @@ export function InstancesManager<TAccount extends AccountLike>({
     setFormCodexQuickConfigError(null);
     setFormCodexOpenConfigLoading(false);
     setFormCopySourceInstanceId(defaultInstanceId);
+    setFormWindowsUser("");
+    setFormWindowsPassword("");
     setFormError(null);
     setPathAuto(true);
   };
@@ -1171,6 +1175,8 @@ export function InstancesManager<TAccount extends AccountLike>({
     setFormCodexQuickConfigLoading(isCodexApp);
     setFormCodexQuickConfigError(null);
     setFormCodexOpenConfigLoading(false);
+    setFormWindowsUser(instance.windowsUser || "");
+    setFormWindowsPassword("");
     setFormError(null);
     setPathAuto(false);
     setShowModal(true);
@@ -1552,6 +1558,8 @@ export function InstancesManager<TAccount extends AccountLike>({
           name?: string;
           workingDir?: string | null;
           extraArgs?: string;
+          windowsUser?: string | null;
+          windowsPassword?: string | null;
           bindAccountId?: string | null;
           modelRouting?: CodexInstanceModelRouting | null;
           followLocalAccount?: boolean;
@@ -1562,6 +1570,8 @@ export function InstancesManager<TAccount extends AccountLike>({
           instanceId: editing.id,
           workingDir: nextWorkingDir,
           extraArgs: formExtraArgs,
+          windowsUser: formWindowsUser.trim() || null,
+          windowsPassword: formWindowsPassword || null,
           launchMode: nextLaunchMode,
           appSpeed: isCodexApp ? formAppSpeed : undefined,
         };
@@ -1649,6 +1659,8 @@ export function InstancesManager<TAccount extends AccountLike>({
           userDataDir: formPath.trim(),
           workingDir: nextWorkingDir,
           extraArgs: formExtraArgs,
+          windowsUser: formWindowsUser.trim() || null,
+          windowsPassword: formWindowsPassword || null,
           initMode: isGrokApp ? "empty" : formInitMode,
           launchMode: nextLaunchMode,
           appSpeed: isCodexApp ? formAppSpeed : undefined,
@@ -2850,6 +2862,25 @@ export function InstancesManager<TAccount extends AccountLike>({
                         )}
                       </span>
                     )}
+                    {instance.windowsUser?.trim() && (
+                      <span
+                        className="instance-launch-mode-badge app"
+                        title={t(
+                          "instances.labels.windowsUserTooltip",
+                          "Khởi chạy dưới Windows User riêng: {{user}}",
+                          { user: instance.windowsUser },
+                        )}
+                        style={{
+                          fontSize: "11px",
+                          padding: "1px 6px",
+                          background: "rgba(59, 130, 246, 0.15)",
+                          color: "#2563eb",
+                          border: "1px solid rgba(59, 130, 246, 0.3)",
+                        }}
+                      >
+                        👤 {instance.windowsUser}
+                      </span>
+                    )}
                   </div>
                   {instance.extraArgs?.trim() && (
                     <div className="instance-sub-info">
@@ -3629,6 +3660,52 @@ export function InstancesManager<TAccount extends AccountLike>({
                   )}
                 </p>
               </div>
+
+              <div className="form-group">
+                <label>
+                  {t("instances.form.windowsUser", "Tài khoản Windows (Cách ly tuyệt đối)")}
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={formWindowsUser}
+                  onChange={(e) => setFormWindowsUser(e.target.value)}
+                  placeholder={t(
+                    "instances.form.windowsUserPlaceholder",
+                    "Ví dụ: AntigravityPro (Để trống nếu dùng user hiện tại)",
+                  )}
+                />
+                <p className="form-hint">
+                  {t(
+                    "instances.form.windowsUserDesc",
+                    "Khởi chạy dưới một Windows User riêng biệt để cách ly hoàn toàn Windows Credential Manager và phiên đăng nhập.",
+                  )}
+                </p>
+              </div>
+
+              {formWindowsUser.trim() && (
+                <div className="form-group">
+                  <label>
+                    {t("instances.form.windowsPassword", "Mật khẩu Windows User")}
+                  </label>
+                  <input
+                    type="password"
+                    className="form-input"
+                    value={formWindowsPassword}
+                    onChange={(e) => setFormWindowsPassword(e.target.value)}
+                    placeholder={t(
+                      "instances.form.windowsPasswordPlaceholder",
+                      "Nhập mật khẩu của Windows User (nếu có)",
+                    )}
+                  />
+                  <p className="form-hint">
+                    {t(
+                      "instances.form.windowsPasswordDesc",
+                      "Dùng cho CreateProcessWithLogonW. Nếu để trống hoặc dùng runas /savecred, Windows sẽ lưu xác thực.",
+                    )}
+                  </p>
+                </div>
+              )}
 
               {isCodexApp && editing && (
                 <div className="form-group instance-codex-quick-config">

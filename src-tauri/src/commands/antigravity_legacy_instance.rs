@@ -14,7 +14,7 @@ fn is_profile_initialized(user_data_dir: &str) -> bool {
 
 fn resolve_default_account_id(settings: &DefaultInstanceSettings) -> Option<String> {
     if settings.follow_local_account {
-        resolve_local_account_id().or_else(|| modules::get_current_account_id().ok().flatten())
+        resolve_local_account_id()
     } else {
         settings.bind_account_id.clone()
     }
@@ -128,6 +128,7 @@ pub async fn antigravity_legacy_list_instances() -> Result<Vec<InstanceProfileVi
         initialized: modules::antigravity_legacy_instance::is_profile_initialized(&default_dir),
         is_default: true,
         follow_local_account: default_settings.follow_local_account,
+        windows_user: default_settings.windows_user.clone(),
     });
 
     Ok(result)
@@ -141,6 +142,8 @@ pub async fn antigravity_legacy_create_instance(
     bind_account_id: Option<String>,
     copy_source_instance_id: Option<String>,
     init_mode: Option<String>,
+    windows_user: Option<String>,
+    windows_password: Option<String>,
 ) -> Result<InstanceProfileView, String> {
     let instance = modules::antigravity_legacy_instance::create_instance(
         modules::antigravity_legacy_instance::CreateInstanceParams {
@@ -151,6 +154,8 @@ pub async fn antigravity_legacy_create_instance(
             bind_account_id,
             copy_source_instance_id,
             init_mode,
+            windows_user,
+            windows_password,
         },
     )?;
 
@@ -169,6 +174,8 @@ pub async fn antigravity_legacy_update_instance(
     extra_args: Option<String>,
     bind_account_id: Option<Option<String>>,
     follow_local_account: Option<bool>,
+    windows_user: Option<Option<String>>,
+    windows_password: Option<Option<String>>,
 ) -> Result<InstanceProfileView, String> {
     if instance_id == DEFAULT_INSTANCE_ID {
         let default_dir = modules::antigravity_legacy_instance::get_default_user_data_dir()?;
@@ -177,6 +184,8 @@ pub async fn antigravity_legacy_update_instance(
             bind_account_id,
             extra_args,
             follow_local_account,
+            windows_user,
+            windows_password,
         )?;
         let running = updated
             .last_pid
@@ -197,6 +206,7 @@ pub async fn antigravity_legacy_update_instance(
             initialized: modules::antigravity_legacy_instance::is_profile_initialized(&default_dir),
             is_default: true,
             follow_local_account: updated.follow_local_account,
+            windows_user: updated.windows_user,
         });
     }
 
@@ -223,6 +233,8 @@ pub async fn antigravity_legacy_update_instance(
             name,
             extra_args,
             bind_account_id,
+            windows_user,
+            windows_password,
         },
     )?;
 
@@ -277,7 +289,12 @@ pub async fn antigravity_legacy_start_instance(
             )?;
         }
         let extra_args = modules::process::parse_extra_args(&default_settings.extra_args);
-        let pid = modules::process::start_antigravity_legacy_with_args("", &extra_args)?;
+        let pid = modules::process::start_antigravity_legacy_with_options(
+            "",
+            &extra_args,
+            default_settings.windows_user.as_deref(),
+            default_settings.windows_password.as_deref(),
+        )?;
         let _ = modules::antigravity_legacy_instance::update_default_pid(Some(pid))?;
         let running = modules::process::is_pid_running(pid);
         return Ok(InstanceProfileView {
@@ -294,6 +311,7 @@ pub async fn antigravity_legacy_start_instance(
             initialized: modules::antigravity_legacy_instance::is_profile_initialized(&default_dir),
             is_default: true,
             follow_local_account: default_settings.follow_local_account,
+            windows_user: default_settings.windows_user,
         });
     }
 
@@ -327,8 +345,12 @@ pub async fn antigravity_legacy_start_instance(
     }
 
     let extra_args = modules::process::parse_extra_args(&instance.extra_args);
-    let pid =
-        modules::process::start_antigravity_legacy_with_args(&instance.user_data_dir, &extra_args)?;
+    let pid = modules::process::start_antigravity_legacy_with_options(
+        &instance.user_data_dir,
+        &extra_args,
+        instance.windows_user.as_deref(),
+        instance.windows_password.as_deref(),
+    )?;
     let updated =
         modules::antigravity_legacy_instance::update_instance_after_start(&instance.id, pid)?;
     let running = modules::process::is_pid_running(pid);
@@ -374,6 +396,7 @@ pub async fn antigravity_legacy_stop_instance(
             initialized: modules::antigravity_legacy_instance::is_profile_initialized(&default_dir),
             is_default: true,
             follow_local_account: default_settings.follow_local_account,
+            windows_user: default_settings.windows_user,
         });
     }
 

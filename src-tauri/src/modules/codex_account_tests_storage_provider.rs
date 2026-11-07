@@ -1781,6 +1781,8 @@ supports_websockets = false
             created_at: now_timestamp(),
             last_launched_at: None,
             last_pid: None,
+        windows_user: None,
+        windows_password: None,
         });
         crate::modules::codex_instance::save_instance_store(&store)
             .expect("save unbound instance store");
@@ -1846,6 +1848,8 @@ supports_websockets = false
             created_at: now_timestamp(),
             last_launched_at: None,
             last_pid: None,
+        windows_user: None,
+        windows_password: None,
         });
         crate::modules::codex_instance::save_instance_store(&store)
             .expect("save legacy instance store");

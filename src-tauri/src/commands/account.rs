@@ -350,6 +350,8 @@ pub async fn set_current_account(
                 Some(Some(account_id.clone())),
                 None,
                 Some(false),
+                None,
+                None,
             )?;
         }
         AntigravityRuntimeTarget::Ide => {
@@ -357,6 +359,8 @@ pub async fn set_current_account(
                 Some(Some(account_id.clone())),
                 None,
                 Some(false),
+                None,
+                None,
             )?;
         }
     }
@@ -584,6 +588,8 @@ pub async fn switch_account(
         Some(Some(account_id.clone())),
         None,
         Some(false),
+        None,
+        None,
     ) {
         modules::logger::log_warn(&format!("更新 Antigravity IDE 默认实例绑定账号失败: {}", e));
     } else {

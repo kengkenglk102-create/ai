@@ -97,11 +97,6 @@ import {
   hydrateUserMemory,
   USER_MEMORY_FLAGS,
 } from './utils/userMemory';
-import {
-  clearLegacyWorkbuddyAutoCheckinLogs,
-  getWorkbuddyAutoCheckinConfig,
-  migrateWorkbuddyAutoCheckinConfigAsync,
-} from './services/workbuddyAutoCheckinService';
 import { prepareCodexLocalAccessForRestart } from './services/codexLocalAccessService';
 import { applyReducedMotion } from './utils/reducedMotion';
 import { isCodexInstanceAccountConflict } from './utils/codexInstanceLaunchConflict';
@@ -131,47 +126,6 @@ const CodexAccountsPage = lazy(() =>
 const CodexApiServicePage = lazy(() =>
   import('./pages/CodexApiServicePage').then((module) => ({ default: module.CodexApiServicePage })),
 );
-const ClaudeAccountsPage = lazy(() =>
-  import('./pages/ClaudeAccountsPage').then((module) => ({ default: module.ClaudeAccountsPage })),
-);
-const GitHubCopilotAccountsPage = lazy(() =>
-  import('./pages/GitHubCopilotAccountsPage').then((module) => ({
-    default: module.GitHubCopilotAccountsPage,
-  })),
-);
-const WindsurfAccountsPage = lazy(() =>
-  import('./pages/WindsurfAccountsPage').then((module) => ({ default: module.WindsurfAccountsPage })),
-);
-const KiroAccountsPage = lazy(() =>
-  import('./pages/KiroAccountsPage').then((module) => ({ default: module.KiroAccountsPage })),
-);
-const CursorAccountsPage = lazy(() =>
-  import('./pages/CursorAccountsPage').then((module) => ({ default: module.CursorAccountsPage })),
-);
-const GrokAccountsPage = lazy(() =>
-  import('./pages/GrokAccountsPage').then((module) => ({ default: module.GrokAccountsPage })),
-);
-const CodebuddyAccountsPage = lazy(() =>
-  import('./pages/CodebuddyAccountsPage').then((module) => ({ default: module.CodebuddyAccountsPage })),
-);
-const CodebuddyCnAccountsPage = lazy(() =>
-  import('./pages/CodebuddyCnAccountsPage').then((module) => ({ default: module.CodebuddyCnAccountsPage })),
-);
-const QoderAccountsPage = lazy(() =>
-  import('./pages/QoderAccountsPage').then((module) => ({ default: module.QoderAccountsPage })),
-);
-const ZcodeAccountsPage = lazy(() =>
-  import('./pages/ZcodeAccountsPage').then((module) => ({ default: module.ZcodeAccountsPage })),
-);
-const TraeAccountsPage = lazy(() =>
-  import('./pages/TraeAccountsPage').then((module) => ({ default: module.TraeAccountsPage })),
-);
-const WorkbuddyAccountsPage = lazy(() =>
-  import('./pages/WorkbuddyAccountsPage').then((module) => ({ default: module.WorkbuddyAccountsPage })),
-);
-const ZedAccountsPage = lazy(() =>
-  import('./pages/ZedAccountsPage').then((module) => ({ default: module.ZedAccountsPage })),
-);;
 const WakeupTasksPage = lazy(() =>
   import('./pages/WakeupTasksPage').then((module) => ({ default: module.WakeupTasksPage })),
 );
@@ -222,24 +176,7 @@ const RENDERABLE_PAGE_VALUES: readonly Page[] = [
   'api-relay',
   'overview',
   'codex',
-  'claude',
-  'claude-cli',
   'codex-api-service',
-  'github-copilot',
-  'windsurf',
-  'kiro',
-  'cursor',
-  'grok',
-  'codebuddy',
-  'codebuddy-cn',
-  'qoder',
-  'zcode',
-  'trae',
-  'trae-solo',
-  'trae-cn',
-  'trae-solo-cn',
-  'workbuddy',
-  'zed',
   'instances',
   'wakeup',
   'verification',
@@ -1275,7 +1212,6 @@ function MainApp() {
   useEffect(() => {
     const handleSponsorRoutesUpdated = () => {
       void useCodexAccountStore.getState().fetchAccounts();
-      void useClaudeAccountStore.getState().fetchAccounts();
     };
     window.addEventListener('sponsor-routes-updated', handleSponsorRoutesUpdated);
     return () => {
@@ -2285,14 +2221,6 @@ function MainApp() {
         window.clearInterval(intervalId);
       }
     };
-  }, []);
-
-  // 将旧版本保存在 WebView localStorage 中的设置迁移到 Rust 后台调度器。
-  useEffect(() => {
-    clearLegacyWorkbuddyAutoCheckinLogs();
-    void migrateWorkbuddyAutoCheckinConfigAsync(getWorkbuddyAutoCheckinConfig()).catch((err) => {
-      console.warn('[WorkbuddyAutoCheckin] 迁移旧版自动签到配置失败:', err);
-    });
   }, []);
 
   // Check for updates on startup
@@ -3912,57 +3840,6 @@ function MainApp() {
               </div>
             </Suspense>
           )}
-          <VisibleBootPage when={page === 'claude'}>
-            <ClaudeAccountsPage subPlatform="desktop" />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'claude-cli'}>
-            <ClaudeAccountsPage subPlatform="cli" />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'github-copilot'}>
-            <GitHubCopilotAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'windsurf'}>
-            <WindsurfAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'kiro'}>
-            <KiroAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'cursor'}>
-            <CursorAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'grok'}>
-            <GrokAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'codebuddy'}>
-            <CodebuddyAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'codebuddy-cn'}>
-            <CodebuddyCnAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'qoder'}>
-            <QoderAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'zcode'}>
-            <ZcodeAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'trae'}>
-            <TraeAccountsPage platformId="trae" />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'trae-solo'}>
-            <TraeAccountsPage platformId="trae_solo" />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'trae-cn'}>
-            <TraeAccountsPage platformId="trae_cn" />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'trae-solo-cn'}>
-            <TraeAccountsPage platformId="trae_solo_cn" />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'workbuddy'}>
-            <WorkbuddyAccountsPage />
-          </VisibleBootPage>
-          <VisibleBootPage when={page === 'zed'}>
-            <ZedAccountsPage />
-          </VisibleBootPage>
           <VisibleBootPage when={page === 'instances'}>
             <InstancesPage onNavigate={setPage} />
           </VisibleBootPage>

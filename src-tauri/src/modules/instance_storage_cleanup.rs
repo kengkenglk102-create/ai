@@ -985,7 +985,7 @@ mod tests {
         let path = fixture.root().root.join("imported");
         fs::create_dir_all(&path).unwrap();
         fs::write(path.join("keep.txt"), "user content").unwrap();
-        let params = crate::modules::instance_store::CreateInstanceParams {
+        let params = crate::modules::instance::CreateInstanceParams {
             name: "Imported".into(),
             user_data_dir: path.to_string_lossy().into_owned(),
             working_dir: None,
@@ -993,6 +993,8 @@ mod tests {
             bind_account_id: None,
             copy_source_instance_id: None,
             init_mode: Some("existing_dir".into()),
+            windows_user: None,
+            windows_password: None,
         };
         let imported = modules::instance::create_instance(params.clone()).unwrap();
         assert!(modules::instance_directory_ownership::owner(&path)
@@ -1006,7 +1008,7 @@ mod tests {
             .is_empty());
         let created_path = fixture.root().root.join("created");
         let created = modules::instance::create_instance(
-            crate::modules::instance_store::CreateInstanceParams {
+            crate::modules::instance::CreateInstanceParams {
                 name: "Created".into(),
                 user_data_dir: created_path.to_string_lossy().into_owned(),
                 init_mode: Some("empty".into()),
@@ -1370,6 +1372,8 @@ mod tests {
                 bind_account_id: None,
                 copy_source_instance_id: None,
                 init_mode: Some("existing_dir".into()),
+                windows_user: None,
+                windows_password: None,
             })
             .unwrap();
 

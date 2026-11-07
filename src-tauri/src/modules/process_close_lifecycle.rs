@@ -1180,10 +1180,184 @@ pub fn start_antigravity() -> Result<u32, String> {
     start_antigravity_with_args("", &[])
 }
 
+#[cfg(target_os = "windows")]
+fn spawn_windows_process_with_user(
+    launch_path: &std::path::Path,
+    user_data_dir: &str,
+    extra_args: &[String],
+    windows_user: &str,
+    windows_password: Option<&str>,
+) -> Result<u32, String> {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+    use std::ptr;
+
+    let username = windows_user.trim();
+    if username.is_empty() {
+        return Err("Windows 用户名不能为空".to_string());
+    }
+
+    if let Some(pwd) = windows_password.filter(|p| !p.is_empty()) {
+        #[repr(C)]
+        struct StartupInfoW {
+            cb: u32,
+            lp_reserved: *mut u16,
+            lp_desktop: *mut u16,
+            lp_title: *mut u16,
+            dw_x: u32,
+            dw_y: u32,
+            dw_x_size: u32,
+            dw_y_size: u32,
+            dw_x_count_chars: u32,
+            dw_y_count_chars: u32,
+            dw_fill_attribute: u32,
+            dw_flags: u32,
+            w_show_window: u16,
+            cb_reserved2: u16,
+            lp_reserved2: *mut u8,
+            h_std_input: usize,
+            h_std_output: usize,
+            h_std_error: usize,
+        }
+
+        #[repr(C)]
+        struct ProcessInformation {
+            h_process: usize,
+            h_thread: usize,
+            dw_process_id: u32,
+            dw_thread_id: u32,
+        }
+
+        #[link(name = "advapi32")]
+        extern "system" {
+            fn CreateProcessWithLogonW(
+                lp_username: *const u16,
+                lp_domain: *const u16,
+                lp_password: *const u16,
+                dw_logon_flags: u32,
+                lp_application_name: *const u16,
+                lp_command_line: *mut u16,
+                dw_creation_flags: u32,
+                lp_environment: *const std::ffi::c_void,
+                lp_current_directory: *const u16,
+                lp_startup_info: *const StartupInfoW,
+                lp_process_information: *mut ProcessInformation,
+            ) -> i32;
+        }
+
+        #[link(name = "kernel32")]
+        extern "system" {
+            fn CloseHandle(h_object: usize) -> i32;
+        }
+
+        const LOGON_WITH_PROFILE: u32 = 0x00000001;
+
+        let to_wide = |s: &str| -> Vec<u16> {
+            OsStr::new(s).encode_wide().chain(std::iter::once(0)).collect()
+        };
+
+        let user_wide = to_wide(username);
+        let domain_wide = to_wide(".");
+        let pass_wide = to_wide(pwd);
+        let app_str = launch_path.to_string_lossy();
+        let app_wide = to_wide(&app_str);
+
+        let mut cmd_str = format!("\"{}\"", app_str);
+        if !user_data_dir.trim().is_empty() {
+            cmd_str.push_str(&format!(" --user-data-dir \"{}\"", user_data_dir.trim()));
+        }
+        cmd_str.push_str(" --reuse-window");
+        for arg in extra_args {
+            if !arg.trim().is_empty() {
+                cmd_str.push_str(&format!(" \"{}\"", arg.trim()));
+            }
+        }
+        let mut cmd_wide: Vec<u16> =
+            OsStr::new(&cmd_str).encode_wide().chain(std::iter::once(0)).collect();
+
+        let mut startup_info: StartupInfoW = unsafe { std::mem::zeroed() };
+        startup_info.cb = std::mem::size_of::<StartupInfoW>() as u32;
+
+        let mut proc_info: ProcessInformation = unsafe { std::mem::zeroed() };
+
+        let success = unsafe {
+            CreateProcessWithLogonW(
+                user_wide.as_ptr(),
+                domain_wide.as_ptr(),
+                pass_wide.as_ptr(),
+                LOGON_WITH_PROFILE,
+                app_wide.as_ptr(),
+                cmd_wide.as_mut_ptr(),
+                0,
+                ptr::null(),
+                ptr::null(),
+                &startup_info,
+                &mut proc_info,
+            )
+        };
+
+        if success != 0 {
+            unsafe {
+                if proc_info.h_process != 0 {
+                    CloseHandle(proc_info.h_process);
+                }
+                if proc_info.h_thread != 0 {
+                    CloseHandle(proc_info.h_thread);
+                }
+            }
+            crate::modules::logger::log_info(&format!(
+                "[WindowsLogon] 成功通过 CreateProcessWithLogonW 启动用户 {} (PID={})",
+                username, proc_info.dw_process_id
+            ));
+            return Ok(proc_info.dw_process_id);
+        }
+
+        let err = std::io::Error::last_os_error();
+        crate::modules::logger::log_warn(&format!(
+            "[WindowsLogon] CreateProcessWithLogonW 失败 ({})，回退尝试 runas /savecred",
+            err
+        ));
+    }
+
+    let mut args_part = String::new();
+    if !user_data_dir.trim().is_empty() {
+        args_part.push_str(&format!(" --user-data-dir \\\"{}\\\"", user_data_dir.trim()));
+    }
+    args_part.push_str(" --reuse-window");
+    for arg in extra_args {
+        if !arg.trim().is_empty() {
+            args_part.push_str(&format!(" \\\"{}\\\"", arg.trim()));
+        }
+    }
+    let command_str = format!("\\\"{}\\\"{}", launch_path.to_string_lossy(), args_part);
+
+    let mut cmd = Command::new("runas.exe");
+    cmd.args(["/savecred", &format!("/user:{}", username), &command_str]);
+    apply_managed_proxy_env_to_command(&mut cmd);
+    let child = spawn_command_with_trace(&mut cmd)
+        .map_err(|e| format!("启动 runas /savecred 失败: {}", e))?;
+    crate::modules::logger::log_info(&format!(
+        "[WindowsLogon] 已调用 runas /savecred 启动用户 {} (runas PID={})",
+        username,
+        child.id()
+    ));
+    Ok(child.id())
+}
+
 /// 启动 Antigravity IDE（支持 user-data-dir 与附加参数）
 pub fn start_antigravity_with_args(
     user_data_dir: &str,
     extra_args: &[String],
+) -> Result<u32, String> {
+    start_antigravity_with_options(user_data_dir, extra_args, None, None)
+}
+
+/// 启动 Antigravity IDE（支持指定 Windows 用户与密码）
+pub fn start_antigravity_with_options(
+    user_data_dir: &str,
+    extra_args: &[String],
+    windows_user: Option<&str>,
+    windows_password: Option<&str>,
 ) -> Result<u32, String> {
     crate::modules::logger::log_info("正在启动 Antigravity IDE...");
 
@@ -1194,6 +1368,8 @@ pub fn start_antigravity_with_args(
 
     #[cfg(target_os = "macos")]
     {
+        let _ = windows_user;
+        let _ = windows_password;
         let app_root = resolve_macos_app_root_from_config("antigravity").or_else(|| {
             launch_path
                 .as_ref()
@@ -1238,10 +1414,14 @@ pub fn start_antigravity_with_args(
     {
         use std::os::windows::process::CommandExt;
 
-        if user_data_dir.trim().is_empty() && extra_args.is_empty() {
-            if let Ok(Some(pid)) = try_launch_via_shortcut("antigravity ide") {
-                return Ok(pid);
-            }
+        if let Some(user) = windows_user.filter(|u| !u.trim().is_empty()) {
+            return spawn_windows_process_with_user(
+                &launch_path,
+                user_data_dir,
+                extra_args,
+                user,
+                windows_password,
+            );
         }
 
         let launch_path = normalize_actual_path_case(&launch_path);
@@ -1257,6 +1437,19 @@ pub fn start_antigravity_with_args(
                 .stderr(Stdio::null());
         } else {
             cmd.creation_flags(0x08000000);
+        }
+        let effective_dir = if !user_data_dir.trim().is_empty() {
+            Some(std::path::PathBuf::from(user_data_dir.trim()))
+        } else {
+            crate::modules::antigravity_paths::default_user_data_dir().ok()
+        };
+        if let Some(ref dir) = effective_dir {
+            if let Ok(user_home) =
+                crate::modules::antigravity_credential::prepare_isolated_antigravity_user_home(dir, None)
+            {
+                cmd.env("USERPROFILE", &user_home);
+                cmd.env("HOME", &user_home);
+            }
         }
         if !user_data_dir.trim().is_empty() {
             cmd.arg("--user-data-dir");
@@ -1313,12 +1506,23 @@ pub fn start_antigravity_legacy_with_args(
     user_data_dir: &str,
     extra_args: &[String],
 ) -> Result<u32, String> {
+    start_antigravity_legacy_with_options(user_data_dir, extra_args, None, None)
+}
+
+pub fn start_antigravity_legacy_with_options(
+    user_data_dir: &str,
+    extra_args: &[String],
+    windows_user: Option<&str>,
+    windows_password: Option<&str>,
+) -> Result<u32, String> {
     crate::modules::logger::log_info("正在启动 Antigravity...");
 
     let launch_path = resolve_antigravity_legacy_launch_path()?;
 
     #[cfg(target_os = "macos")]
     {
+        let _ = windows_user;
+        let _ = windows_password;
         let app_root = normalize_macos_app_root(&launch_path)
             .ok_or_else(|| app_path_missing_error("antigravity"))?;
         let user_data_dir_trimmed = user_data_dir.trim();
@@ -1358,10 +1562,14 @@ pub fn start_antigravity_legacy_with_args(
     {
         use std::os::windows::process::CommandExt;
 
-        if user_data_dir.trim().is_empty() && extra_args.is_empty() {
-            if let Ok(Some(pid)) = try_launch_via_shortcut("antigravity") {
-                return Ok(pid);
-            }
+        if let Some(user) = windows_user.filter(|u| !u.trim().is_empty()) {
+            return spawn_windows_process_with_user(
+                &launch_path,
+                user_data_dir,
+                extra_args,
+                user,
+                windows_password,
+            );
         }
 
         let launch_path = normalize_actual_path_case(&launch_path);
@@ -1377,6 +1585,19 @@ pub fn start_antigravity_legacy_with_args(
                 .stderr(Stdio::null());
         } else {
             cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+        let effective_dir = if !user_data_dir.trim().is_empty() {
+            Some(std::path::PathBuf::from(user_data_dir.trim()))
+        } else {
+            crate::modules::antigravity_paths::legacy_default_user_data_dir().ok()
+        };
+        if let Some(ref dir) = effective_dir {
+            if let Ok(user_home) =
+                crate::modules::antigravity_credential::prepare_isolated_antigravity_user_home(dir, None)
+            {
+                cmd.env("USERPROFILE", &user_home);
+                cmd.env("HOME", &user_home);
+            }
         }
         if !user_data_dir.trim().is_empty() {
             cmd.arg("--user-data-dir");

@@ -816,7 +816,8 @@
       "pendingInit": "初期化待ち（先に一度起動してください）",
       "quota": "クォータ",
       "lastLaunched": "最終起動",
-      "argsPresent": "引数あり"
+      "argsPresent": "引数あり",
+      "windowsUserTooltip": "独立したWindowsユーザーで起動: {{user}}"
     },
     "columns": {
       "instance": "インスタンス",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "保存しました。次回 Cockpit から Codex を起動したときに反映され、現在のセッションは変更されません。",
         "restartRollbackFailed": "新しいルートの起動に失敗し、元の設定を再起動できませんでした: ",
         "restartRolledBack": "新しいルートの起動に失敗しました。元の設定が復元され、Codex が再起動されました: {{error}}"
-      }
+      },
+      "windowsUser": "Windowsユーザー (完全分離)",
+      "windowsUserPlaceholder": "例: AntigravityUser (現在のユーザーの場合は空白)",
+      "windowsUserDesc": "独立したWindowsユーザー下で起動し、Windows資格情報マネージャーとログインセッションを完全に分離します。",
+      "windowsPassword": "Windowsユーザーパスワード",
+      "windowsPasswordPlaceholder": "Windowsユーザーパスワードを入力 (設定されている場合)",
+      "windowsPasswordDesc": "CreateProcessWithLogonWに使用されます。空白のままにするかrunas /savecredを使用すると、Windowsは資格情報をキャッシュします。"
     },
     "quota": {
       "unbound": "紐付けアカウントなし",

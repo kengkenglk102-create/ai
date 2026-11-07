@@ -868,6 +868,8 @@ mod tests {
                 model_routing: None, launch_mode: InstanceLaunchMode::App,
                 app_speed: CodexAppSpeed::Standard, created_at: 1,
                 last_launched_at: None, last_pid: None,
+            windows_user: None,
+            windows_password: None,
             });
         }
         modules::codex_instance::save_instance_store(&store).unwrap();
@@ -1024,6 +1026,8 @@ mod tests {
             created_at: 0,
             last_launched_at: None,
             last_pid: None,
+        windows_user: None,
+        windows_password: None,
         };
 
         let view = created_instance_view_after_binding(
@@ -1072,6 +1076,8 @@ mod tests {
             created_at: 1,
             last_launched_at: None,
             last_pid: None,
+        windows_user: None,
+        windows_password: None,
         });
         modules::codex_instance::save_instance_store(&store).expect("save instance store");
 
@@ -1138,6 +1144,8 @@ mod tests {
             created_at: 1,
             last_launched_at: None,
             last_pid: None,
+        windows_user: None,
+        windows_password: None,
         });
         modules::codex_instance::save_instance_store(&store).expect("save instance store");
         profile_dir
@@ -1172,6 +1180,8 @@ mod tests {
             created_at: 1,
             last_launched_at: None,
             last_pid: Some(pid),
+        windows_user: None,
+        windows_password: None,
         };
         let profiles = vec![
             profile("active", true, 11),
@@ -1360,6 +1370,8 @@ mod tests {
                 created_at: 1,
                 last_launched_at: None,
                 last_pid: None,
+            windows_user: None,
+            windows_password: None,
             });
         }
         modules::codex_instance::save_instance_store(&store).expect("save instance store");

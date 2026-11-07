@@ -816,7 +816,8 @@
       "pendingInit": "Warten auf Initialisierung (zuerst einmal starten)",
       "quota": "Quote",
       "lastLaunched": "Zuletzt gestartet",
-      "argsPresent": "Vorhanden"
+      "argsPresent": "Vorhanden",
+      "windowsUserTooltip": "Wird ausgeführt unter Windows-Benutzer: {{user}}"
     },
     "columns": {
       "instance": "Instanz",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Gespeichert. Die Änderung wird beim nächsten Start von Codex über Cockpit wirksam; die aktuelle Sitzung bleibt unverändert.",
         "restartRollbackFailed": "Die neue Route konnte nicht gestartet werden und die ursprüngliche Konfiguration konnte nicht neu gestartet werden: ",
         "restartRolledBack": "Die neue Route konnte nicht gestartet werden. Die ursprüngliche Konfiguration wurde wiederhergestellt und Codex neu gestartet: {{error}}"
-      }
+      },
+      "windowsUser": "Windows-Benutzer (Absolute Isolation)",
+      "windowsUserPlaceholder": "z.B. AntigravityUser (Leer lassen für aktuellen Benutzer)",
+      "windowsUserDesc": "Starten Sie unter einem unabhängigen Windows-Benutzer, um die Windows-Anmeldeinformationsverwaltung und Anmeldesitzungen vollständig zu isolieren.",
+      "windowsPassword": "Windows-Benutzerkennwort",
+      "windowsPasswordPlaceholder": "Windows-Benutzerkennwort eingeben (falls festgelegt)",
+      "windowsPasswordDesc": "Verwendet für CreateProcessWithLogonW. Wenn leer gelassen oder runas /savecred verwendet wird, zwischenspeichert Windows die Anmeldeinformationen."
     },
     "quota": {
       "unbound": "Nicht gekoppelt",

@@ -99,15 +99,15 @@ test('only Codex and its API service are grouped by default and explicit layouts
     ];
     const old = {
       platformGroups: suites,
-      orderedEntryIds: ['group:codex-suite', 'platform:zed', 'group:trae-suite', 'group:antigravity-suite', 'group:codebuddy-suite'],
-      hiddenEntryIds: ['group:codex-suite'], sidebarEntryIds: ['group:trae-suite'],
+      orderedEntryIds: ['group:codex-suite', 'group:trae-suite', 'group:antigravity-suite', 'group:codebuddy-suite'],
+      hiddenEntryIds: ['group:codex-suite'], sidebarEntryIds: ['group:antigravity-suite'],
       apiRelayEntryOrder: 1,
     };
     const migrated = hydrate(old);
     assertDefaultGrouping(migrated);
-    assert.deepEqual(migrated.orderedEntryIds.slice(0, 2), ['group:codex-suite', 'platform:zed']);
+    assert.deepEqual(migrated.orderedEntryIds.slice(0, 3), ['group:codex-suite', 'platform:antigravity', 'platform:antigravity_ide']);
     assert.deepEqual(migrated.hiddenEntryIds, ['group:codex-suite']);
-    assert.deepEqual(migrated.sidebarEntryIds, ['platform:trae', 'platform:trae_solo', 'platform:trae_cn', 'platform:trae_solo_cn']);
+    assert.deepEqual(migrated.sidebarEntryIds, ['platform:antigravity', 'platform:antigravity_ide']);
     assert.equal(migrated.apiRelayEntryOrder, 1);
     assert.deepEqual(JSON.parse(storage.getItem(key)!), old, 'loading must not overwrite durable preferences');
 
@@ -137,7 +137,7 @@ test('only Codex and its API service are grouped by default and explicit layouts
     assert.deepEqual(hydrate(JSON.parse(storage.getItem(key)!)).platformGroups, [], 'a later explicit split must not be re-grouped');
     assertDefaultGrouping(hydrate({ platformGroups: suites, orderedEntryIds: 'invalid' }));
     const previewUpgrade = hydrate({ independentPlatformsMigrated: true, platformGroups: [],
-      orderedEntryIds: ['platform:codex', 'platform:codex_api_service', 'platform:zed'],
+      orderedEntryIds: ['platform:codex', 'platform:codex_api_service', 'platform:antigravity'],
       hiddenEntryIds: ['platform:codex_api_service'], sidebarEntryIds: ['platform:codex'], apiRelayEntryOrder: 2 });
     assertDefaultGrouping(previewUpgrade);
     assert.equal(previewUpgrade.orderedEntryIds[0], 'group:codex-suite');

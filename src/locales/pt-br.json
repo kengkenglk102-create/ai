@@ -816,7 +816,8 @@
       "pendingInit": "Aguardando inicialização (inicie uma vez primeiro)",
       "quota": "Cota",
       "lastLaunched": "Última execução",
-      "argsPresent": "Args definidos"
+      "argsPresent": "Args definidos",
+      "windowsUserTooltip": "Executando sob o usuário do Windows: {{user}}"
     },
     "columns": {
       "instance": "Instância",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "Salvo. A alteração será aplicada na próxima vez que você iniciar o Codex pelo Cockpit; a sessão atual permanecerá inalterada.",
         "restartRollbackFailed": "Falha ao iniciar a nova rota e a configuração original não pôde ser reiniciada: ",
         "restartRolledBack": "Falha ao iniciar a nova rota. A configuração original foi restaurada e o Codex foi reiniciado: {{error}}"
-      }
+      },
+      "windowsUser": "Usuário do Windows (Isolamento absoluto)",
+      "windowsUserPlaceholder": "ex.: AntigravityUser (Deixe em branco para o usuário atual)",
+      "windowsUserDesc": "Inicie sob um usuário independente do Windows para isolar completamente o Gerenciador de Credenciais do Windows e as sessões de login.",
+      "windowsPassword": "Senha do usuário do Windows",
+      "windowsPasswordPlaceholder": "Digite a senha do usuário do Windows (se definida)",
+      "windowsPasswordDesc": "Usado para CreateProcessWithLogonW. Se deixado em branco ou usando runas /savecred, o Windows armazenará as credenciais em cache."
     },
     "quota": {
       "unbound": "Conta não vinculada",

@@ -816,7 +816,8 @@
       "pendingInit": "待初始化（請先啟動一次）",
       "quota": "額度狀態",
       "lastLaunched": "最近啟動",
-      "argsPresent": "有參數"
+      "argsPresent": "有參數",
+      "windowsUserTooltip": "在獨立 Windows 使用者下啟動：{{user}}"
     },
     "columns": {
       "instance": "實例",
@@ -925,7 +926,13 @@
         "savedForNextLaunch": "已儲存，下次透過 Cockpit 啟動 Codex 時生效；目前工作階段維持不變。",
         "restartRollbackFailed": "新路由啟動失敗，恢復原配置後仍無法啟動：",
         "restartRolledBack": "新路由啟動失敗，已恢復原配置並重新啟動 Codex：{{error}}"
-      }
+      },
+      "windowsUser": "Windows 使用者（絕對隔離）",
+      "windowsUserPlaceholder": "例如：AntigravityUser（留空使用目前使用者）",
+      "windowsUserDesc": "在獨立的 Windows 使用者下啟動，徹底隔離 Windows 認證管理員與登入工作階段。",
+      "windowsPassword": "Windows 使用者密碼",
+      "windowsPasswordPlaceholder": "輸入 Windows 使用者密碼（如有）",
+      "windowsPasswordDesc": "用於 CreateProcessWithLogonW。若留空或使用 runas /savecred，Windows 將快取認證。"
     },
     "quota": {
       "unbound": "未綁定帳號",
