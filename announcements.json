@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "forceRefreshVersions": [],
+  "topRightAd": null,
+  "apiRelayEnabled": false,
+  "topRightAdsEnabled": false,
+  "topRightAds": [],
+  "sponsorModule": {
+    "enabled": false,
+    "entryVisible": false,
+    "sponsors": []
+  },
+  "announcements": []
+}

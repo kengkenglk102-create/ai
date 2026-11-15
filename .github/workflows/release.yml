@@ -1,0 +1,439 @@
+name: 📦 Release
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-release:
+    name: 📝 Prepare Staged Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.app_version.outputs.VERSION }}
+    env:
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: 🔍 Validate release ref
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        shell: bash
+        run: |
+          echo "Release runs must target a v* tag; received ${GITHUB_REF}."
+          exit 1
+
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📖 Read app version
+        id: app_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -e "console.log(require(require('path').join(process.env.GITHUB_WORKSPACE, 'package.json')).version)")"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: 🔍 Validate tag matches version
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_TAG="v${{ steps.app_version.outputs.VERSION }}"
+          if [ "${GITHUB_REF_NAME}" != "${EXPECTED_TAG}" ]; then
+            echo "Tag (${GITHUB_REF_NAME}) does not match package.json version (${EXPECTED_TAG})."
+            exit 1
+          fi
+
+      - name: 📝 Build bilingual release notes from changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.app_version.outputs.VERSION }}"
+
+          extract_section() {
+            local file="$1"
+            local version="$2"
+
+            awk -v version="$version" '
+              BEGIN {
+                capture = 0
+                found = 0
+              }
+
+              /^## / {
+                if (capture) {
+                  exit
+                }
+                if ($0 ~ ("^## \\[" version "\\][[:space:]]*-.*$") || $0 ~ ("^## \\[v" version "\\][[:space:]]*-.*$")) {
+                  capture = 1
+                  found = 1
+                }
+              }
+
+              capture {
+                if ($0 ~ /^---[[:space:]]*$/) {
+                  exit
+                }
+                print
+              }
+
+              END {
+                if (!found) {
+                  exit 2
+                }
+              }
+            ' "$file"
+          }
+
+          if ! zh_section="$(extract_section CHANGELOG.zh-CN.md "$VERSION")"; then
+            echo "Missing changelog section for version $VERSION in CHANGELOG.zh-CN.md"
+            exit 1
+          fi
+
+          if ! en_section="$(extract_section CHANGELOG.md "$VERSION")"; then
+            echo "Missing changelog section for version $VERSION in CHANGELOG.md"
+            exit 1
+          fi
+
+          {
+            echo "## 更新日志（中文）"
+            echo
+            printf '%s\n' "$zh_section"
+            echo
+            echo "## Changelog (English)"
+            echo
+            printf '%s\n' "$en_section"
+          } > release-notes.md
+
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > published-at.txt
+
+      - name: 🚀 Create or update draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${{ steps.app_version.outputs.VERSION }}"
+          TITLE="Cockpit Tools v${{ steps.app_version.outputs.VERSION }}"
+          if gh release view "${TAG}" > /dev/null 2>&1; then
+            IS_DRAFT="$(gh release view "${TAG}" --json isDraft --jq '.isDraft')"
+            if [ "${IS_DRAFT}" != "true" ]; then
+              echo "Release ${TAG} is already published; refusing to mutate a public release."
+              exit 1
+            fi
+            gh release edit "${TAG}" --title "${TITLE}" --notes-file release-notes.md
+          else
+            gh release create "${TAG}" --draft --title "${TITLE}" --notes-file release-notes.md
+          fi
+
+      - name: 📤 Upload release metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-metadata
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            release-notes.md
+            published-at.txt
+
+  build-windows:
+    name: "🏗️ Build: Windows"
+    needs: prepare-release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.prepare-release.outputs.version }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 🦀 Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          key: windows-release
+
+      - name: 🐹 Go setup
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: sidecars/cockpit-cliproxy/go.mod
+          cache-dependency-path: sidecars/cockpit-cliproxy/go.sum
+
+      - name: ⚙️ Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: 📦 Install frontend dependencies
+        run: npm install
+
+      - name: 🔄 Sync versions
+        run: npm run sync-version
+
+      - name: 💾 Cache Tauri tooling
+        uses: actions/cache@v4
+        with:
+          path: C:\Users\runneradmin\AppData\Local\tauri
+          key: tauri-deps-windows-latest-${{ hashFiles('package-lock.json', '**/Cargo.toml') }}
+          restore-keys: |
+            tauri-deps-windows-latest-
+
+      - name: 🏗️ Build Windows app
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          npx tauri build --ci
+
+      - name: 📦 Build Windows portable archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/build_windows_portable.cjs \
+            --version "${VERSION}" \
+            --release-dir "target/release" \
+            --output-dir "portable-assets"
+
+      - name: 📥 Download release metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: release-metadata
+          path: release-metadata
+
+      - name: 📦 Stage Windows release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/stage_release_assets.cjs \
+            --platform windows \
+            --assets-dir "target/release/bundle" \
+            --output-dir "release-assets"
+          cp portable-assets/* release-assets/
+
+      - name: 📤 Upload Windows release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+          shopt -s nullglob
+          ASSETS=(release-assets/*)
+          test "${#ASSETS[@]}" -gt 0
+          node scripts/release/upload_release_assets.cjs "${TAG}" "${ASSETS[@]}"
+          echo "Uploaded ${#ASSETS[@]} Windows assets"
+
+      - name: 📤 Build and upload Windows updater manifests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/build_target_latest_json.cjs \
+            --version "${VERSION}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --assets-dir "release-assets" \
+            --notes-file "release-metadata/release-notes.md" \
+            --published-at "$(cat release-metadata/published-at.txt)" \
+            --targets "windows-x86_64-msi,windows-x86_64-nsis" \
+            --output-dir "target-manifests"
+          node scripts/release/upload_release_assets.cjs "v${VERSION}" target-manifests/*.json
+
+  finalize-legacy-latest:
+    name: 🏁 Finalize Legacy Updater Manifest
+    # Wait for Windows build so latest.json is complete.
+    needs:
+      - prepare-release
+      - build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.prepare-release.outputs.version }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📥 Download release metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: release-metadata
+          path: release-metadata
+
+      - name: 📥 Download all release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          TAG="v${VERSION}"
+          downloaded="false"
+          for i in $(seq 1 30); do
+            if gh release download "${TAG}" --dir release-assets --pattern "*" --clobber; then
+              downloaded="true"
+              break
+            fi
+            echo "Release assets not ready yet (attempt $i/30). Sleeping 10s..."
+            sleep 10
+          done
+          if [ "${downloaded}" != "true" ]; then
+            echo "Failed to download release assets from ${TAG} after retries."
+            exit 1
+          fi
+
+      - name: 🏗️ Build complete legacy latest.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/build_merged_latest_json.cjs \
+            --version "${VERSION}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --assets-dir "release-assets" \
+            --notes-file "release-metadata/release-notes.md" \
+            --published-at "$(cat release-metadata/published-at.txt)" \
+            --output "latest.json"
+
+      - name: 🔍 Validate complete legacy latest.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -e '
+            .platforms["windows-x86_64"] and
+            .platforms["windows-x86_64-nsis"]
+          ' latest.json > /dev/null
+          jq -r '.platforms | keys[]' latest.json
+
+      - name: 📤 Upload complete legacy latest.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/upload_release_assets.cjs "v${VERSION}" latest.json
+
+  upload-checksums:
+    name: 🔗 Publish SHA256SUMS
+    needs:
+      - prepare-release
+      - finalize-legacy-latest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.prepare-release.outputs.version }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📥 Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          gh release download "v${VERSION}" --dir release-assets --pattern "*" --clobber
+
+      - name: ⚙️ Generate SHA256SUMS.txt from release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA256SUMS.txt
+          find . -type f -print0 \
+            | sort -z \
+            | while IFS= read -r -d '' file; do
+                shasum -a 256 "$file"
+              done \
+            | sed 's#  \./#  #' \
+            > ../SHA256SUMS.txt
+          cd ..
+          test -s SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: 📤 Upload SHA256SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/upload_release_assets.cjs "v${VERSION}" SHA256SUMS.txt
+
+  publish-release:
+    name: 🚀 Publish Verified Release
+    needs:
+      - prepare-release
+      - finalize-legacy-latest
+      - upload-checksums
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.prepare-release.outputs.version }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 🚀 Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+          IS_DRAFT="$(gh release view "${TAG}" --json isDraft --jq '.isDraft')"
+          if [ "${IS_DRAFT}" = "true" ]; then
+            gh release edit "${TAG}" --draft=false --prerelease=false --latest
+          elif [ "${IS_DRAFT}" = "false" ]; then
+            # Re-running this job after public verification failed must reach
+            # verification again without changing the already public release.
+            echo "Release ${TAG} is already public; continuing to verification."
+          else
+            echo "Unexpected draft state for release ${TAG}: ${IS_DRAFT}"
+            exit 1
+          fi
+
+      - name: 🔍 Verify complete published updater state
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/verify_published_updater_manifests.cjs \
+            --version "${VERSION}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --targets "windows-x86_64-msi,windows-x86_64-nsis" \
+            --legacy
+
