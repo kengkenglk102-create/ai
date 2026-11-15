@@ -169,3 +169,35 @@ test('AntigravityQuotaSection renders cachedNeedsReauth warning when isNeedsReau
   assert.doesNotMatch(htmlNormal, /quota-reauth-warning/);
 });
 
+test('AntigravityQuotaSection hides keys listed in hiddenKeys and shows empty message when all hidden', () => {
+  const items = getAntigravityQuotaDisplayItems(account([
+    model('3p-5h', 80),
+    model('3p-weekly', 90),
+    model('gemini-5h', 25),
+    model('gemini-weekly', 70),
+    model('gemini-argon-wtu-weekly', 91),
+  ]), []);
+
+  const htmlHiddenClaude = renderToStaticMarkup(
+    createElement(AntigravityQuotaSection, {
+      items,
+      hiddenKeys: new Set(['claude:5h', 'claude:weekly']),
+      t,
+    }),
+  );
+  assert.doesNotMatch(htmlHiddenClaude, /Claude \(5h\)/);
+  assert.doesNotMatch(htmlHiddenClaude, /Claude \(Weekly\)/);
+  assert.match(htmlHiddenClaude, /Gemini \(5h\)/);
+  assert.match(htmlHiddenClaude, /Gemini \(Weekly\)/);
+  assert.match(htmlHiddenClaude, /Gemini 4 Argon \(Weekly\)/);
+
+  const htmlAllHidden = renderToStaticMarkup(
+    createElement(AntigravityQuotaSection, {
+      items,
+      hiddenKeys: new Set(['claude:5h', 'claude:weekly', 'gemini:5h', 'gemini:weekly', 'argon:weekly']),
+      t,
+    }),
+  );
+  assert.match(htmlAllHidden, /Đã ẩn tất cả nhóm quota/);
+});
+

@@ -17,6 +17,10 @@ import { QuickSettingsPopover } from '../components/QuickSettingsPopover';
 import { MultiSelectFilterDropdown } from '../components/MultiSelectFilterDropdown';
 import { AccountTagFilterDropdown } from '../components/AccountTagFilterDropdown';
 import { getMfaOtpToken, loadSavedMfaRecords } from '../utils/mfaVault';
+import {
+  ANTIGRAVITY_QUOTA_BUCKET_OPTIONS,
+  filterVisibleAntigravityQuotaItems,
+} from '../utils/antigravityPreferences';
 import type { AccountsFilterType, useAccountsPageController } from "./AccountsPage";
 
 export type AccountsOverviewViewProps = ReturnType<typeof useAccountsPageController>;
@@ -206,8 +210,10 @@ export function AccountsOverviewView(props: AccountsOverviewViewProps) {
     tierFilterOptions,
     toggleFilterTypeValue,
     togglePrivacyMode,
+    toggleQuotaKeyVisibility,
     toggleSelectAll,
     toggleTagFilterValue,
+    hiddenQuotaKeys,
     tokenInput,
     updateEditingAccountNoteForm,
     verificationDetailMap,
@@ -476,6 +482,40 @@ export function AccountsOverviewView(props: AccountsOverviewViewProps) {
             >
               <X size={14} />
             </button>
+          </div>
+        )}
+
+        {!loading && accounts.length > 0 && viewMode !== 'compact' && (
+          <div
+            className="antigravity-quota-visibility-bar"
+            role="group"
+            aria-label={t('accounts.quotaVisibility.title', 'Hiển thị nhóm quota')}
+          >
+            <span className="antigravity-quota-visibility-label">
+              {t('accounts.quotaVisibility.label', 'Hiển thị quota:')}
+            </span>
+            <div className="antigravity-quota-visibility-chips">
+              {ANTIGRAVITY_QUOTA_BUCKET_OPTIONS.map((option) => {
+                const isHidden = hiddenQuotaKeys.has(option.key);
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    className={`antigravity-quota-visibility-chip ${isHidden ? 'is-hidden' : 'is-visible'}`}
+                    onClick={() => toggleQuotaKeyVisibility(option.key)}
+                    aria-pressed={!isHidden}
+                    title={
+                      isHidden
+                        ? t('accounts.quotaVisibility.clickToShow', 'Bấm để hiện')
+                        : t('accounts.quotaVisibility.clickToHide', 'Bấm để ẩn')
+                    }
+                  >
+                    {isHidden ? <EyeOff size={12} /> : <Eye size={12} />}
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -1399,11 +1439,22 @@ export function AccountsOverviewView(props: AccountsOverviewViewProps) {
                 </div>
                 <div className="modal-body">
                   {(() => {
-                    const quotaDisplayItems = getQuotaDisplayItems(account)
-                    if (quotaDisplayItems.length === 0) {
+                    const allQuotaItems = getQuotaDisplayItems(account)
+                    if (allQuotaItems.length === 0) {
                       return (
                         <div className="empty-state-small">
                           {t('overview.noQuotaData')}
+                        </div>
+                      )
+                    }
+                    const quotaDisplayItems = filterVisibleAntigravityQuotaItems(
+                      allQuotaItems,
+                      hiddenQuotaKeys,
+                    )
+                    if (quotaDisplayItems.length === 0) {
+                      return (
+                        <div className="empty-state-small">
+                          {t('accounts.quotaVisibility.allHidden', 'Đã ẩn tất cả nhóm quota')}
                         </div>
                       )
                     }

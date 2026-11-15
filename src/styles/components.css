@@ -321,8 +321,10 @@
 .toolbar-left {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
-  flex: 1;
+  flex: 1 1 280px;
+  min-width: 0;
 }
 
 .toolbar-right {
@@ -370,6 +372,7 @@
 .filter-tabs {
   display: flex;
   align-items: center;
+  max-width: 100%;
   background: rgba(255, 255, 255, 0.92);
   border-radius: var(--radius-md);
   padding: 6px;
@@ -540,7 +543,7 @@
 
 .page-tabs-row-with-leading {
   display: grid;
-  grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
   align-items: center;
   gap: 12px;
 }
@@ -557,6 +560,9 @@
   grid-column: 2;
   justify-self: center;
   max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .page-tabs-leading .platform-group-switcher-trigger {

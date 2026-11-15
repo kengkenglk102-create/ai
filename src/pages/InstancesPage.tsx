@@ -14,6 +14,10 @@ import {
   buildQuotaPreviewLines,
 } from '../presentation/platformAccountPresentation';
 import {
+  filterVisibleAntigravityQuotaItems,
+  useHiddenAntigravityQuotaKeys,
+} from '../utils/antigravityPreferences';
+import {
   ANTIGRAVITY_ACCOUNTS_SORT_BY_STORAGE_KEY,
   ANTIGRAVITY_ACCOUNTS_SORT_DIRECTION_STORAGE_KEY,
   createAntigravityAccountComparator,
@@ -35,6 +39,7 @@ export function InstancesPage({ onNavigate }: InstancesPageProps) {
   const { accounts, currentAccountsByTarget, fetchAccounts, fetchCurrentAccount } = useAccountStore();
   const currentAccount = currentAccountsByTarget[runtimeTarget] ?? null;
   const [displayGroups, setDisplayGroups] = useState<DisplayGroup[]>([]);
+  const [hiddenAgQuotaKeys] = useHiddenAntigravityQuotaKeys();
   const [sortBy] = useState(() =>
     normalizeAntigravitySortBy(
       localStorage.getItem(ANTIGRAVITY_ACCOUNTS_SORT_BY_STORAGE_KEY),
@@ -78,7 +83,11 @@ export function InstancesPage({ onNavigate }: InstancesPageProps) {
 
   const renderAccountQuotaPreview = (account: Account) => {
     const presentation = buildAntigravityAccountPresentation(account, displayGroups, t);
-    const lines = buildQuotaPreviewLines(presentation.quotaItems, 5);
+    const visibleItems = filterVisibleAntigravityQuotaItems(
+      presentation.quotaItems,
+      hiddenAgQuotaKeys,
+    );
+    const lines = buildQuotaPreviewLines(visibleItems, 5);
     if (lines.length === 0) {
       return <span className="account-quota-empty">{t('instances.quota.empty', '暂无配额缓存')}</span>;
     }

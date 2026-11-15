@@ -15,6 +15,7 @@ import {
   Terminal,
   Zap,
   X,
+  Eye,
   EyeOff,
 } from 'lucide-react';
 import { useEscClose } from '../hooks/useEscClose';
@@ -44,6 +45,10 @@ import {
   persistCodexPlanBadgeStyle,
   type CodexPlanBadgeStyle,
 } from '../utils/codexPreferences';
+import {
+  ANTIGRAVITY_QUOTA_BUCKET_OPTIONS,
+  useHiddenAntigravityQuotaKeys,
+} from '../utils/antigravityPreferences';
 import {
   FEATURE_UNLOCK_CHANGED_EVENT,
   type FeatureUnlockChangedDetail,
@@ -336,6 +341,8 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
   const [antigravitySeamlessSwitchUnlocked, setAntigravitySeamlessSwitchUnlocked] = useState(
     isAntigravitySeamlessSwitchFeatureUnlocked,
   );
+  const [hiddenAntigravityQuotaKeys, toggleAntigravityQuotaKeyVisibility] =
+    useHiddenAntigravityQuotaKeys();
   const modalRef = useRef<HTMLDivElement>(null);
   const configRef = useRef<GeneralConfig | null>(null);
   const configSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -2378,6 +2385,36 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
 	          )}
 
             
+            {/* ─── Antigravity: Quota visibility ─── */}
+            {type === 'antigravity' && (
+              <div className="qs-section">
+                <div className="qs-section-header">
+                  <Eye size={15} />
+                  <span>{t('accounts.quotaVisibility.title', 'Hiển thị nhóm quota')}</span>
+                </div>
+                {ANTIGRAVITY_QUOTA_BUCKET_OPTIONS.map((option) => {
+                  const isVisible = !hiddenAntigravityQuotaKeys.has(option.key);
+                  return (
+                    <div key={option.key} className="qs-row">
+                      <div className="qs-row-label">
+                        <span>{option.label}</span>
+                      </div>
+                      <div className="qs-row-control">
+                        <label className="qs-switch">
+                          <input
+                            type="checkbox"
+                            checked={isVisible}
+                            onChange={() => toggleAntigravityQuotaKeyVisibility(option.key)}
+                          />
+                          <span className="qs-switch-slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* ─── Antigravity: Auto-switch ─── */}
             {type === 'antigravity' && (
               <div className="qs-section qs-section--highlight">

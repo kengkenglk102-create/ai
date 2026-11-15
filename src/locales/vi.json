@@ -1294,7 +1294,7 @@
       "autoSwitchAccountScopeSelected": "Tài khoản đã chọn",
       "autoSwitchAccountScopeChoose": "Chọn tài khoản",
       "autoSwitchAccountScopeManage": "Quản lý tài khoản",
-      "autoSwitchAccountScopeAllSummary": "Phạm vi hiện tại: tất cả tài khoản (tổng {{total}})",
+      "autoSwitchAccountScopeAllSummary": "Tất cả tài khoản (tổng {{total}})",
       "autoSwitchAccountScopeSummary": "Đã chọn {{selected}} / {{total}} tài khoản",
       "autoSwitchAccountScopeDialogTitle": "Chọn phạm vi tài khoản để chuyển tự động",
       "autoSwitchAccountScopeAllHint": "Phạm vi hiện tại là tất cả tài khoản. {{total}} tài khoản sẽ tham gia chuyển tự động.",
@@ -2065,6 +2065,13 @@
     "compact": {
       "hide": "Ẩn",
       "show": "Hiển thị"
+    },
+    "quotaVisibility": {
+      "title": "Hiển thị nhóm quota",
+      "label": "Hiển thị quota:",
+      "clickToShow": "Bấm để hiện",
+      "clickToHide": "Bấm để ẩn",
+      "allHidden": "Đã ẩn tất cả nhóm quota"
     },
     "deleteConfirm": {
       "multi": "Xóa {{count}} tài khoản đã chọn?",

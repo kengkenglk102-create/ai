@@ -39,6 +39,10 @@ import { useInstanceStore } from '../stores/useInstanceStore';
 import { ALL_PLATFORM_IDS, isAccountPlatform, PLATFORM_PAGE_MAP, PlatformId } from '../types/platform';
 import type { InstanceProfile } from '../types/instance';
 import { isPrivacyModeEnabledByDefault, maskSensitiveValue } from '../utils/privacy';
+import {
+  filterVisibleAntigravityQuotaItems,
+  useHiddenAntigravityQuotaKeys,
+} from '../utils/antigravityPreferences';
 import { getPlatformLabel, renderPlatformIcon } from '../utils/platformMeta';
 import {
   getRecommendedAntigravityAccount,
@@ -142,6 +146,7 @@ export function FloatingCardWindow() {
   const appearance = useFloatingCardAppearance();
   const previousInstanceContextRef = useRef<FloatingCardInstanceContext | null>(null);
   const [displayGroups, setDisplayGroups] = useState<DisplayGroup[]>([]);
+  const [hiddenAgQuotaKeys] = useHiddenAntigravityQuotaKeys();
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId>(loadInitialPlatform);
   const [instanceContext, setInstanceContext] = useState<FloatingCardInstanceContext | null>(null);
   const [viewedAccountIds, setViewedAccountIds] = useState<Partial<Record<PlatformId, string | null>>>({});
@@ -673,7 +678,7 @@ export function FloatingCardWindow() {
   const quotaItems = presentation?.quotaItems ?? [];
   const visibleQuotaItems =
     selectedPlatform === 'antigravity' || selectedPlatform === 'antigravity_ide'
-      ? quotaItems
+      ? filterVisibleAntigravityQuotaItems(quotaItems, hiddenAgQuotaKeys)
       : quotaItems.slice(0, 2);
   const accountStateLabel = viewedAccount
     ? isCurrentViewed

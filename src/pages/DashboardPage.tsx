@@ -38,6 +38,10 @@ import { useAntigravityRuntimeTarget } from '../hooks/useAntigravityRuntimeTarge
 import { ManualHelpIconButton } from '../components/ManualHelpIconButton';
 import { AnnouncementCenter } from '../components/AnnouncementCenter';
 import { isPrivacyModeEnabledByDefault, maskSensitiveValue } from '../utils/privacy';
+import {
+  filterVisibleAntigravityQuotaItems,
+  useHiddenAntigravityQuotaKeys,
+} from '../utils/antigravityPreferences';
 import { DisplayGroup, getDisplayGroups } from '../services/groupService';
 import {
   buildAntigravityAccountPresentation,
@@ -195,6 +199,7 @@ export function DashboardPage({
     [privacyModeEnabled],
   );
   const [agDisplayGroups, setAgDisplayGroups] = React.useState<DisplayGroup[]>([]);
+  const [hiddenAgQuotaKeys] = useHiddenAntigravityQuotaKeys();
   const navigateToPlatform = useCallback((platformId: PlatformId) => {
     setAntigravityRuntimeTargetFromPlatform(platformId);
     onNavigate(PLATFORM_PAGE_MAP[platformId]);
@@ -672,7 +677,10 @@ export function DashboardPage({
     if (!account) return <div className="empty-slot">{t('dashboard.noAccount', '无账号')}</div>;
 
     const presentation = buildAntigravityAccountPresentation(account, agDisplayGroups, t);
-    const quotaDisplayItems = presentation.quotaItems.slice(0, 5);
+    const quotaDisplayItems = filterVisibleAntigravityQuotaItems(
+      presentation.quotaItems,
+      hiddenAgQuotaKeys,
+    ).slice(0, 5);
 
     return (
       <div className="account-mini-card">

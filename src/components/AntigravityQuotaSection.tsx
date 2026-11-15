@@ -6,6 +6,7 @@ interface Props {
   items: AgQuotaDisplayItem[];
   isList?: boolean;
   isNeedsReauth?: boolean;
+  hiddenKeys?: ReadonlySet<string>;
   t: TFunction;
 }
 
@@ -25,7 +26,12 @@ const FREE_BUCKET_WINDOWS: ReadonlyArray<{ key: string; label: string }> = [
 
 const BUCKET_KEYS = new Set(PAID_BUCKET_WINDOWS.map((window) => window.key));
 
-export function AntigravityQuotaSection({ items, isNeedsReauth = false, t }: Props) {
+export function AntigravityQuotaSection({
+  items,
+  isNeedsReauth = false,
+  hiddenKeys,
+  t,
+}: Props) {
   if (items.length === 0) {
     return (
       <div className="quota-empty" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
@@ -70,10 +76,14 @@ export function AntigravityQuotaSection({ items, isNeedsReauth = false, t }: Pro
     );
   };
 
+  const isVisible = (key: string) => !hiddenKeys?.has(key);
   const hasBuckets = items.some((item) => BUCKET_KEYS.has(item.key));
   const hasAny5h = items.some((item) => item.key.endsWith(':5h'));
-  const targetWindows = hasAny5h ? PAID_BUCKET_WINDOWS : FREE_BUCKET_WINDOWS;
-  const extraItems = items.filter((item) => !BUCKET_KEYS.has(item.key));
+  const targetWindows = (hasAny5h ? PAID_BUCKET_WINDOWS : FREE_BUCKET_WINDOWS).filter((window) =>
+    isVisible(window.key),
+  );
+  const extraItems = items.filter((item) => !BUCKET_KEYS.has(item.key) && isVisible(item.key));
+  const hasVisibleBars = (hasBuckets && targetWindows.length > 0) || extraItems.length > 0;
 
   return (
     <>
@@ -90,17 +100,23 @@ export function AntigravityQuotaSection({ items, isNeedsReauth = false, t }: Pro
             : t('common.shared.quota.cachedRefreshFailed')}
         </div>
       )}
-      <div className="codex-quota-mini-list">
-        {hasBuckets &&
-          targetWindows.map((window) =>
-            renderBar(
-              window.key,
-              window.label,
-              items.find((item) => item.key === window.key),
-            ),
-          )}
-        {extraItems.map((item) => renderBar(item.key, item.label, item))}
-      </div>
+      {hasVisibleBars ? (
+        <div className="codex-quota-mini-list">
+          {hasBuckets &&
+            targetWindows.map((window) =>
+              renderBar(
+                window.key,
+                window.label,
+                items.find((item) => item.key === window.key),
+              ),
+            )}
+          {extraItems.map((item) => renderBar(item.key, item.label, item))}
+        </div>
+      ) : (
+        <div className="quota-empty" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
+          {t('accounts.quotaVisibility.allHidden', 'Đã ẩn tất cả nhóm quota')}
+        </div>
+      )}
     </>
   );
 }

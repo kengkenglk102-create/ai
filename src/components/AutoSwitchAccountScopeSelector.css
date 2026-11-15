@@ -7,6 +7,7 @@
 
 .settings-account-scope--compact {
   width: auto;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -14,13 +15,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  max-width: 100%;
 }
 
 .settings-account-scope-compact-summary {
   font-size: 12px;
+  line-height: 1.4;
   color: var(--text-secondary);
-  white-space: nowrap;
+  white-space: normal;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .settings-account-scope-mode {
@@ -79,8 +85,9 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
+  line-height: 1.35;
   color: var(--text-primary);
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .settings-account-scope-search {
@@ -253,5 +260,6 @@
 
   .settings-account-scope-compact-summary {
     white-space: normal;
+    text-align: left;
   }
 }

@@ -2297,6 +2297,13 @@
       "hide": "Hide",
       "show": "Show"
     },
+    "quotaVisibility": {
+      "title": "Quota visibility",
+      "label": "Show quotas:",
+      "clickToShow": "Click to show",
+      "clickToHide": "Click to hide",
+      "allHidden": "All quota groups are hidden"
+    },
     "deleteConfirm": {
       "multi": "Delete {{count}} selected account(s)?",
       "single": "Delete this account?"

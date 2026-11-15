@@ -165,6 +165,10 @@ import {
   type VerificationHistoryBatch,
   type ViewMode,
 } from './antigravityAccountOverviewModel';
+import {
+  filterVisibleAntigravityQuotaItems,
+  useHiddenAntigravityQuotaKeys,
+} from '../utils/antigravityPreferences';
 
 
 interface AccountsPageProps {
@@ -681,7 +685,8 @@ export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
   // Compact view model sorting
   const [compactGroupOrder, setCompactGroupOrder] = useState<string[]>([])
   const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null)
-  const [hiddenGroups, setHiddenGroups] = useState<Set<string>>(new Set())
+  const [hiddenGroups, setHiddenGroups] = useState<Set<string>>(() => new Set(['claude_45']))
+  const [hiddenQuotaKeys, toggleQuotaKeyVisibility] = useHiddenAntigravityQuotaKeys()
   const [groupColors, setGroupColors] = useState<Record<string, number>>({})
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null)
   const [colorPickerPos, setColorPickerPos] = useState<{
@@ -1374,6 +1379,8 @@ export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
         } catch (e) {
           console.error('Failed to parse saved hidden groups:', e)
         }
+      } else {
+        setHiddenGroups(new Set(['claude_45']))
       }
     } catch (e) {
       console.error('Failed to load display groups:', e)
@@ -2864,6 +2871,7 @@ export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
       items={getQuotaDisplayItems(account)}
       isList={isList}
       isNeedsReauth={isAccountNeedsReauth(account, verificationStatusMap)}
+      hiddenKeys={hiddenQuotaKeys}
       t={t}
     />
   );
@@ -4023,8 +4031,11 @@ export function useAccountsPageController({ onNavigate }: AccountsPageProps) {
     tierFilterOptions,
     toggleFilterTypeValue,
     togglePrivacyMode,
+    toggleQuotaKeyVisibility,
     toggleSelectAll,
     toggleTagFilterValue,
+    hiddenQuotaKeys,
+    filterVisibleAntigravityQuotaItems,
     tokenInput,
     updateEditingAccountNoteForm,
     verificationDetailMap,
